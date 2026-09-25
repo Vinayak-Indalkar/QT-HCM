@@ -97,7 +97,8 @@ import {
   Filter,
   FileSpreadsheet,
   Tag,
-  SlidersHorizontal
+  SlidersHorizontal,
+  ChevronDown
 } from 'lucide-react';
 
 export type { ProfileTabId };
@@ -300,12 +301,29 @@ export interface EmployeeProfileViewProps {
 }
 
 export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
-  employee,
+  employee: initialEmployee,
   readOnly = false,
   onBack,
   onEmployeeUpdated,
   initialPrimaryTab = 'dashboard'
 }) => {
+  const { candidates } = useOnboarding();
+  const [selectedEmpId, setSelectedEmpId] = useState<string>(() => initialEmployee?.id || '');
+
+  useEffect(() => {
+    if (initialEmployee?.id) {
+      setSelectedEmpId(initialEmployee.id);
+    }
+  }, [initialEmployee?.id]);
+
+  const employee = useMemo(() => {
+    if (initialEmployee && candidates && candidates.length > 0 && selectedEmpId) {
+      const found = candidates.find((c) => c.id === selectedEmpId);
+      if (found) return found;
+    }
+    return initialEmployee;
+  }, [initialEmployee, candidates, selectedEmpId]);
+
   const [primaryTab, setPrimaryTab] = useState<'dashboard' | 'details'>(initialPrimaryTab);
   const { data: flowData, updatePersonalInfo, updatePhoto } = useOnboardingFlow();
   const { success: showToastSuccess, error: showToastError } = useToast();
@@ -2329,9 +2347,9 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
         </div>
       )}
 
-      {/* Top Bar for HR & Super Admin: Dashboard vs. Employee Details Switcher */}
+      {/* Top Bar for HR & Super Admin: Dashboard vs. Employee Details Switcher + Employee Selector Dropdown */}
       {canAccessDashboardTab && (
-        <div className="flex items-center justify-start p-2.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
           <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
             <button
               type="button"
@@ -2360,6 +2378,43 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
               <span>Employee Details</span>
             </button>
           </div>
+
+          {/* Employee Dropdown List */}
+          {candidates && candidates.length > 0 && (
+            <div className="flex items-center gap-2 px-1">
+              <label htmlFor="employee-switcher" className="text-xs font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-blue-500" />
+                <span>Select Employee:</span>
+              </label>
+              <div className="relative min-w-[220px] sm:min-w-[280px]">
+                <select
+                  id="employee-switcher"
+                  value={selectedEmpId}
+                  onChange={(e) => {
+                    const newId = e.target.value;
+                    setSelectedEmpId(newId);
+                    const found = candidates.find((c) => c.id === newId);
+                    if (found && onEmployeeUpdated) {
+                      onEmployeeUpdated(found);
+                    }
+                  }}
+                  className="w-full pl-3 pr-8 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer shadow-2xs appearance-none"
+                >
+                  {candidates.map((c) => {
+                    const fullName = c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.email;
+                    return (
+                      <option key={c.id} value={c.id}>
+                        {fullName} ({c.jobTitle || 'Team Member'} - {c.id})
+                      </option>
+                    );
+                  })}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400">
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
