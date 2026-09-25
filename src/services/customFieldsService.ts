@@ -55,6 +55,11 @@ export interface CustomProfileField {
   showInAddEmployee?: boolean;
   showInOnboarding?: boolean;
   showInProfile?: boolean;
+  // Computed & Query Engine
+  isComputed?: boolean;
+  queryType?: 'formula' | 'sql' | 'jql' | 'jsonpath';
+  computedQuery?: string;
+  fallbackValue?: any;
 }
 
 export interface StandardFieldConfig {
@@ -282,6 +287,10 @@ export interface AssetFieldConfig {
   allowedFormats?: string;
   maxFileSizeMB?: number;
   multipleFiles?: boolean;
+  isComputed?: boolean;
+  queryType?: 'formula' | 'sql' | 'jql' | 'jsonpath';
+  computedQuery?: string;
+  fallbackValue?: any;
 }
 
 const STORAGE_KEY_ASSET_FIELDS = 'quantira_asset_field_configs';

@@ -20,8 +20,12 @@ import {
   Hash,
   Palette,
   Check,
-  X
+  X,
+  Sparkles,
+  Calculator,
+  Code2
 } from 'lucide-react';
+import { evaluateCustomFieldQuery } from '../../services/queryEngineService';
 
 export interface DynamicCustomFieldInputProps {
   field: CustomProfileField | AssetFieldConfig | any;
@@ -53,14 +57,22 @@ export const DynamicCustomFieldInput: React.FC<DynamicCustomFieldInputProps> = (
   const helpText = field.helpText || '';
   const options: string[] = Array.isArray(field.options) ? field.options : [];
 
+  const isComputed = Boolean(field.isComputed && field.computedQuery);
+
   // Helper label wrapper
   const renderLabel = () => {
     if (!showLabel) return null;
     return (
       <div className="flex items-center justify-between gap-1.5 mb-1.5 text-left">
-        <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+        <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
           <span>{label}</span>
           {isRequired && <span className="text-rose-500 font-black">*</span>}
+          {isComputed && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+              <Sparkles className="w-2.5 h-2.5 text-amber-600" />
+              ⚡ Computed Query
+            </span>
+          )}
         </label>
         {helpText && (
           <span className="inline-flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-help" title={helpText}>
