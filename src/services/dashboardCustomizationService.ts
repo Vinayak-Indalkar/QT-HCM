@@ -396,6 +396,10 @@ export const getMasterDashlets = (): DashletConfig[] => {
             const s = savedMap.get(def.id)!;
             return {
               ...def,
+              title: s.title || def.title,
+              description: s.description !== undefined ? s.description : def.description,
+              category: s.category || def.category,
+              type: s.type || def.type,
               enabled: s.enabled !== undefined ? s.enabled : def.enabled,
               assignedRoles: s.assignedRoles && s.assignedRoles.length > 0 ? s.assignedRoles : def.assignedRoles,
               order: s.order !== undefined ? s.order : def.order,
@@ -428,6 +432,13 @@ export const saveMasterDashlets = (dashlets: DashletConfig[]): void => {
   } catch (err) {
     console.error('Error saving master dashlets catalog:', err);
   }
+};
+
+export const updateDashlet = (dashletId: string, updatedConfig: Partial<DashletConfig>): DashletConfig[] => {
+  const current = getMasterDashlets();
+  const updated = current.map((d) => (d.id === dashletId ? { ...d, ...updatedConfig } : d));
+  saveMasterDashlets(updated);
+  return updated;
 };
 
 export const toggleDashletEnabled = (dashletId: string, enabled: boolean): void => {

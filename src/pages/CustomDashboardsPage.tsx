@@ -9,9 +9,11 @@ import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Button } from '../components/atoms/Button';
 import { StatCard } from '../components/common/StatCard';
 import { DynamicDashletChart } from '../components/dashboard/DynamicDashletChart';
+import { ConfirmDialog } from '../components/organisms/ConfirmDialog';
 import {
   getMasterDashlets,
   saveMasterDashlets,
+  updateDashlet,
   toggleDashletEnabled,
   toggleDashletRole,
   addCustomDashlet,
@@ -126,8 +128,11 @@ export const CustomDashboardsPage: React.FC = () => {
     return candidates.find((c) => c.id === previewCandidateId) || candidates[0];
   }, [candidates, previewCandidateId]);
 
-  // On-Screen Creation Form State
+  // On-Screen Creation / Edit Form State
   const [isAddDashletOpen, setIsAddDashletOpen] = useState(false);
+  const [editingDashlet, setEditingDashlet] = useState<DashletConfig | null>(null);
+  const [deletingDashlet, setDeletingDashlet] = useState<DashletConfig | null>(null);
+
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newCategory, setNewCategory] = useState<'onboarding' | 'it' | 'compliance' | 'team' | 'custom'>('onboarding');
@@ -192,10 +197,46 @@ export const CustomDashboardsPage: React.FC = () => {
     setDashlets(ordered);
   };
 
-  const handleDeleteDashlet = (dashletId: string) => {
-    deleteDashlet(dashletId);
+  const handleOpenCreateDashlet = () => {
+    setEditingDashlet(null);
+    setNewTitle('');
+    setNewDesc('');
+    setNewCategory('onboarding');
+    setNewType('metric');
+    setNewChartType('bar');
+    setNewRoles(['SUPER_ADMIN', 'HR', 'KPI_DASHBOARD']);
+    setNewEnabled(true);
+    setNewValue('');
+    setNewSubtitle('');
+    setNewBadge('+15% vs Target');
+    setNewBadgePositive(true);
+    setNewIcon('Sparkles');
+    setIsAddDashletOpen(true);
+  };
+
+  const handleOpenEditDashlet = (dashlet: DashletConfig) => {
+    setEditingDashlet(dashlet);
+    setNewTitle(dashlet.title);
+    setNewDesc(dashlet.description);
+    setNewCategory(dashlet.category);
+    setNewType(dashlet.type);
+    setNewChartType(dashlet.chartType || 'bar');
+    setNewRoles([...dashlet.assignedRoles]);
+    setNewEnabled(dashlet.enabled);
+    setNewValue(dashlet.customData?.value || '');
+    setNewSubtitle(dashlet.customData?.subtitle || '');
+    setNewBadge(dashlet.customData?.badge || '+15% vs Target');
+    setNewBadgePositive(dashlet.customData?.badgePositive !== false);
+    setNewIcon(dashlet.customData?.icon || 'Sparkles');
+    setIsAddDashletOpen(true);
+  };
+
+  const handleDeleteDashlet = () => {
+    if (!deletingDashlet) return;
+    deleteDashlet(deletingDashlet.id);
     setDashlets(getMasterDashlets());
-    info('Dashlet Removed', 'Custom dashlet removed from system.');
+    info('Dashlet Removed', `"${deletingDashlet.title}" removed from system.`);
+    setDeletingDashlet(null);
   };
 
   const handleResetToDefaults = () => {
@@ -204,34 +245,52 @@ export const CustomDashboardsPage: React.FC = () => {
     success('Reset Complete', 'Restored master dashlet catalog and persona assignments to factory defaults.');
   };
 
-  const handleCreateDashlet = (e: React.FormEvent) => {
+  const handleSaveDashlet = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
 
-    addCustomDashlet({
-      title: newTitle.trim(),
-      description: newDesc.trim() || (newType === 'chart' ? `${newChartType.toUpperCase()} Chart Visualization` : 'Custom Enterprise Dashlet'),
-      category: newCategory,
-      type: newType,
-      chartType: newType === 'chart' ? newChartType : undefined,
-      enabled: newEnabled,
-      assignedRoles: newRoles.length > 0 ? newRoles : ['SUPER_ADMIN'],
-      customData: {
-        value: newValue.trim() || (newType === 'chart' ? 'Active Chart' : '100%'),
-        subtitle: newSubtitle.trim() || 'Custom Enterprise Metric',
-        badge: newBadge.trim() || 'Active',
-        badgePositive: newBadgePositive,
-        icon: newIcon
-      }
-    });
-
-    setDashlets(getMasterDashlets());
-    setNewTitle('');
-    setNewDesc('');
-    setNewValue('');
-    setNewSubtitle('');
-    setIsAddDashletOpen(false);
-    success('Dashlet Created', `"${newTitle}" (${newType === 'chart' ? `${newChartType} chart` : newType}) has been created & assigned.`);
+    if (editingDashlet) {
+      updateDashlet(editingDashlet.id, {
+        title: newTitle.trim(),
+        description: newDesc.trim() || (newType === 'chart' ? `${newChartType.toUpperCase()} Chart Visualization` : 'Enterprise Dashlet'),
+        category: newCategory,
+        type: newType,
+        chartType: newType === 'chart' ? newChartType : undefined,
+        enabled: newEnabled,
+        assignedRoles: newRoles.length > 0 ? newRoles : ['SUPER_ADMIN'],
+        customData: {
+          value: newValue.trim() || (newType === 'chart' ? 'Active Chart' : '100%'),
+          subtitle: newSubtitle.trim() || 'Configured Enterprise Metric',
+          badge: newBadge.trim() || 'Active',
+          badgePositive: newBadgePositive,
+          icon: newIcon
+        }
+      });
+      setDashlets(getMasterDashlets());
+      setIsAddDashletOpen(false);
+      setEditingDashlet(null);
+      success('Dashlet Updated', `"${newTitle}" configuration has been updated successfully.`);
+    } else {
+      addCustomDashlet({
+        title: newTitle.trim(),
+        description: newDesc.trim() || (newType === 'chart' ? `${newChartType.toUpperCase()} Chart Visualization` : 'Custom Enterprise Dashlet'),
+        category: newCategory,
+        type: newType,
+        chartType: newType === 'chart' ? newChartType : undefined,
+        enabled: newEnabled,
+        assignedRoles: newRoles.length > 0 ? newRoles : ['SUPER_ADMIN'],
+        customData: {
+          value: newValue.trim() || (newType === 'chart' ? 'Active Chart' : '100%'),
+          subtitle: newSubtitle.trim() || 'Custom Enterprise Metric',
+          badge: newBadge.trim() || 'Active',
+          badgePositive: newBadgePositive,
+          icon: newIcon
+        }
+      });
+      setDashlets(getMasterDashlets());
+      setIsAddDashletOpen(false);
+      success('Dashlet Created', `"${newTitle}" (${newType === 'chart' ? `${newChartType} chart` : newType}) has been created & assigned.`);
+    }
   };
 
   // Filtered Dashlets for Catalog View
@@ -264,18 +323,25 @@ export const CustomDashboardsPage: React.FC = () => {
     return dashlets.filter((d) => d.enabled && d.assignedRoles.includes(role));
   };
 
-  // If in Create Custom Dashlet mode, render as a dedicated separate screen
+  // If in Create or Edit Custom Dashlet mode, render as a dedicated separate screen
   if (isAddDashletOpen) {
     return (
       <div className="space-y-6 text-left animate-fade-in pb-16">
         <PageHeader
-          title="Create Custom Dashlet"
-          description="Configure your custom dashlet, select from 8 amCharts 5 visualization types, and assign it to Super Admin, HR, Manager, or Employee personas."
+          title={editingDashlet ? `Edit Dashlet: ${editingDashlet.title}` : 'Create Custom Dashlet'}
+          description={
+            editingDashlet
+              ? 'Modify dashlet configuration, chart visualization type, metric thresholds, and persona assignments.'
+              : 'Configure your custom dashlet, select from 8 amCharts 5 visualization types, and assign it to Super Admin, HR, Manager, or Employee personas.'
+          }
           actions={
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => setIsAddDashletOpen(false)}
+              onClick={() => {
+                setIsAddDashletOpen(false);
+                setEditingDashlet(null);
+              }}
               leftIcon={<ArrowLeft className="w-4 h-4" />}
               className="text-xs font-semibold cursor-pointer"
             >
@@ -292,17 +358,17 @@ export const CustomDashboardsPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  Custom Dashlet Configuration &amp; Visualization
+                  {editingDashlet ? `Edit Dashlet Configuration (${editingDashlet.id})` : 'Custom Dashlet Configuration & Visualization'}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Fill in the dashlet details below. Your chart or KPI preview will update interactively in real-time.
+                  Update the dashlet properties below. Your chart or KPI preview will update interactively in real-time.
                 </p>
               </div>
             </div>
           </CardHeader>
 
           <CardContent className="pt-6">
-            <form onSubmit={handleCreateDashlet} className="space-y-6">
+            <form onSubmit={handleSaveDashlet} className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left 2 Columns: Dashlet Details & Chart Type Selector */}
                 <div className="lg:col-span-2 space-y-5">
@@ -575,7 +641,10 @@ export const CustomDashboardsPage: React.FC = () => {
                       variant="secondary"
                       size="md"
                       type="button"
-                      onClick={() => setIsAddDashletOpen(false)}
+                      onClick={() => {
+                        setIsAddDashletOpen(false);
+                        setEditingDashlet(null);
+                      }}
                       className="w-1/2 text-xs font-semibold"
                     >
                       Cancel
@@ -586,7 +655,7 @@ export const CustomDashboardsPage: React.FC = () => {
                       type="submit"
                       className="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm"
                     >
-                      Save &amp; Deploy Dashlet
+                      {editingDashlet ? 'Save Changes' : 'Save & Deploy Dashlet'}
                     </Button>
                   </div>
                 </div>
@@ -617,7 +686,7 @@ export const CustomDashboardsPage: React.FC = () => {
             <Button
               variant="primary"
               size="sm"
-              onClick={() => setIsAddDashletOpen(true)}
+              onClick={handleOpenCreateDashlet}
               className="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs cursor-pointer"
             >
               Create Custom Dashlet
@@ -873,8 +942,16 @@ export const CustomDashboardsPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Right: Sequence & Delete Actions */}
+                    {/* Right: Edit, Sequence & Delete Actions */}
                     <div className="flex items-center gap-1 self-end lg:self-center shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditDashlet(dashlet)}
+                        className="p-1.5 rounded text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 cursor-pointer transition-colors"
+                        title="Edit Dashlet Configuration"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
                       <button
                         type="button"
                         disabled={index === 0}
@@ -896,7 +973,7 @@ export const CustomDashboardsPage: React.FC = () => {
                       {dashlet.id.startsWith('dashlet_custom_') && (
                         <button
                           type="button"
-                          onClick={() => handleDeleteDashlet(dashlet.id)}
+                          onClick={() => setDeletingDashlet(dashlet)}
                           className="p-1.5 rounded text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
                           title="Delete Custom Dashlet"
                         >
@@ -1103,6 +1180,19 @@ export const CustomDashboardsPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Delete Dashlet Confirmation Dialog */}
+      {deletingDashlet && (
+        <ConfirmDialog
+          isOpen={true}
+          title="Delete Custom Dashlet?"
+          message={`Are you sure you want to remove dashlet "${deletingDashlet.title}" (${deletingDashlet.id})? It will be removed from all assigned persona dashboards.`}
+          confirmLabel="Delete Dashlet"
+          variant="danger"
+          onConfirm={handleDeleteDashlet}
+          onClose={() => setDeletingDashlet(null)}
+        />
       )}
     </div>
   );
