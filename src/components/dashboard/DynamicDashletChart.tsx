@@ -11,7 +11,7 @@ export interface DynamicDashletChartProps {
   chartType: ChartVisualizationType;
   data?: ChartDataPoint[];
   className?: string;
-  height?: number;
+  height?: number | string;
 }
 
 const DEFAULT_CHART_DATA: Record<ChartVisualizationType, ChartDataPoint[]> = {
@@ -62,6 +62,13 @@ const DEFAULT_CHART_DATA: Record<ChartVisualizationType, ChartDataPoint[]> = {
   ],
   radial_gauge: [
     { label: 'SLA Clearance Rate', value: 92, color: '#10b981', sublabel: 'Benchmark: 85%' }
+  ],
+  gantt: [
+    { label: 'Offer & Contract Signing', startValue: 1, value: 4, color: '#3b82f6', sublabel: 'Days 1-4' },
+    { label: 'Document & Identity Clearance', startValue: 3, value: 9, color: '#6366f1', sublabel: 'Days 3-9' },
+    { label: 'IT Hardware & Cloud Provisioning', startValue: 7, value: 14, color: '#8b5cf6', sublabel: 'Days 7-14' },
+    { label: 'Compliance & NDA Certification', startValue: 12, value: 18, color: '#ec4899', sublabel: 'Days 12-18' },
+    { label: 'Team Intro & Welcome Day-1', startValue: 17, value: 22, color: '#10b981', sublabel: 'Days 17-22' }
   ]
 };
 
@@ -508,6 +515,126 @@ export const DynamicDashletChart: React.FC<DynamicDashletChartProps> = ({
         );
 
         chart.appear(800, 100);
+      } else if (chartType === 'gantt') {
+        // --- 9. AMCHARTS 5 GANTT TIMELINE CHART ---
+        const chart = root.container.children.push(
+          am5xy.XYChart.new(root, {
+            panX: false,
+            panY: false,
+            wheelX: 'none',
+            wheelY: 'none',
+            layout: root.verticalLayout,
+            paddingLeft: 0,
+            paddingRight: 10,
+            paddingTop: 5,
+            paddingBottom: 0
+          })
+        );
+
+        const yRenderer = am5xy.AxisRendererY.new(root, {
+          inversed: true,
+          cellStartLocation: 0.15,
+          cellEndLocation: 0.85,
+          minorGridEnabled: false
+        });
+
+        yRenderer.grid.template.setAll({
+          stroke: gridColor,
+          strokeDasharray: [3, 3]
+        });
+
+        yRenderer.labels.template.setAll({
+          fontSize: 10,
+          fontWeight: '600',
+          fill: labelColor,
+          oversizedBehavior: 'truncate',
+          maxWidth: 130
+        });
+
+        const yAxis = chart.yAxes.push(
+          am5xy.CategoryAxis.new(root, {
+            categoryField: 'label',
+            renderer: yRenderer
+          })
+        );
+
+        const xRenderer = am5xy.AxisRendererX.new(root, {
+          strokeOpacity: 0.1
+        });
+
+        xRenderer.grid.template.setAll({
+          stroke: gridColor,
+          strokeDasharray: [2, 2]
+        });
+
+        xRenderer.labels.template.setAll({
+          fontSize: 10,
+          fill: labelColor
+        });
+
+        const minVal = Math.min(...points.map((p) => p.startValue ?? 0));
+        const maxVal = Math.max(...points.map((p) => p.value || 10));
+
+        const xAxis = chart.xAxes.push(
+          am5xy.ValueAxis.new(root, {
+            min: Math.max(0, minVal - 1),
+            max: maxVal + 1,
+            renderer: xRenderer,
+            numberFormat: "'Day' #"
+          })
+        );
+
+        const series = chart.series.push(
+          am5xy.ColumnSeries.new(root, {
+            xAxis: xAxis,
+            yAxis: yAxis,
+            openValueXField: 'startValue',
+            valueXField: 'value',
+            categoryYField: 'label',
+            tooltip: am5.Tooltip.new(root, {
+              labelText: '{categoryY}: Day {openValueX} → Day {valueX} ({sublabel})'
+            })
+          })
+        );
+
+        series.columns.template.setAll({
+          height: am5.percent(70),
+          cornerRadiusTL: 6,
+          cornerRadiusTR: 6,
+          cornerRadiusBL: 6,
+          cornerRadiusBR: 6,
+          strokeOpacity: 0,
+          shadowColor: am5.color(0x000000),
+          shadowBlur: 4,
+          shadowOffsetX: 1,
+          shadowOffsetY: 2,
+          shadowOpacity: 0.15
+        });
+
+        series.columns.template.adapters.add('fill', (_fill, target) => {
+          const dataItem = target.dataItem;
+          if (dataItem) {
+            const dataContext = dataItem.dataContext as ChartDataPoint;
+            if (dataContext?.color) {
+              return am5.color(dataContext.color);
+            }
+          }
+          return am5.color(0x3b82f6);
+        });
+
+        const ganttData = points.map((p, idx) => ({
+          label: p.label,
+          startValue: p.startValue !== undefined ? p.startValue : Math.max(1, idx * 3 + 1),
+          value: p.value || (idx + 1) * 4,
+          color: p.color || '#3b82f6',
+          sublabel: p.sublabel || `Phase ${idx + 1}`
+        }));
+
+        yAxis.data.setAll(ganttData);
+        series.data.setAll(ganttData);
+
+        series.appear(800);
+        chart.appear(800, 100);
       }
     } catch (err) {
       console.error('Error rendering amCharts 5 chart:', err);
@@ -519,11 +646,11 @@ export const DynamicDashletChart: React.FC<DynamicDashletChartProps> = ({
   }, [chartType, points]);
 
   return (
-    <div className={cn('w-full flex flex-col items-center justify-center relative', className)}>
+    <div className={cn('w-full h-full flex-1 flex flex-col items-center justify-center relative min-h-[100px]', className)}>
       <div
         ref={chartDivRef}
-        style={{ width: '100%', height: `${height}px` }}
-        className="w-full"
+        style={{ width: '100%', height: typeof height === 'number' ? `${height}px` : height || '100%' }}
+        className="w-full h-full flex-1 min-h-[100px]"
       />
       <div className="absolute top-1 right-1 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
         <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">

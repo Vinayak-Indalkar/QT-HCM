@@ -8,10 +8,14 @@ import { StatusIndicator } from '../components/ui/StatusIndicator';
 import { Avatar } from '../components/ui/Avatar';
 import { ProgressRing } from '../components/common/ProgressRing';
 import { formatDate } from '../utils/formatters';
+import { getAssets } from '../services/assetService';
 import {
   getDashletsForPersona,
   resetPersonaLayout,
-  DashletConfig
+  getColSpanClass,
+  getHeightClass,
+  DashletConfig,
+  resolveChartDataFromSource
 } from '../services/dashboardCustomizationService';
 import { cn } from '../utils/cn';
 import { DashletCardWrapper } from '../components/dashboard/DashletCardWrapper';
@@ -259,9 +263,13 @@ export const DashboardPage: React.FC = () => {
       default:
         // Render Dynamic Charts or Custom Metric Cards
         if (dashlet.type === 'chart' && dashlet.chartType) {
+          const resolvedChartData = dashlet.dataSource
+            ? resolveChartDataFromSource(dashlet.dataSource, candidates, tasks, getAssets())
+            : dashlet.chartData;
+
           return (
-            <Card className="h-full">
-              <CardHeader>
+            <Card className="h-full w-full flex flex-col justify-between">
+              <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <div>
@@ -274,11 +282,11 @@ export const DashboardPage: React.FC = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1 flex flex-col justify-center p-4">
                 <DynamicDashletChart
                   chartType={dashlet.chartType}
-                  data={dashlet.chartData}
-                  height={190}
+                  data={resolvedChartData}
+                  height={220}
                 />
               </CardContent>
             </Card>
@@ -314,7 +322,7 @@ export const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 text-left animate-fade-in pb-12">
+    <div className="space-y-6 text-left animate-fade-in pb-12 w-full flex-1">
       <PageHeader
         title="Super Admin Dashboard"
         description="Monitor end-to-end employee onboarding progression, verify compliance documents, and customize your live operational dashlets."
@@ -371,15 +379,12 @@ export const DashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Unified Customizable Dashlet Grid: Move Top, Bottom, Left, Right Everywhere */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Unified Customizable 12-Column Responsive Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-4 items-start">
         {dashlets.map((dashlet, idx) => {
-          const isFullWidth = dashlet.id === 'list_recent_arrivals';
-          const isLarge =
-            dashlet.type === 'chart' ||
-            dashlet.type === 'list' ||
-            dashlet.type === 'hero' ||
-            dashlet.type === 'progress';
+          const colSpan = dashlet.colSpan || 3;
+          const heightPreset = dashlet.heightPreset || 'normal';
+          const customHeight = dashlet.customHeight;
 
           return (
             <DashletCardWrapper
@@ -390,14 +395,11 @@ export const DashboardPage: React.FC = () => {
               index={idx}
               total={dashlets.length}
               isCustomizing={isCustomizing}
+              colSpan={colSpan}
+              heightPreset={heightPreset}
+              customHeight={customHeight}
               onLayoutUpdated={refreshDashlets}
-              className={
-                isFullWidth
-                  ? 'col-span-1 sm:col-span-2 lg:col-span-4'
-                  : isLarge
-                  ? 'col-span-1 sm:col-span-2 lg:col-span-2'
-                  : 'col-span-1'
-              }
+              className={cn(getColSpanClass(colSpan), getHeightClass(heightPreset, customHeight))}
             >
               {renderDashletContent(dashlet)}
             </DashletCardWrapper>

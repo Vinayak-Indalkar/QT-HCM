@@ -166,18 +166,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       ];
     }
 
-    // 3. Super Admin: Dashboard, Setup, My Profile, My Team, Employees, Assets, Documents, Settings, Configurations
+    // 3. Super Admin: Dashboard, My Profile, My Team, Employees, Assets, Documents, Setup, Settings, Configurations
     if (currentRole === 'SUPER_ADMIN') {
       return [
         {
           id: 'dashboard',
           label: 'Dashboard',
           icon: LayoutDashboard
-        },
-        {
-          id: 'setup',
-          label: 'Setup',
-          icon: SlidersHorizontal
         },
         {
           id: 'profile',
@@ -211,6 +206,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           icon: FileText
         },
         {
+          id: 'setup',
+          label: 'Setup',
+          icon: SlidersHorizontal
+        },
+        {
           id: 'settings',
           label: 'Settings',
           icon: Settings
@@ -223,7 +223,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       ];
     }
 
-    // 4. Default: HR User: Dashboard, My Profile, My Team, Employees, Assets, Documents, & Settings
+    // 4. Default: HR User: Dashboard, My Profile, My Team, Employees, Assets, Documents, Setup, & Settings
     return [
       {
         id: 'dashboard',
@@ -260,6 +260,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         id: 'compliance',
         label: 'Documents',
         icon: FileText
+      },
+      {
+        id: 'setup',
+        label: 'Setup',
+        icon: SlidersHorizontal
       },
       {
         id: 'settings',

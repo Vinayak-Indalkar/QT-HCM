@@ -10,6 +10,8 @@ import { StatCard } from '../components/common/StatCard';
 import {
   getDashletsForPersona,
   resetPersonaLayout,
+  getColSpanClass,
+  getHeightClass,
   DashletConfig
 } from '../services/dashboardCustomizationService';
 import { getAssignedAssetsForEmployee } from '../services/assetService';
@@ -247,7 +249,7 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
         );
       case 'emp_widget_journey_steps':
         return (
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full">
+          <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full w-full flex flex-col justify-between">
             <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
               <div>
                 <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -268,16 +270,18 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
                 Open Wizard
               </Button>
             </CardHeader>
-            <CardContent className="pt-5 space-y-4">
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
-                <span>Overall Step Completion</span>
-                <span>{progressPercent}% Complete ({completedStepsCount} of 10 Steps)</span>
-              </div>
-              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 h-full rounded-full transition-all duration-500"
-                  style={{ width: `${Math.max(5, progressPercent)}%` }}
-                />
+            <CardContent className="pt-5 space-y-4 flex-1 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <span>Overall Step Completion</span>
+                  <span>{progressPercent}% Complete ({completedStepsCount} of 10 Steps)</span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 h-full rounded-full transition-all duration-500"
+                    style={{ width: `${Math.max(5, progressPercent)}%` }}
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2">
@@ -321,14 +325,14 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
         );
       case 'emp_widget_manager_buddy':
         return (
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full">
+          <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full w-full flex flex-col justify-between">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 Your Key Contacts &amp; Support Team
               </h2>
             </CardHeader>
-            <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex items-start gap-3">
                 <Avatar name="Marcus Brody" size="md" />
                 <div className="space-y-1 min-w-0">
@@ -369,14 +373,14 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
         );
       case 'emp_widget_hardware_card':
         return (
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full">
+          <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full w-full flex flex-col justify-between">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Laptop className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                 Assigned IT Equipment
               </h2>
             </CardHeader>
-            <CardContent className="pt-4 space-y-3">
+            <CardContent className="pt-4 space-y-3 flex-1 flex flex-col justify-between">
               <div className="p-3 rounded-xl bg-teal-50/50 dark:bg-teal-950/30 border border-teal-200/70 dark:border-teal-900/60 flex items-start gap-3">
                 <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 shrink-0">
                   <Laptop className="w-4 h-4" />
@@ -411,14 +415,14 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
         );
       case 'emp_widget_day1_checklist':
         return (
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full">
+          <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full w-full flex flex-col justify-between">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 Day-1 Action Checklist
               </h2>
             </CardHeader>
-            <CardContent className="pt-3 space-y-2">
+            <CardContent className="pt-3 space-y-2 flex-1">
               {checklist.map((item) => (
                 <div
                   key={item.id}
@@ -457,8 +461,8 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
           )
         );
         return (
-          <Card className="h-full">
-            <CardHeader>
+          <Card className="h-full w-full flex flex-col justify-between">
+            <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Gauge className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <div>
@@ -471,7 +475,7 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 flex flex-col justify-center p-4">
               <DynamicDashletChart
                 chartType="radial_gauge"
                 data={[
@@ -482,7 +486,7 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
                     sublabel: 'Target: 100%'
                   }
                 ]}
-                height={180}
+                height={220}
               />
             </CardContent>
           </Card>
@@ -497,8 +501,8 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
           { label: 'Day 1 Tasks', value: Math.round((checklist.filter((c) => c.completed).length / Math.max(1, checklist.length)) * 100), color: '#6366f1' }
         ];
         return (
-          <Card className="h-full">
-            <CardHeader>
+          <Card className="h-full w-full flex flex-col justify-between">
+            <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <div>
@@ -511,11 +515,11 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 flex flex-col justify-center p-4">
               <DynamicDashletChart
                 chartType="bar"
                 data={milestoneData}
-                height={180}
+                height={220}
               />
             </CardContent>
           </Card>
@@ -529,8 +533,8 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
           { label: 'Week 4', value: progressPercent, color: '#10b981' }
         ];
         return (
-          <Card className="h-full">
-            <CardHeader>
+          <Card className="h-full w-full flex flex-col justify-between">
+            <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 <div>
@@ -543,11 +547,11 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 flex flex-col justify-center p-4">
               <DynamicDashletChart
                 chartType="line"
                 data={velocityData}
-                height={180}
+                height={220}
               />
             </CardContent>
           </Card>
@@ -561,8 +565,8 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
           { label: 'Pending Submission', value: pendingCount, color: '#f59e0b' }
         ];
         return (
-          <Card className="h-full">
-            <CardHeader>
+          <Card className="h-full w-full flex flex-col justify-between">
+            <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 <div>
@@ -575,11 +579,11 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 flex flex-col justify-center p-4">
               <DynamicDashletChart
                 chartType="donut"
                 data={compBreakdown}
-                height={180}
+                height={220}
               />
             </CardContent>
           </Card>
@@ -589,8 +593,8 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
         // Render Dynamic Charts or Custom Metric Cards
         if (dashlet.type === 'chart' && dashlet.chartType) {
           return (
-            <Card className="h-full">
-              <CardHeader>
+            <Card className="h-full w-full flex flex-col justify-between">
+              <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <div>
@@ -603,11 +607,11 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1 flex flex-col justify-center p-4">
                 <DynamicDashletChart
                   chartType={dashlet.chartType}
                   data={dashlet.chartData}
-                  height={180}
+                  height={220}
                 />
               </CardContent>
             </Card>
@@ -629,7 +633,7 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
   };
 
   return (
-    <div className="space-y-6 text-left animate-fade-in pb-12">
+    <div className="space-y-6 text-left animate-fade-in pb-12 flex-1 w-full">
       {!employee && (
         <PageHeader
           title="My Dashboard"
@@ -690,33 +694,27 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
         </div>
       )}
 
-      {/* Unified Movable Dashlets Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Unified Movable 12-Column Responsive Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-4 items-start">
         {dashlets.map((dashlet, idx) => {
-          const isHero = dashlet.id === 'emp_widget_welcome_hero';
-          const isLarge =
-            dashlet.type === 'chart' ||
-            dashlet.type === 'list' ||
-            dashlet.type === 'hero' ||
-            dashlet.type === 'progress';
+          const colSpan = dashlet.colSpan || 3;
+          const heightPreset = dashlet.heightPreset || 'normal';
+          const customHeight = dashlet.customHeight;
 
           return (
             <DashletCardWrapper
               key={dashlet.id}
               id={dashlet.id}
               title={dashlet.title}
-              role="EMPLOYEE"
+              role={employee ? 'SUPER_ADMIN' : 'EMPLOYEE'}
               index={idx}
               total={dashlets.length}
               isCustomizing={isCustomizing}
+              colSpan={colSpan}
+              heightPreset={heightPreset}
+              customHeight={customHeight}
               onLayoutUpdated={refreshDashlets}
-              className={
-                isHero
-                  ? 'col-span-1 sm:col-span-2 lg:col-span-4'
-                  : isLarge
-                  ? 'col-span-1 sm:col-span-2 lg:col-span-2'
-                  : 'col-span-1'
-              }
+              className={cn(getColSpanClass(colSpan), getHeightClass(heightPreset, customHeight))}
             >
               {renderDashletContent(dashlet)}
             </DashletCardWrapper>

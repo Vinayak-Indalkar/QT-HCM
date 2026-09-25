@@ -22,7 +22,14 @@ import {
   DashletConfig,
   DashboardPersona,
   ChartVisualizationType,
-  ChartDataPoint
+  ChartDataPoint,
+  DashletColSpan,
+  DashletHeightPreset,
+  getColSpanClass,
+  getHeightClass,
+  DATA_SOURCE_OPTIONS,
+  resolveChartDataFromSource,
+  DataSourceDefinition
 } from '../services/dashboardCustomizationService';
 import {
   LayoutDashboard,
@@ -68,7 +75,11 @@ import {
   Activity,
   Gauge,
   CircleDot,
-  ArrowLeft
+  ArrowLeft,
+  Database,
+  Table,
+  PlusCircle,
+  RotateCcw
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 
@@ -111,11 +122,12 @@ const ALL_CHART_TYPES: Array<{
   { type: 'pie', label: 'Pie Chart', badge: 'Slices & Shares', icon: '🥧', description: 'Proportional breakdown of verification status and gates' },
   { type: 'donut', label: 'Donut Ring', badge: 'Total & Ratio', icon: '🍩', description: 'Document compliance distribution with center total summary' },
   { type: 'funnel', label: 'Funnel Pipeline', badge: 'Conversion Gates', icon: '🔻', description: 'Step-by-step gate conversion from Offer to Day-1 Ready' },
-  { type: 'radial_gauge', label: 'Radial SLA Gauge', badge: 'Speedometer Target', icon: '🎯', description: 'Real-time performance vs SLA benchmark target' }
+  { type: 'radial_gauge', label: 'Radial SLA Gauge', badge: 'Speedometer Target', icon: '🎯', description: 'Real-time performance vs SLA benchmark target' },
+  { type: 'gantt', label: 'Gantt Timeline', badge: 'SLA Schedule & Phases', icon: '⏱️', description: 'Interactive project timeline, milestone phases, and start/finish gate deadlines' }
 ];
 
 export const CustomDashboardsPage: React.FC = () => {
-  const { candidates } = useOnboarding();
+  const { candidates, tasks } = useOnboarding();
   const { success, info } = useToast();
 
   const [activeTab, setActiveTab] = useState<'catalog' | 'SUPER_ADMIN' | 'HR' | 'MANAGER' | 'EMPLOYEE' | 'KPI_DASHBOARD'>('catalog');
@@ -136,15 +148,27 @@ export const CustomDashboardsPage: React.FC = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newCategory, setNewCategory] = useState<'onboarding' | 'it' | 'compliance' | 'team' | 'custom'>('onboarding');
-  const [newType, setNewType] = useState<'metric' | 'chart' | 'list' | 'progress' | 'hero' | 'custom'>('metric');
+  const [newType, setNewType] = useState<'metric' | 'chart' | 'list' | 'progress' | 'hero' | 'custom'>('chart');
   const [newChartType, setNewChartType] = useState<ChartVisualizationType>('bar');
   const [newRoles, setNewRoles] = useState<DashboardPersona[]>(['SUPER_ADMIN', 'HR', 'KPI_DASHBOARD']);
   const [newEnabled, setNewEnabled] = useState(true);
+  const [newColSpan, setNewColSpan] = useState<DashletColSpan>(6);
+  const [newHeightPreset, setNewHeightPreset] = useState<DashletHeightPreset>('normal');
   const [newValue, setNewValue] = useState('');
   const [newSubtitle, setNewSubtitle] = useState('');
   const [newBadge, setNewBadge] = useState('+15% vs Target');
   const [newBadgePositive, setNewBadgePositive] = useState(true);
   const [newIcon, setNewIcon] = useState('Sparkles');
+
+  // Application Data Binding State
+  const [selectedDataSource, setSelectedDataSource] = useState<string>('candidate_status');
+  const [customDataPoints, setCustomDataPoints] = useState<ChartDataPoint[]>([
+    { label: 'Engineering', value: 24, color: '#3b82f6' },
+    { label: 'Product', value: 16, color: '#6366f1' },
+    { label: 'Marketing', value: 12, color: '#ec4899' },
+    { label: 'Sales', value: 19, color: '#f59e0b' },
+    { label: 'Operations', value: 9, color: '#10b981' }
+  ]);
 
   // Master Dashlets state
   const [dashlets, setDashlets] = useState<DashletConfig[]>(() => getMasterDashlets());
@@ -197,20 +221,114 @@ export const CustomDashboardsPage: React.FC = () => {
     setDashlets(ordered);
   };
 
+  const handleAddCustomRow = () => {
+    setCustomDataPoints((prev) => [
+      ...prev,
+      {
+        label: `Item ${prev.length + 1}`,
+        value: 10,
+        startValue: newChartType === 'gantt' ? prev.length * 3 : undefined,
+        color: ['#3b82f6', '#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'][prev.length % 6],
+        sublabel: ''
+      }
+    ]);
+  };
+
+  const handleUpdateCustomRow = (index: number, field: keyof ChartDataPoint, val: any) => {
+    setCustomDataPoints((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: val } : item))
+    );
+  };
+
+  const handleDeleteCustomRow = (index: number) => {
+    setCustomDataPoints((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleLoadCustomTemplate = (templateType: 'gantt' | 'dept' | 'funnel' | 'status') => {
+    if (templateType === 'gantt') {
+      setNewChartType('gantt');
+      setCustomDataPoints([
+        { label: 'Offer Letter Acceptance', startValue: 1, value: 4, color: '#3b82f6', sublabel: 'Days 1-4' },
+        { label: 'Background & Identity Check', startValue: 3, value: 8, color: '#6366f1', sublabel: 'Days 3-8' },
+        { label: 'IT Provisioning & Laptop Stage', startValue: 7, value: 14, color: '#8b5cf6', sublabel: 'Days 7-14' },
+        { label: 'Compliance Documents & NDA', startValue: 12, value: 18, color: '#ec4899', sublabel: 'Days 12-18' },
+        { label: 'Day-1 Induction & Ready', startValue: 17, value: 22, color: '#10b981', sublabel: 'Days 17-22' }
+      ]);
+    } else if (templateType === 'dept') {
+      setCustomDataPoints([
+        { label: 'Engineering', value: 32, color: '#3b82f6', sublabel: '32 Hires' },
+        { label: 'Product & Design', value: 18, color: '#6366f1', sublabel: '18 Hires' },
+        { label: 'Sales & Growth', value: 24, color: '#f59e0b', sublabel: '24 Hires' },
+        { label: 'Operations & HR', value: 14, color: '#10b981', sublabel: '14 Hires' }
+      ]);
+    } else if (templateType === 'funnel') {
+      setNewChartType('funnel');
+      setCustomDataPoints([
+        { label: 'Invited Candidates', value: 100, color: '#3b82f6', sublabel: 'Top of funnel' },
+        { label: 'Documents Submitted', value: 78, color: '#6366f1', sublabel: 'Stage 2' },
+        { label: 'IT Hardware Assigned', value: 65, color: '#8b5cf6', sublabel: 'Stage 3' },
+        { label: 'Day-1 Clearance', value: 52, color: '#10b981', sublabel: 'Final gate' }
+      ]);
+    } else {
+      setCustomDataPoints([
+        { label: 'Completed', value: 45, color: '#10b981', sublabel: 'Cleared' },
+        { label: 'In Progress', value: 30, color: '#3b82f6', sublabel: 'Active' },
+        { label: 'Action Required', value: 15, color: '#f59e0b', sublabel: 'Pending' },
+        { label: 'Rejected', value: 5, color: '#ef4444', sublabel: 'Failed' }
+      ]);
+    }
+  };
+
+  const handleSelectDataSource = (sourceId: string) => {
+    setSelectedDataSource(sourceId);
+    const sourceDef = DATA_SOURCE_OPTIONS.find((s) => s.id === sourceId);
+    if (sourceDef) {
+      if (newType === 'chart' && sourceDef.recommendedCharts && sourceDef.recommendedCharts.length > 0) {
+        if (!sourceDef.recommendedCharts.includes(newChartType)) {
+          setNewChartType(sourceDef.recommendedCharts[0]);
+        }
+      }
+      if (sourceDef.sampleMetric && newType === 'metric') {
+        if (!newValue || newValue === '100%' || newValue === 'Active') {
+          setNewValue(sourceDef.sampleMetric.value);
+          setNewBadge(sourceDef.sampleMetric.badge);
+          setNewSubtitle(sourceDef.sampleMetric.subtitle);
+        }
+      }
+    }
+  };
+
+  const computedPreviewChartData = useMemo(() => {
+    if (selectedDataSource === 'custom_static') {
+      return customDataPoints;
+    }
+    return resolveChartDataFromSource(selectedDataSource, candidates, tasks, assets);
+  }, [selectedDataSource, customDataPoints, candidates, tasks, assets]);
+
   const handleOpenCreateDashlet = () => {
     setEditingDashlet(null);
     setNewTitle('');
     setNewDesc('');
     setNewCategory('onboarding');
-    setNewType('metric');
+    setNewType('chart');
     setNewChartType('bar');
     setNewRoles(['SUPER_ADMIN', 'HR', 'KPI_DASHBOARD']);
     setNewEnabled(true);
+    setNewColSpan(6);
+    setNewHeightPreset('normal');
     setNewValue('');
     setNewSubtitle('');
     setNewBadge('+15% vs Target');
     setNewBadgePositive(true);
     setNewIcon('Sparkles');
+    setSelectedDataSource('candidate_status');
+    setCustomDataPoints([
+      { label: 'Engineering', value: 24, color: '#3b82f6' },
+      { label: 'Product', value: 16, color: '#6366f1' },
+      { label: 'Marketing', value: 12, color: '#ec4899' },
+      { label: 'Sales', value: 19, color: '#f59e0b' },
+      { label: 'Operations', value: 9, color: '#10b981' }
+    ]);
     setIsAddDashletOpen(true);
   };
 
@@ -223,11 +341,25 @@ export const CustomDashboardsPage: React.FC = () => {
     setNewChartType(dashlet.chartType || 'bar');
     setNewRoles([...dashlet.assignedRoles]);
     setNewEnabled(dashlet.enabled);
+    setNewColSpan(dashlet.colSpan || (dashlet.type === 'metric' ? 3 : dashlet.type === 'chart' ? 6 : 12));
+    setNewHeightPreset(dashlet.heightPreset || (dashlet.type === 'metric' ? 'compact' : 'normal'));
     setNewValue(dashlet.customData?.value || '');
     setNewSubtitle(dashlet.customData?.subtitle || '');
     setNewBadge(dashlet.customData?.badge || '+15% vs Target');
     setNewBadgePositive(dashlet.customData?.badgePositive !== false);
     setNewIcon(dashlet.customData?.icon || 'Sparkles');
+    setSelectedDataSource(dashlet.dataSource || (dashlet.chartData && dashlet.chartData.length > 0 ? 'custom_static' : 'candidate_status'));
+    if (dashlet.chartData && dashlet.chartData.length > 0) {
+      setCustomDataPoints([...dashlet.chartData]);
+    } else {
+      setCustomDataPoints([
+        { label: 'Engineering', value: 24, color: '#3b82f6' },
+        { label: 'Product', value: 16, color: '#6366f1' },
+        { label: 'Marketing', value: 12, color: '#ec4899' },
+        { label: 'Sales', value: 19, color: '#f59e0b' },
+        { label: 'Operations', value: 9, color: '#10b981' }
+      ]);
+    }
     setIsAddDashletOpen(true);
   };
 
@@ -249,6 +381,10 @@ export const CustomDashboardsPage: React.FC = () => {
     e.preventDefault();
     if (!newTitle.trim()) return;
 
+    const resolvedChartData = selectedDataSource === 'custom_static'
+      ? customDataPoints
+      : resolveChartDataFromSource(selectedDataSource, candidates, tasks, assets);
+
     if (editingDashlet) {
       updateDashlet(editingDashlet.id, {
         title: newTitle.trim(),
@@ -256,8 +392,12 @@ export const CustomDashboardsPage: React.FC = () => {
         category: newCategory,
         type: newType,
         chartType: newType === 'chart' ? newChartType : undefined,
+        chartData: resolvedChartData,
+        dataSource: selectedDataSource,
         enabled: newEnabled,
         assignedRoles: newRoles.length > 0 ? newRoles : ['SUPER_ADMIN'],
+        colSpan: newColSpan,
+        heightPreset: newHeightPreset,
         customData: {
           value: newValue.trim() || (newType === 'chart' ? 'Active Chart' : '100%'),
           subtitle: newSubtitle.trim() || 'Configured Enterprise Metric',
@@ -277,8 +417,12 @@ export const CustomDashboardsPage: React.FC = () => {
         category: newCategory,
         type: newType,
         chartType: newType === 'chart' ? newChartType : undefined,
+        chartData: resolvedChartData,
+        dataSource: selectedDataSource,
         enabled: newEnabled,
         assignedRoles: newRoles.length > 0 ? newRoles : ['SUPER_ADMIN'],
+        colSpan: newColSpan,
+        heightPreset: newHeightPreset,
         customData: {
           value: newValue.trim() || (newType === 'chart' ? 'Active Chart' : '100%'),
           subtitle: newSubtitle.trim() || 'Custom Enterprise Metric',
@@ -440,8 +584,8 @@ export const CustomDashboardsPage: React.FC = () => {
                     <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-blue-200 dark:border-blue-900/60 space-y-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                          <BarChart3 className="w-4 h-4 text-blue-600" />
-                          Select Chart Visualization Type (amCharts):
+                          <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          Select Chart Visualization Type (amCharts 5):
                         </label>
                         <div className="flex items-center gap-2">
                           <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
@@ -453,7 +597,7 @@ export const CustomDashboardsPage: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                         {ALL_CHART_TYPES.map((chartItem) => {
                           const isSelected = newChartType === chartItem.type;
                           return (
@@ -486,6 +630,232 @@ export const CustomDashboardsPage: React.FC = () => {
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 italic">
                         {ALL_CHART_TYPES.find((c) => c.type === newChartType)?.description} &bull; Interactive amCharts 5 rendering with animated transitions.
                       </p>
+                    </div>
+                  )}
+
+                  {/* DATA SOURCE BINDING SELECTOR */}
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-blue-200 dark:border-blue-900/60 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <Database className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        Select Application Data to Bind:
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+                          ⚡ 10 Presets &amp; Custom Editor
+                        </span>
+                        <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+                          {DATA_SOURCE_OPTIONS.find((d) => d.id === selectedDataSource)?.badge}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Bind this dashlet to real-time application data (candidates, departments, IT hardware, statutory documents, task SLA, or custom editable rows).
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {DATA_SOURCE_OPTIONS.map((sourceOpt) => {
+                        const isSelected = selectedDataSource === sourceOpt.id;
+                        return (
+                          <button
+                            key={sourceOpt.id}
+                            type="button"
+                            onClick={() => handleSelectDataSource(sourceOpt.id)}
+                            className={cn(
+                              'p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-1.5 cursor-pointer select-none',
+                              isSelected
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-400/30'
+                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 text-slate-700 dark:text-slate-200'
+                            )}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-base">{sourceOpt.icon}</span>
+                                <span className="text-xs font-bold">{sourceOpt.name}</span>
+                              </div>
+                              {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                            </div>
+                            <p className={cn('text-[11px] line-clamp-2', isSelected ? 'text-blue-100' : 'text-slate-500 dark:text-slate-400')}>
+                              {sourceOpt.description}
+                            </p>
+                            <div className="flex items-center justify-between pt-1">
+                              <span className={cn('text-[10px] font-bold uppercase tracking-wider', isSelected ? 'text-blue-200' : 'text-blue-600 dark:text-blue-400')}>
+                                {sourceOpt.category}
+                              </span>
+                              {sourceOpt.sampleMetric && (
+                                <span className={cn('text-[10px] px-1.5 py-0.5 rounded font-mono', isSelected ? 'bg-blue-500/40 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300')}>
+                                  {sourceOpt.sampleMetric.value}
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Quick KPI auto-fill button if metric */}
+                    {newType === 'metric' && selectedDataSource !== 'custom_static' && (
+                      <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-200 dark:border-slate-700">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                          Selected Source: <strong className="text-slate-800 dark:text-slate-200">{DATA_SOURCE_OPTIONS.find((d) => d.id === selectedDataSource)?.name}</strong>
+                        </span>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            const opt = DATA_SOURCE_OPTIONS.find((d) => d.id === selectedDataSource);
+                            if (opt?.sampleMetric) {
+                              setNewValue(opt.sampleMetric.value);
+                              setNewBadge(opt.sampleMetric.badge);
+                              setNewSubtitle(opt.sampleMetric.subtitle);
+                              success('Metric Auto-filled', `Populated metric fields from ${opt.name}.`);
+                            }
+                          }}
+                          leftIcon={<Sparkles className="w-3.5 h-3.5 text-blue-600" />}
+                          className="text-[11px] py-1 px-2.5 h-auto font-semibold cursor-pointer"
+                        >
+                          Auto-populate KPI Fields
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* IF CUSTOM DATASET: RENDER INTERACTIVE CUSTOM DATA TABLE EDITOR */}
+                  {selectedDataSource === 'custom_static' && (
+                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-300 dark:border-slate-700 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <label className="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                          <Table className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          Custom Data Points &amp; Values Editor ({customDataPoints.length} Rows):
+                        </label>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleLoadCustomTemplate('gantt')}
+                            className="px-2 py-1 rounded text-[10px] font-bold bg-purple-100 hover:bg-purple-200 dark:bg-purple-950 dark:hover:bg-purple-900 text-purple-700 dark:text-purple-300 transition-colors cursor-pointer"
+                          >
+                            ⏱️ Gantt Template
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleLoadCustomTemplate('dept')}
+                            className="px-2 py-1 rounded text-[10px] font-bold bg-blue-100 hover:bg-blue-200 dark:bg-blue-950 dark:hover:bg-blue-900 text-blue-700 dark:text-blue-300 transition-colors cursor-pointer"
+                          >
+                            🏢 Dept Template
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleLoadCustomTemplate('funnel')}
+                            className="px-2 py-1 rounded text-[10px] font-bold bg-amber-100 hover:bg-amber-200 dark:bg-amber-950 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-300 transition-colors cursor-pointer"
+                          >
+                            🔻 Funnel Template
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleLoadCustomTemplate('status')}
+                            className="px-2 py-1 rounded text-[10px] font-bold bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 transition-colors cursor-pointer"
+                          >
+                            📊 Status Template
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900">
+                        <table className="w-full text-xs text-left">
+                          <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700">
+                            <tr>
+                              <th className="py-2 px-2.5">Label / Category</th>
+                              <th className="py-2 px-2.5 w-24">Value</th>
+                              {newChartType === 'gantt' && <th className="py-2 px-2.5 w-24">Start Day</th>}
+                              <th className="py-2 px-2.5 w-24">Color</th>
+                              <th className="py-2 px-2.5">Sublabel / Note</th>
+                              <th className="py-2 px-2.5 w-10 text-center">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {customDataPoints.map((row, idx) => (
+                              <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                                <td className="p-1.5">
+                                  <input
+                                    type="text"
+                                    value={row.label}
+                                    onChange={(e) => handleUpdateCustomRow(idx, 'label', e.target.value)}
+                                    placeholder="e.g. Engineering"
+                                    className="w-full text-xs rounded border border-slate-200 dark:border-slate-700 p-1.5 bg-transparent text-slate-900 dark:text-white"
+                                  />
+                                </td>
+                                <td className="p-1.5">
+                                  <input
+                                    type="number"
+                                    value={row.value}
+                                    onChange={(e) => handleUpdateCustomRow(idx, 'value', parseFloat(e.target.value) || 0)}
+                                    className="w-full text-xs rounded border border-slate-200 dark:border-slate-700 p-1.5 bg-transparent text-slate-900 dark:text-white font-mono"
+                                  />
+                                </td>
+                                {newChartType === 'gantt' && (
+                                  <td className="p-1.5">
+                                    <input
+                                      type="number"
+                                      value={row.startValue ?? 0}
+                                      onChange={(e) => handleUpdateCustomRow(idx, 'startValue', parseFloat(e.target.value) || 0)}
+                                      className="w-full text-xs rounded border border-slate-200 dark:border-slate-700 p-1.5 bg-transparent text-slate-900 dark:text-white font-mono"
+                                    />
+                                  </td>
+                                )}
+                                <td className="p-1.5">
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="color"
+                                      value={row.color || '#3b82f6'}
+                                      onChange={(e) => handleUpdateCustomRow(idx, 'color', e.target.value)}
+                                      className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent"
+                                    />
+                                    <span className="text-[10px] font-mono text-slate-400 truncate">{row.color || '#3b82f6'}</span>
+                                  </div>
+                                </td>
+                                <td className="p-1.5">
+                                  <input
+                                    type="text"
+                                    value={row.sublabel || ''}
+                                    onChange={(e) => handleUpdateCustomRow(idx, 'sublabel', e.target.value)}
+                                    placeholder="e.g. 24 Hires"
+                                    className="w-full text-xs rounded border border-slate-200 dark:border-slate-700 p-1.5 bg-transparent text-slate-900 dark:text-white"
+                                  />
+                                </td>
+                                <td className="p-1.5 text-center">
+                                  <button
+                                    type="button"
+                                    disabled={customDataPoints.length <= 1}
+                                    onClick={() => handleDeleteCustomRow(idx)}
+                                    className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded disabled:opacity-20 cursor-pointer"
+                                    title="Delete Row"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={handleAddCustomRow}
+                          leftIcon={<PlusCircle className="w-3.5 h-3.5 text-blue-600" />}
+                          className="text-xs font-semibold cursor-pointer"
+                        >
+                          Add Data Row
+                        </Button>
+                        <span className="text-[11px] text-slate-400">
+                          {customDataPoints.length} custom data items will be saved directly with this dashlet.
+                        </span>
+                      </div>
                     </div>
                   )}
 
@@ -562,6 +932,67 @@ export const CustomDashboardsPage: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Grid Width (12-Col Span) & Height Controls */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                        Card Width (12-Column Grid)
+                      </label>
+                      <div className="grid grid-cols-5 gap-1">
+                        {[
+                          { span: 3 as DashletColSpan, label: '1/4', sub: '3 cols' },
+                          { span: 4 as DashletColSpan, label: '1/3', sub: '4 cols' },
+                          { span: 6 as DashletColSpan, label: '1/2', sub: '6 cols' },
+                          { span: 8 as DashletColSpan, label: '2/3', sub: '8 cols' },
+                          { span: 12 as DashletColSpan, label: 'Full', sub: '12 cols' }
+                        ].map((w) => (
+                          <button
+                            key={w.span}
+                            type="button"
+                            onClick={() => setNewColSpan(w.span)}
+                            className={cn(
+                              'py-1.5 px-1 rounded-lg text-center text-xs border transition-all cursor-pointer select-none',
+                              newColSpan === w.span
+                                ? 'bg-blue-600 text-white font-bold border-blue-600 shadow-xs'
+                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-blue-400'
+                            )}
+                          >
+                            <span className="block font-bold">{w.label}</span>
+                            <span className={cn('block text-[9px]', newColSpan === w.span ? 'text-blue-100' : 'text-slate-400')}>{w.sub}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                        Card Height Preset
+                      </label>
+                      <div className="grid grid-cols-3 gap-1">
+                        {[
+                          { preset: 'compact' as DashletHeightPreset, label: 'Compact', sub: 'Single row / KPI' },
+                          { preset: 'normal' as DashletHeightPreset, label: 'Normal', sub: 'Standard chart' },
+                          { preset: 'tall' as DashletHeightPreset, label: 'Tall', sub: 'Extended list / view' }
+                        ].map((h) => (
+                          <button
+                            key={h.preset}
+                            type="button"
+                            onClick={() => setNewHeightPreset(h.preset)}
+                            className={cn(
+                              'py-1.5 px-1.5 rounded-lg text-center text-xs border transition-all cursor-pointer select-none',
+                              newHeightPreset === h.preset
+                                ? 'bg-blue-600 text-white font-bold border-blue-600 shadow-xs'
+                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-blue-400'
+                            )}
+                          >
+                            <span className="block font-bold">{h.label}</span>
+                            <span className={cn('block text-[9px]', newHeightPreset === h.preset ? 'text-blue-100' : 'text-slate-400')}>{h.sub}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Persona Assignments */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
@@ -613,8 +1044,18 @@ export const CustomDashboardsPage: React.FC = () => {
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 truncate">{newDesc.trim() || 'Visual metric distribution'}</p>
+                        
+                        {/* Live Data Binding Indicator Pill */}
+                        <div className="flex items-center justify-between px-2.5 py-1 rounded bg-blue-50 dark:bg-blue-950/70 border border-blue-100 dark:border-blue-900/60 text-[10px] text-blue-700 dark:text-blue-300 font-semibold">
+                          <span className="flex items-center gap-1 truncate">
+                            <Database className="w-3 h-3 text-blue-600" />
+                            {DATA_SOURCE_OPTIONS.find((d) => d.id === selectedDataSource)?.name || 'Custom Data'}
+                          </span>
+                          <span className="font-mono font-bold shrink-0">{computedPreviewChartData.length} records</span>
+                        </div>
+
                         <div className="pt-2">
-                          <DynamicDashletChart chartType={newChartType} height={200} />
+                          <DynamicDashletChart chartType={newChartType} data={computedPreviewChartData} height={200} />
                         </div>
                       </div>
                     ) : (
@@ -632,6 +1073,7 @@ export const CustomDashboardsPage: React.FC = () => {
                     <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 pt-3 border-t border-slate-200 dark:border-slate-700">
                       <p><strong>Category:</strong> <span className="capitalize">{newCategory}</span></p>
                       <p><strong>Type:</strong> <span className="capitalize">{newType === 'chart' ? `${newChartType} Chart (amCharts 5)` : newType}</span></p>
+                      <p><strong>Bound Data:</strong> <span className="font-semibold text-blue-600 dark:text-blue-400">{DATA_SOURCE_OPTIONS.find((d) => d.id === selectedDataSource)?.name}</span></p>
                       <p><strong>Target Personas:</strong> {newRoles.length > 0 ? newRoles.map((r) => r.replace('_', ' ')).join(', ') : 'None'}</p>
                     </div>
                   </div>
@@ -645,7 +1087,7 @@ export const CustomDashboardsPage: React.FC = () => {
                         setIsAddDashletOpen(false);
                         setEditingDashlet(null);
                       }}
-                      className="w-1/2 text-xs font-semibold"
+                      className="w-1/2 text-xs font-semibold cursor-pointer"
                     >
                       Cancel
                     </Button>
@@ -653,7 +1095,7 @@ export const CustomDashboardsPage: React.FC = () => {
                       variant="primary"
                       size="md"
                       type="submit"
-                      className="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm"
+                      className="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm cursor-pointer"
                     >
                       {editingDashlet ? 'Save Changes' : 'Save & Deploy Dashlet'}
                     </Button>
@@ -1042,12 +1484,13 @@ export const CustomDashboardsPage: React.FC = () => {
           </div>
 
           {/* RENDER ACTIVE DASHLETS FOR THIS ROLE */}
-          <div className="p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-6 shadow-xs">
-            {/* KPI Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {previewDashletsForRole(activeTab as DashboardPersona)
-                .filter((d) => d.type === 'metric' || (d.type === 'custom' && !d.chartType))
-                .map((d) => {
+          <div className="p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs flex-1 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-4 items-start">
+              {previewDashletsForRole(activeTab as DashboardPersona).map((d) => {
+                const colSpan: DashletColSpan = d.colSpan || (d.type === 'metric' ? 3 : d.type === 'chart' || d.chartType ? 6 : 12);
+                const heightPreset: DashletHeightPreset = d.heightPreset || (d.type === 'metric' ? 'compact' : 'normal');
+
+                if (d.type === 'metric' || (d.type === 'custom' && !d.chartType)) {
                   let metricValue = d.customData?.value || 'Active';
                   let metricBadge = d.customData?.badge || 'On track';
                   let isPositive = d.customData?.badgePositive ?? true;
@@ -1082,26 +1525,29 @@ export const CustomDashboardsPage: React.FC = () => {
                   }
 
                   return (
-                    <StatCard
+                    <div
                       key={d.id}
-                      label={d.title}
-                      value={metricValue}
-                      change={metricBadge}
-                      isPositive={isPositive}
-                      description={d.description}
-                      icon={<Sparkles className="w-5 h-5" />}
-                      iconBg="bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400"
-                    />
+                      style={d.customHeight ? { minHeight: `${d.customHeight}px` } : undefined}
+                      className={cn(getColSpanClass(colSpan), getHeightClass(heightPreset, d.customHeight))}
+                    >
+                      <StatCard
+                        label={d.title}
+                        value={metricValue}
+                        change={metricBadge}
+                        isPositive={isPositive}
+                        description={d.description}
+                        icon={<Sparkles className="w-5 h-5" />}
+                        iconBg="bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400"
+                        className="h-full"
+                      />
+                    </div>
                   );
-                })}
-            </div>
+                }
 
-            {/* Visual Charts & Specialized Dashlets Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {previewDashletsForRole(activeTab as DashboardPersona)
-                .filter((d) => d.type === 'chart' || (d.type === 'custom' && d.chartType))
-                .map((d) => {
-                  let chartDataToRender = d.chartData;
+                if (d.type === 'chart' || (d.type === 'custom' && d.chartType)) {
+                  let chartDataToRender = d.dataSource
+                    ? resolveChartDataFromSource(d.dataSource, candidates, tasks, assets)
+                    : d.chartData;
 
                   if ((activeTab === 'KPI_DASHBOARD' || activeTab === 'EMPLOYEE') && selectedPreviewCandidate) {
                     const empProgress = selectedPreviewCandidate.progress || 0;
@@ -1136,47 +1582,57 @@ export const CustomDashboardsPage: React.FC = () => {
                   }
 
                   return (
-                    <Card key={d.id} className="border border-slate-200 dark:border-slate-800">
-                      <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <BarChart3 className="w-4 h-4 text-blue-600" />
-                          <h3 className="text-xs font-bold text-slate-900 dark:text-white">
-                            {d.title}
-                          </h3>
-                        </div>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
-                          {d.chartType || 'bar'}
-                        </span>
+                    <div
+                      key={d.id}
+                      style={d.customHeight ? { minHeight: `${d.customHeight}px` } : undefined}
+                      className={cn(getColSpanClass(colSpan), getHeightClass(heightPreset, d.customHeight))}
+                    >
+                      <Card className="border border-slate-200 dark:border-slate-800 h-full w-full flex flex-col justify-between">
+                        <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <BarChart3 className="w-4 h-4 text-blue-600" />
+                            <h3 className="text-xs font-bold text-slate-900 dark:text-white">
+                              {d.title}
+                            </h3>
+                          </div>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                            {d.chartType || 'bar'}
+                          </span>
+                        </CardHeader>
+                        <CardContent className="pt-3 flex-1 flex flex-col justify-center p-4">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{d.description}</p>
+                          <DynamicDashletChart chartType={d.chartType || 'bar'} data={chartDataToRender} height={220} />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={d.id}
+                    style={d.customHeight ? { minHeight: `${d.customHeight}px` } : undefined}
+                    className={cn(getColSpanClass(colSpan), getHeightClass(heightPreset, d.customHeight))}
+                  >
+                    <Card className="border border-slate-200 dark:border-slate-800 h-full w-full flex flex-col justify-between">
+                      <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                          <Layers className="w-4 h-4 text-blue-600" />
+                          {d.title}
+                        </h3>
                       </CardHeader>
-                      <CardContent className="pt-3">
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{d.description}</p>
-                        <DynamicDashletChart chartType={d.chartType || 'bar'} data={chartDataToRender} />
+                      <CardContent className="pt-3 flex-1 flex flex-col justify-between">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{d.description}</p>
+                        <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-center text-xs text-slate-500 flex-1 flex items-center justify-center">
+                          {(activeTab === 'KPI_DASHBOARD' || activeTab === 'EMPLOYEE') && selectedPreviewCandidate
+                            ? `Interactive ${d.type} dashlet configured for employee: ${selectedPreviewCandidate.name || selectedPreviewCandidate.firstName}.`
+                            : `Interactive ${d.type} dashlet actively rendered in ${activeTab} view.`}
+                        </div>
                       </CardContent>
                     </Card>
-                  );
-                })}
-
-              {/* Other list / progress / hero dashlets */}
-              {previewDashletsForRole(activeTab as DashboardPersona)
-                .filter((d) => d.type !== 'metric' && d.type !== 'chart' && (!d.chartType))
-                .map((d) => (
-                  <Card key={d.id} className="border border-slate-200 dark:border-slate-800">
-                    <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
-                      <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-blue-600" />
-                        {d.title}
-                      </h3>
-                    </CardHeader>
-                    <CardContent className="pt-3">
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{d.description}</p>
-                      <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-center text-xs text-slate-500">
-                        {(activeTab === 'KPI_DASHBOARD' || activeTab === 'EMPLOYEE') && selectedPreviewCandidate
-                          ? `Interactive ${d.type} dashlet configured for employee: ${selectedPreviewCandidate.name || selectedPreviewCandidate.firstName}.`
-                          : `Interactive ${d.type} dashlet actively rendered in ${activeTab} view.`}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

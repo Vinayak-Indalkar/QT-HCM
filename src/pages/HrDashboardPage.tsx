@@ -14,11 +14,15 @@ import { EmployeeProfileView } from '../components/employee/EmployeeProfileView'
 import { EmployeeDashboardPage } from './EmployeeDashboardPage';
 import { Candidate } from '../types/candidate';
 import { formatDate } from '../utils/formatters';
+import { getAssets } from '../services/assetService';
 import { getStoredPunchRecords, PunchRecord } from '../services/attendanceService';
 import {
   getDashletsForPersona,
   resetPersonaLayout,
-  DashletConfig
+  getColSpanClass,
+  getHeightClass,
+  DashletConfig,
+  resolveChartDataFromSource
 } from '../services/dashboardCustomizationService';
 import { cn } from '../utils/cn';
 import { DashletCardWrapper } from '../components/dashboard/DashletCardWrapper';
@@ -45,7 +49,7 @@ import {
 } from 'lucide-react';
 
 export const HrDashboardPage: React.FC = () => {
-  const { candidates, updateCandidate, navigateTo } = useOnboarding();
+  const { candidates, tasks, updateCandidate, navigateTo } = useOnboarding();
   const { data: activeFlowData, loadEmployee } = useOnboardingFlow();
   const { success, warning } = useToast();
   const { setRole } = useRole();
@@ -296,70 +300,73 @@ export const HrDashboardPage: React.FC = () => {
       case 'kpi_total_employees':
       case 'hr_kpi_active_pipeline':
         return (
-          <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs h-full flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Pipeline</span>
-              <Users className="w-5 h-5 text-blue-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{employeeRecords.length}</p>
-              <span className="text-xs text-slate-400">Total enrolled employees</span>
-            </div>
-          </div>
+          <StatCard
+            label="Active In Pipeline"
+            value={employeeRecords.length}
+            change="+3 this month"
+            isPositive={true}
+            description="Total enrolled employees"
+            icon={<Users className="w-5 h-5" aria-hidden="true" />}
+            iconBg="bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400"
+            onClick={() => navigateTo('candidates')}
+          />
         );
       case 'kpi_doc_compliance':
       case 'hr_kpi_pending_docs':
         return (
-          <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs h-full flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pending Verification</span>
-              <Clock className="w-5 h-5 text-amber-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-2">
-                {employeeRecords.filter((e) => e.status !== 'Completed').length}
-              </p>
-              <span className="text-xs text-slate-400">Requires candidate/HR action</span>
-            </div>
-          </div>
+          <StatCard
+            label="Pending Verification"
+            value={employeeRecords.filter((e) => e.status !== 'Completed').length}
+            change="Action required"
+            isPositive={false}
+            description="Requires candidate/HR action"
+            icon={<Clock className="w-5 h-5" aria-hidden="true" />}
+            iconBg="bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400"
+            onClick={() => navigateTo('compliance')}
+          />
         );
       case 'kpi_active_onboarding':
       case 'hr_kpi_day1_ready':
         return (
-          <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs h-full flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ready for Day 1</span>
-              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">
-                {employeeRecords.filter((e) => e.status === 'Completed').length}
-              </p>
-              <span className="text-xs text-emerald-600 font-semibold">100% Onboarding verified</span>
-            </div>
-          </div>
+          <StatCard
+            label="Ready for Day 1"
+            value={employeeRecords.filter((e) => e.status === 'Completed').length}
+            change="100% Onboarding verified"
+            isPositive={true}
+            description="Day 1 Orientation ready"
+            icon={<CheckCircle2 className="w-5 h-5" aria-hidden="true" />}
+            iconBg="bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400"
+            onClick={() => navigateTo('candidates')}
+          />
         );
       case 'kpi_asset_pool':
       case 'hr_kpi_it_staging':
         return (
-          <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs h-full flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Live Attendance</span>
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">
-                {punchRecords.length > 0 && punchRecords[punchRecords.length - 1].type === 'in' ? '1 On Clock' : 'Ready'}
-              </p>
-              <span className="text-xs text-slate-400 truncate block">
-                {punchRecords.length > 0 ? `Latest: ${punchRecords[punchRecords.length - 1].employeeName}` : 'Time-card tracking active'}
-              </span>
-            </div>
-          </div>
+          <StatCard
+            label="Live Attendance"
+            value={punchRecords.length > 0 && punchRecords[punchRecords.length - 1].type === 'in' ? '1 On Clock' : 'Active'}
+            change={punchRecords.length > 0 ? `Latest: ${punchRecords[punchRecords.length - 1].employeeName}` : 'Time-card tracking active'}
+            isPositive={true}
+            description="Shift & Punch Status"
+            icon={<Activity className="w-5 h-5" aria-hidden="true" />}
+            iconBg="bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400"
+          />
+        );
+      case 'kpi_avg_sla':
+        return (
+          <StatCard
+            label="Average SLA Turnaround"
+            value="3.2 Days"
+            change="18% Faster"
+            isPositive={true}
+            description="Target: Under 5 Days"
+            icon={<Clock className="w-5 h-5" aria-hidden="true" />}
+            iconBg="bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400"
+          />
         );
       case 'hr_widget_attendance_stream':
         return (
-          <Card className="overflow-hidden shadow-xs border border-slate-200 dark:border-slate-700 dark:border-slate-800 h-full">
+          <Card className="overflow-hidden shadow-xs border border-slate-200 dark:border-slate-700 dark:border-slate-800 h-full w-full flex flex-col justify-between">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
@@ -376,7 +383,7 @@ export const HrDashboardPage: React.FC = () => {
                 Live Sync Active
               </span>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 flex-1">
               <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-80 overflow-y-auto">
                 {punchRecords.slice().reverse().map((record) => (
                   <div
@@ -430,7 +437,7 @@ export const HrDashboardPage: React.FC = () => {
       case 'hr_widget_roster_table':
       case 'list_recent_arrivals':
         return (
-          <div className="space-y-4">
+          <div className="space-y-4 h-full w-full flex flex-col justify-between">
             {/* Filter and Search Bar */}
             <Card className="p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <div className="relative flex-1 max-w-md">
@@ -461,7 +468,7 @@ export const HrDashboardPage: React.FC = () => {
             </Card>
 
             {/* Employees Table Card */}
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden flex-1 flex flex-col justify-between">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-blue-600" />
@@ -471,7 +478,7 @@ export const HrDashboardPage: React.FC = () => {
                 </div>
               </CardHeader>
 
-              <CardContent className="p-0">
+              <CardContent className="p-0 flex-1">
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredEmployees.map((emp) => (
                     <div
@@ -565,9 +572,13 @@ export const HrDashboardPage: React.FC = () => {
       default:
         // Render Dynamic Charts or Custom Metric Cards
         if (dashlet.type === 'chart' && dashlet.chartType) {
+          const resolvedChartData = dashlet.dataSource
+            ? resolveChartDataFromSource(dashlet.dataSource, candidates, tasks, getAssets())
+            : dashlet.chartData;
+
           return (
-            <Card className="h-full">
-              <CardHeader>
+            <Card className="h-full w-full flex flex-col justify-between">
+              <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <div>
@@ -580,11 +591,11 @@ export const HrDashboardPage: React.FC = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1 flex flex-col justify-center p-4">
                 <DynamicDashletChart
                   chartType={dashlet.chartType}
-                  data={dashlet.chartData}
-                  height={180}
+                  data={resolvedChartData}
+                  height={220}
                 />
               </CardContent>
             </Card>
@@ -606,10 +617,10 @@ export const HrDashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 text-left w-full animate-fade-in pb-12">
+    <div className="space-y-6 text-left w-full animate-fade-in pb-12 flex-1">
       <PageHeader
-        title="My Dashboard"
-        description="Monitor candidates across the 10-step onboarding pipeline, inspect submitted paperwork, and customize your live operational dashlets."
+        title="HR Admin Dashboard"
+        description="Monitor candidates across the 10-step onboarding pipeline, inspect submitted paperwork, verify compliance, and customize your live operational dashlets."
         actions={
           <div className="flex items-center gap-2">
             {isCustomizing && (
@@ -663,18 +674,12 @@ export const HrDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Unified Movable Dashlets Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Unified Movable 12-Column Responsive Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-4 items-start">
         {dashlets.map((dashlet, idx) => {
-          const isFullWidth =
-            dashlet.id === 'hr_widget_roster_table' ||
-            dashlet.id === 'hr_widget_attendance_stream' ||
-            dashlet.id === 'list_recent_arrivals';
-          const isLarge =
-            dashlet.type === 'chart' ||
-            dashlet.type === 'list' ||
-            dashlet.type === 'hero' ||
-            dashlet.type === 'progress';
+          const colSpan = dashlet.colSpan || 3;
+          const heightPreset = dashlet.heightPreset || 'normal';
+          const customHeight = dashlet.customHeight;
 
           return (
             <DashletCardWrapper
@@ -685,14 +690,11 @@ export const HrDashboardPage: React.FC = () => {
               index={idx}
               total={dashlets.length}
               isCustomizing={isCustomizing}
+              colSpan={colSpan}
+              heightPreset={heightPreset}
+              customHeight={customHeight}
               onLayoutUpdated={refreshDashlets}
-              className={
-                isFullWidth
-                  ? 'col-span-1 sm:col-span-2 lg:col-span-4'
-                  : isLarge
-                  ? 'col-span-1 sm:col-span-2 lg:col-span-2'
-                  : 'col-span-1'
-              }
+              className={cn(getColSpanClass(colSpan), getHeightClass(heightPreset, customHeight))}
             >
               {renderDashletContent(dashlet)}
             </DashletCardWrapper>

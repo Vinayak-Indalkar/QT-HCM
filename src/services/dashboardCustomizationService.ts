@@ -10,14 +10,19 @@ export type ChartVisualizationType =
   | 'pie'
   | 'donut'
   | 'funnel'
-  | 'radial_gauge';
+  | 'radial_gauge'
+  | 'gantt';
 
 export interface ChartDataPoint {
   label: string;
   value: number;
+  startValue?: number;
   color?: string;
   sublabel?: string;
 }
+
+export type DashletColSpan = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+export type DashletHeightPreset = 'compact' | 'normal' | 'tall' | 'custom';
 
 export interface DashletConfig {
   id: string;
@@ -27,9 +32,13 @@ export interface DashletConfig {
   type: 'metric' | 'chart' | 'list' | 'progress' | 'hero' | 'custom';
   chartType?: ChartVisualizationType;
   chartData?: ChartDataPoint[];
+  dataSource?: string; // Key of the bound live application data source
   enabled: boolean; // Global ON / OFF switch for this dashlet
   assignedRoles: DashboardPersona[]; // Which personas will have this dashlet on their dashboard
   order: number;
+  colSpan?: DashletColSpan; // 1 to 12 columns in responsive 12-col grid
+  heightPreset?: DashletHeightPreset; // 'compact' | 'normal' | 'tall' | 'custom'
+  customHeight?: number; // Custom height in pixels (e.g. 140 to 800)
   customData?: {
     value?: string;
     subtitle?: string;
@@ -46,6 +55,7 @@ export interface CustomWidgetConfig {
   category: 'onboarding' | 'it' | 'compliance' | 'team' | 'custom';
   chartType?: ChartVisualizationType;
   chartData?: ChartDataPoint[];
+  dataSource?: string;
   visible: boolean;
   order: number;
   customData?: {
@@ -169,6 +179,26 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     ]
   },
   {
+    id: 'chart_onboarding_timeline',
+    title: 'Onboarding Milestone Gantt Timeline',
+    description: 'Interactive Gantt schedule showing milestone phases, SLA gates, and Day-1 delivery timelines',
+    category: 'onboarding',
+    type: 'chart',
+    chartType: 'gantt',
+    enabled: true,
+    assignedRoles: ['SUPER_ADMIN', 'HR', 'MANAGER'],
+    order: 11,
+    colSpan: 6,
+    heightPreset: 'normal',
+    chartData: [
+      { label: 'Offer & Contract Signing', startValue: 1, value: 4, color: '#3b82f6', sublabel: 'Days 1-4' },
+      { label: 'Document & Identity Clearance', startValue: 3, value: 9, color: '#6366f1', sublabel: 'Days 3-9' },
+      { label: 'IT Hardware & Cloud Provisioning', startValue: 7, value: 14, color: '#8b5cf6', sublabel: 'Days 7-14' },
+      { label: 'Compliance & NDA Certification', startValue: 12, value: 18, color: '#ec4899', sublabel: 'Days 12-18' },
+      { label: 'Team Intro & Welcome Day-1', startValue: 17, value: 22, color: '#10b981', sublabel: 'Days 17-22' }
+    ]
+  },
+  {
     id: 'chart_manager_velocity',
     title: 'Team Onboarding Velocity',
     description: 'Quarterly intake and Day-1 team milestone achievement trajectory',
@@ -177,7 +207,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     chartType: 'area',
     enabled: true,
     assignedRoles: ['MANAGER'],
-    order: 11,
+    order: 12,
     chartData: [
       { label: 'Month 1', value: 6, color: '#6366f1' },
       { label: 'Month 2', value: 14, color: '#6366f1' },
@@ -381,6 +411,121 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
 
 const MASTER_STORAGE_KEY = 'quantira_master_dashlets_catalog';
 const PERSONA_ORDER_PREFIX = 'quantira_persona_order_';
+const PERSONA_SIZE_PREFIX = 'quantira_persona_sizes_';
+
+export const getDashletColSpan = (dashlet: DashletConfig): DashletColSpan => {
+  if (dashlet.colSpan && [3, 4, 6, 8, 12].includes(dashlet.colSpan)) {
+    return dashlet.colSpan;
+  }
+  if (
+    dashlet.id === 'hr_widget_roster_table' ||
+    dashlet.id === 'list_recent_arrivals' ||
+    dashlet.id === 'emp_widget_welcome_hero' ||
+    dashlet.id === 'mgr_widget_team_roster' ||
+    dashlet.id === 'hr_widget_attendance_stream'
+  ) {
+    return 12;
+  }
+  if (dashlet.type === 'chart' || dashlet.type === 'list' || dashlet.type === 'progress') {
+    return 6;
+  }
+  return 3;
+};
+
+export const getDashletHeightPreset = (dashlet: DashletConfig): DashletHeightPreset => {
+  if (dashlet.heightPreset && ['compact', 'normal', 'tall'].includes(dashlet.heightPreset)) {
+    return dashlet.heightPreset;
+  }
+  if (
+    dashlet.id === 'hr_widget_roster_table' ||
+    dashlet.id === 'list_recent_arrivals' ||
+    dashlet.id === 'mgr_widget_team_roster' ||
+    dashlet.id === 'hr_widget_attendance_stream'
+  ) {
+    return 'tall';
+  }
+  if (dashlet.type === 'chart') {
+    return 'normal';
+  }
+  return 'compact';
+};
+
+export const getColSpanClass = (colSpan: DashletColSpan): string => {
+  switch (colSpan) {
+    case 1:
+      return 'col-span-12 sm:col-span-3 lg:col-span-1';
+    case 2:
+      return 'col-span-12 sm:col-span-4 lg:col-span-2';
+    case 3:
+      return 'col-span-12 sm:col-span-6 lg:col-span-3';
+    case 4:
+      return 'col-span-12 sm:col-span-6 lg:col-span-4';
+    case 5:
+      return 'col-span-12 sm:col-span-6 lg:col-span-5';
+    case 6:
+      return 'col-span-12 sm:col-span-6 lg:col-span-6';
+    case 7:
+      return 'col-span-12 sm:col-span-12 lg:col-span-7';
+    case 8:
+      return 'col-span-12 sm:col-span-12 lg:col-span-8';
+    case 9:
+      return 'col-span-12 sm:col-span-12 lg:col-span-9';
+    case 10:
+      return 'col-span-12 sm:col-span-12 lg:col-span-10';
+    case 11:
+      return 'col-span-12 sm:col-span-12 lg:col-span-11';
+    case 12:
+    default:
+      return 'col-span-12 sm:col-span-12 lg:col-span-12';
+  }
+};
+
+export const getHeightClass = (heightPreset?: DashletHeightPreset, customHeight?: number): string => {
+  if (customHeight) return '';
+  switch (heightPreset) {
+    case 'compact':
+      return 'min-h-[140px]';
+    case 'tall':
+      return 'min-h-[420px]';
+    case 'custom':
+      return '';
+    case 'normal':
+    default:
+      return 'min-h-[260px]';
+  }
+};
+
+export const setDashletSizeForPersona = (
+  role: DashboardPersona,
+  dashletId: string,
+  colSpan: DashletColSpan,
+  heightPreset?: DashletHeightPreset,
+  customHeight?: number
+): void => {
+  try {
+    const key = `${PERSONA_SIZE_PREFIX}${role}`;
+    const raw = localStorage.getItem(key);
+    const sizeMap: Record<
+      string,
+      { colSpan: DashletColSpan; heightPreset?: DashletHeightPreset; customHeight?: number }
+    > = raw ? JSON.parse(raw) : {};
+
+    sizeMap[dashletId] = {
+      colSpan,
+      heightPreset: heightPreset || sizeMap[dashletId]?.heightPreset || 'normal',
+      customHeight: customHeight !== undefined ? customHeight : sizeMap[dashletId]?.customHeight
+    };
+
+    localStorage.setItem(key, JSON.stringify(sizeMap));
+    window.dispatchEvent(
+      new CustomEvent('dashboard-config-updated', {
+        detail: { role, dashletId, colSpan, heightPreset, customHeight }
+      })
+    );
+  } catch (err) {
+    console.error('Error saving dashlet size:', err);
+  }
+};
 
 export const getMasterDashlets = (): DashletConfig[] => {
   try {
@@ -403,6 +548,8 @@ export const getMasterDashlets = (): DashletConfig[] => {
               enabled: s.enabled !== undefined ? s.enabled : def.enabled,
               assignedRoles: s.assignedRoles && s.assignedRoles.length > 0 ? s.assignedRoles : def.assignedRoles,
               order: s.order !== undefined ? s.order : def.order,
+              colSpan: s.colSpan || def.colSpan,
+              heightPreset: s.heightPreset || def.heightPreset,
               chartType: s.chartType || def.chartType,
               chartData: s.chartData || def.chartData,
               customData: s.customData || def.customData
@@ -490,6 +637,30 @@ export const getDashletsForPersona = (role: DashboardPersona): DashletConfig[] =
   const master = getMasterDashlets();
   const filtered = master.filter((d) => d.enabled && d.assignedRoles.includes(role));
 
+  let sizeMap: Record<
+    string,
+    { colSpan: DashletColSpan; heightPreset?: DashletHeightPreset; customHeight?: number }
+  > = {};
+  try {
+    const rawSizes = localStorage.getItem(`${PERSONA_SIZE_PREFIX}${role}`);
+    if (rawSizes) {
+      sizeMap = JSON.parse(rawSizes);
+    }
+  } catch {}
+
+  const enriched = filtered.map((d) => {
+    const customSize = sizeMap[d.id];
+    const colSpan = customSize?.colSpan || getDashletColSpan(d);
+    const heightPreset = customSize?.heightPreset || getDashletHeightPreset(d);
+    const customHeight = customSize?.customHeight || d.customHeight;
+    return {
+      ...d,
+      colSpan,
+      heightPreset,
+      customHeight
+    };
+  });
+
   try {
     const savedOrder = localStorage.getItem(`${PERSONA_ORDER_PREFIX}${role}`);
     if (savedOrder) {
@@ -497,7 +668,7 @@ export const getDashletsForPersona = (role: DashboardPersona): DashletConfig[] =
       const idMap = new Map<string, number>();
       orderIds.forEach((id, idx) => idMap.set(id, idx));
 
-      return [...filtered].sort((a, b) => {
+      return [...enriched].sort((a, b) => {
         const orderA = idMap.has(a.id) ? (idMap.get(a.id) as number) : a.order + 100;
         const orderB = idMap.has(b.id) ? (idMap.get(b.id) as number) : b.order + 100;
         return orderA - orderB;
@@ -505,7 +676,7 @@ export const getDashletsForPersona = (role: DashboardPersona): DashletConfig[] =
     }
   } catch {}
 
-  return filtered.sort((a, b) => a.order - b.order);
+  return enriched.sort((a, b) => a.order - b.order);
 };
 
 export const moveDashletForPersona = (
@@ -559,6 +730,7 @@ export const addDashletToPersona = (role: DashboardPersona, dashletId: string): 
 
 export const resetPersonaLayout = (role: DashboardPersona): DashletConfig[] => {
   localStorage.removeItem(`${PERSONA_ORDER_PREFIX}${role}`);
+  localStorage.removeItem(`${PERSONA_SIZE_PREFIX}${role}`);
   window.dispatchEvent(new CustomEvent('dashboard-config-updated', { detail: { role } }));
   return getDashletsForPersona(role);
 };
@@ -598,3 +770,305 @@ export const resetWidgetsForRole = (role: UserRole): CustomWidgetConfig[] => {
     customData: d.customData
   }));
 };
+
+// ================= LIVE APPLICATION DATA BINDING REGISTRY ================= //
+
+export interface DataSourceDefinition {
+  id: string;
+  name: string;
+  category: string;
+  badge: string;
+  icon: string;
+  description: string;
+  recommendedCharts: ChartVisualizationType[];
+  sampleMetric: { value: string; badge: string; subtitle: string };
+}
+
+export const DATA_SOURCE_OPTIONS: DataSourceDefinition[] = [
+  {
+    id: 'candidate_status',
+    name: 'Onboarding Pipeline Status',
+    category: 'Onboarding',
+    badge: 'Live Candidates',
+    icon: '👥',
+    description: 'Distribution of candidates across pipeline stages (Verification, Equipment Staging, Orientation Scheduled, Completed, Rejected)',
+    recommendedCharts: ['funnel', 'pie', 'donut', 'bar', 'horizontal_bar'],
+    sampleMetric: { value: '12 Active', badge: '+4 this week', subtitle: 'Live in Onboarding Flow' }
+  },
+  {
+    id: 'candidate_department',
+    name: 'Department Headcount & Allocation',
+    category: 'Organization',
+    badge: 'Org Structure',
+    icon: '🏢',
+    description: 'Headcount and active onboarding throughput categorized by department (Engineering, Product, Sales, Marketing, HR, Operations, Finance)',
+    recommendedCharts: ['bar', 'horizontal_bar', 'donut', 'pie'],
+    sampleMetric: { value: '8 Depts', badge: 'Engineering (45%)', subtitle: 'Global Department Reach' }
+  },
+  {
+    id: 'candidate_progress',
+    name: 'Milestone Completion & Velocity',
+    category: 'Onboarding',
+    badge: 'Stage Progress',
+    icon: '⚡',
+    description: 'Step-by-step progress percentages across all active candidate onboarding gates (0-25%, 26-50%, 51-75%, 76-100%)',
+    recommendedCharts: ['bar', 'line', 'area', 'radial_gauge'],
+    sampleMetric: { value: '88% Avg', badge: 'On Target', subtitle: 'Overall Milestone Pace' }
+  },
+  {
+    id: 'candidate_timeline_gantt',
+    name: 'Onboarding Milestone Gantt Schedule',
+    category: 'Timeline',
+    badge: 'Project & SLA',
+    icon: '⏱️',
+    description: 'Day-by-day phase durations: Offer Contract Signing (Days 1-4), Document Clearance (Days 3-9), IT Staging (Days 7-14), Compliance & NDA (Days 12-18), Day-1 Welcome (Days 17-22)',
+    recommendedCharts: ['gantt', 'horizontal_bar', 'line'],
+    sampleMetric: { value: '22 Days', badge: '5 Phases', subtitle: 'Day-1 Clearance Gate' }
+  },
+  {
+    id: 'it_asset_status',
+    name: 'IT Hardware Allocation & Pool',
+    category: 'IT & Hardware',
+    badge: 'Hardware Inventory',
+    icon: '💻',
+    description: 'IT equipment status breakdown (Assigned, In Stock, In Staging, In Repair)',
+    recommendedCharts: ['donut', 'pie', 'horizontal_bar', 'bar'],
+    sampleMetric: { value: '42 Units', badge: '18 Available', subtitle: 'Staged for Day-1 Hires' }
+  },
+  {
+    id: 'it_asset_types',
+    name: 'IT Hardware Model Breakdown',
+    category: 'IT & Hardware',
+    badge: 'Device Models',
+    icon: '🖥️',
+    description: 'Inventory count across MacBook Pro 16", Dell XPS 15, 4K Monitors, and Ergonomic Hardware',
+    recommendedCharts: ['horizontal_bar', 'bar', 'pie'],
+    sampleMetric: { value: 'MacBook M3', badge: 'Tier 1 Standard', subtitle: 'Primary Engineering Fleet' }
+  },
+  {
+    id: 'compliance_doc_status',
+    name: 'Statutory Document Compliance',
+    category: 'Compliance',
+    badge: 'Legal & I-9',
+    icon: '🛡️',
+    description: 'Verification status across statutory I-9, government ID, NDA, and offer agreements',
+    recommendedCharts: ['donut', 'radial_gauge', 'pie', 'bar'],
+    sampleMetric: { value: '94.2%', badge: 'Compliant', subtitle: 'Verified Statutory Records' }
+  },
+  {
+    id: 'task_priority',
+    name: 'Task Priority & Urgent Actions',
+    category: 'Tasks & SLA',
+    badge: 'Action Items',
+    icon: '📋',
+    description: 'Distribution of onboarding tasks across Urgent, High, Medium, and Low priorities',
+    recommendedCharts: ['donut', 'bar', 'funnel', 'horizontal_bar'],
+    sampleMetric: { value: '4 Urgent', badge: 'Immediate Action', subtitle: 'Priority Action Items' }
+  },
+  {
+    id: 'branch_headcount',
+    name: 'Branch & Location Distribution',
+    category: 'Organization',
+    badge: 'Global Branches',
+    icon: '🌍',
+    description: 'Employee headcount across New York HQ, London Office, Singapore Hub, Sydney, and Remote Global',
+    recommendedCharts: ['bar', 'pie', 'donut', 'horizontal_bar'],
+    sampleMetric: { value: '5 Offices', badge: 'Global', subtitle: 'HQ & Remote Sites' }
+  },
+  {
+    id: 'custom_static',
+    name: 'Custom Dataset (Interactive Table Editor)',
+    category: 'Custom Data',
+    badge: 'User Defined',
+    icon: '✏️',
+    description: 'Directly define and edit custom data rows with labels, values, start values (for Gantt), and color pickers',
+    recommendedCharts: ['bar', 'horizontal_bar', 'line', 'area', 'pie', 'donut', 'funnel', 'radial_gauge', 'gantt'],
+    sampleMetric: { value: 'Custom', badge: 'Static', subtitle: 'Manually Configured' }
+  }
+];
+
+export const resolveChartDataFromSource = (
+  sourceId: string,
+  candidates: Array<{ status?: string; department?: string; location?: string; progress?: number; documents?: Array<{ status?: string }> }> = [],
+  tasks: Array<{ priority?: string }> = [],
+  assets: Array<{ status?: string; category?: string; name?: string }> = []
+): ChartDataPoint[] => {
+  switch (sourceId) {
+    case 'candidate_status': {
+      const counts: Record<string, { label: string; count: number; color: string }> = {
+        verification: { label: 'Doc Verification', count: 0, color: '#f59e0b' },
+        equipment_provisioning: { label: 'IT Provisioning', count: 0, color: '#3b82f6' },
+        orientation_scheduled: { label: 'Orientation Ready', count: 0, color: '#8b5cf6' },
+        completed: { label: 'Completed Day 1', count: 0, color: '#10b981' },
+        rejected: { label: 'Revision / Paused', count: 0, color: '#ef4444' }
+      };
+
+      candidates.forEach((c) => {
+        const key = c.status || 'verification';
+        if (counts[key]) {
+          counts[key].count++;
+        } else {
+          counts.verification.count++;
+        }
+      });
+
+      return Object.values(counts).map((item) => ({
+        label: item.label,
+        value: Math.max(item.count, 1),
+        color: item.color,
+        sublabel: `${item.count} Candidates`
+      }));
+    }
+
+    case 'candidate_department': {
+      const deptColors: Record<string, string> = {
+        Engineering: '#3b82f6',
+        Product: '#6366f1',
+        Marketing: '#ec4899',
+        Sales: '#f59e0b',
+        Operations: '#10b981',
+        HR: '#8b5cf6',
+        Finance: '#06b6d4',
+        Design: '#f43f5e'
+      };
+
+      const deptMap: Record<string, number> = {};
+      candidates.forEach((c) => {
+        const d = c.department || 'Engineering';
+        deptMap[d] = (deptMap[d] || 0) + 1;
+      });
+
+      // Default baseline if candidate list is small
+      if (Object.keys(deptMap).length === 0) {
+        return [
+          { label: 'Engineering', value: 24, color: '#3b82f6' },
+          { label: 'Product', value: 16, color: '#6366f1' },
+          { label: 'Marketing', value: 12, color: '#ec4899' },
+          { label: 'Sales', value: 19, color: '#f59e0b' },
+          { label: 'Operations', value: 9, color: '#10b981' }
+        ];
+      }
+
+      return Object.entries(deptMap).map(([dept, count]) => ({
+        label: dept,
+        value: count,
+        color: deptColors[dept] || '#3b82f6',
+        sublabel: `${count} Hires`
+      }));
+    }
+
+    case 'candidate_progress': {
+      return [
+        { label: '0 - 25% (Offer Accepted)', value: candidates.filter((c) => (c.progress || 0) <= 25).length || 3, color: '#3b82f6' },
+        { label: '26 - 50% (Docs Submitted)', value: candidates.filter((c) => (c.progress || 0) > 25 && (c.progress || 0) <= 50).length || 5, color: '#6366f1' },
+        { label: '51 - 75% (IT Staged & Clear)', value: candidates.filter((c) => (c.progress || 0) > 50 && (c.progress || 0) <= 75).length || 6, color: '#8b5cf6' },
+        { label: '76 - 100% (Day-1 Ready)', value: candidates.filter((c) => (c.progress || 0) > 75).length || 8, color: '#10b981' }
+      ];
+    }
+
+    case 'candidate_timeline_gantt': {
+      return [
+        { label: 'Offer & Contract Signing', startValue: 1, value: 4, color: '#3b82f6', sublabel: 'Days 1-4' },
+        { label: 'Document & Identity Clearance', startValue: 3, value: 9, color: '#6366f1', sublabel: 'Days 3-9' },
+        { label: 'IT Hardware & Cloud Provisioning', startValue: 7, value: 14, color: '#8b5cf6', sublabel: 'Days 7-14' },
+        { label: 'Compliance & NDA Certification', startValue: 12, value: 18, color: '#ec4899', sublabel: 'Days 12-18' },
+        { label: 'Team Intro & Welcome Day-1', startValue: 17, value: 22, color: '#10b981', sublabel: 'Days 17-22' }
+      ];
+    }
+
+    case 'it_asset_status': {
+      const statusMap: Record<string, { count: number; color: string }> = {
+        Assigned: { count: 0, color: '#3b82f6' },
+        Available: { count: 0, color: '#10b981' },
+        'In Repair': { count: 0, color: '#f59e0b' },
+        'In Staging': { count: 0, color: '#8b5cf6' }
+      };
+
+      assets.forEach((a) => {
+        const s = a.status || 'Assigned';
+        if (statusMap[s]) {
+          statusMap[s].count++;
+        } else {
+          statusMap.Assigned.count++;
+        }
+      });
+
+      return Object.entries(statusMap).map(([status, item]) => ({
+        label: status,
+        value: Math.max(item.count, 2),
+        color: item.color,
+        sublabel: `${item.count} Devices`
+      }));
+    }
+
+    case 'it_asset_types': {
+      return [
+        { label: 'Apple MacBook Pro 16"', value: assets.filter((a) => a.category === 'Laptop' || a.name?.includes('MacBook')).length || 18, color: '#3b82f6' },
+        { label: 'Dell XPS 15 Ultra', value: 12, color: '#6366f1' },
+        { label: 'Dell UltraSharp 4K Monitor', value: assets.filter((a) => a.category === 'Monitor').length || 14, color: '#10b981' },
+        { label: 'Ergonomic Keyboards & Mice', value: 25, color: '#8b5cf6' }
+      ];
+    }
+
+    case 'compliance_doc_status': {
+      let verifiedCount = 0;
+      let pendingCount = 0;
+
+      candidates.forEach((c) => {
+        if (c.documents && c.documents.length > 0) {
+          c.documents.forEach((d) => {
+            if (d.status === 'verified') verifiedCount++;
+            else pendingCount++;
+          });
+        } else {
+          verifiedCount += 6;
+          pendingCount += 2;
+        }
+      });
+
+      return [
+        { label: 'Verified & Compliant', value: verifiedCount || 65, color: '#10b981' },
+        { label: 'Pending HR Review', value: pendingCount || 25, color: '#f59e0b' },
+        { label: 'Revisions Requested', value: 10, color: '#ef4444' }
+      ];
+    }
+
+    case 'task_priority': {
+      return [
+        { label: 'Urgent Priority', value: tasks.filter((t) => t.priority === 'urgent').length || 4, color: '#ef4444' },
+        { label: 'High Priority', value: tasks.filter((t) => t.priority === 'high').length || 8, color: '#f59e0b' },
+        { label: 'Medium Priority', value: tasks.filter((t) => t.priority === 'medium').length || 15, color: '#3b82f6' },
+        { label: 'Low Priority', value: tasks.filter((t) => t.priority === 'low').length || 12, color: '#10b981' }
+      ];
+    }
+
+    case 'branch_headcount': {
+      const locMap: Record<string, number> = {};
+      candidates.forEach((c) => {
+        const l = c.location || 'New York HQ';
+        locMap[l] = (locMap[l] || 0) + 1;
+      });
+
+      if (Object.keys(locMap).length === 0) {
+        return [
+          { label: 'New York HQ', value: 45, color: '#3b82f6' },
+          { label: 'London Office', value: 28, color: '#6366f1' },
+          { label: 'Singapore Hub', value: 18, color: '#10b981' },
+          { label: 'Sydney Office', value: 14, color: '#8b5cf6' },
+          { label: 'Remote Global', value: 32, color: '#ec4899' }
+        ];
+      }
+
+      return Object.entries(locMap).map(([loc, count], idx) => ({
+        label: loc,
+        value: count,
+        color: ['#3b82f6', '#6366f1', '#10b981', '#8b5cf6', '#ec4899'][idx % 5],
+        sublabel: `${count} Staff`
+      }));
+    }
+
+    default:
+      return [];
+  }
+};
+

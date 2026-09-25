@@ -29,17 +29,17 @@ export const StatCard: React.FC<StatCardProps> = ({
     <Card
       onClick={onClick}
       className={cn(
-        'p-5 transition-all duration-150',
+        'p-5 transition-all duration-150 h-full w-full flex flex-col justify-between select-none',
         onClick && 'cursor-pointer hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md',
         className
       )}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex flex-col">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+      <div className="flex items-start justify-between flex-1 gap-3">
+        <div className="flex flex-col justify-center min-w-0">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">
             {label}
           </span>
-          <span className="text-2xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">
+          <span className="text-2xl font-black text-slate-900 dark:text-white mt-1 tracking-tight truncate">
             {value}
           </span>
         </div>

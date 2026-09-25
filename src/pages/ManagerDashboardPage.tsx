@@ -9,10 +9,14 @@ import { ProgressRing } from '../components/common/ProgressRing';
 import { StatCard } from '../components/common/StatCard';
 import { EmployeeDossierModal, EmployeeDossierData } from '../components/modals/EmployeeDossierModal';
 import { formatDate } from '../utils/formatters';
+import { getAssets } from '../services/assetService';
 import {
   getDashletsForPersona,
   resetPersonaLayout,
-  DashletConfig
+  getColSpanClass,
+  getHeightClass,
+  DashletConfig,
+  resolveChartDataFromSource
 } from '../services/dashboardCustomizationService';
 import { cn } from '../utils/cn';
 import { DashletCardWrapper } from '../components/dashboard/DashletCardWrapper';
@@ -35,7 +39,7 @@ import {
 } from 'lucide-react';
 
 export const ManagerDashboardPage: React.FC = () => {
-  const { candidates, navigateTo } = useOnboarding();
+  const { candidates, tasks, navigateTo } = useOnboarding();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDossier, setSelectedDossier] = useState<EmployeeDossierData | null>(null);
   const [isCustomizing, setIsCustomizing] = useState(false);
@@ -197,7 +201,7 @@ export const ManagerDashboardPage: React.FC = () => {
         );
       case 'mgr_widget_team_checklist':
         return (
-          <Card className="h-full">
+          <Card className="h-full w-full flex flex-col justify-between">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Coffee className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -206,8 +210,8 @@ export const ManagerDashboardPage: React.FC = () => {
                 </h3>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3 pt-2">
-              <div className="space-y-2 pt-1">
+            <CardContent className="space-y-3 pt-2 flex-1 flex flex-col justify-between">
+              <div className="space-y-2 pt-1 flex-1">
                 {checklist.map((item) => (
                   <div
                     key={item.id}
@@ -234,7 +238,7 @@ export const ManagerDashboardPage: React.FC = () => {
       case 'mgr_widget_team_roster':
       case 'list_recent_arrivals':
         return (
-          <Card className="h-full">
+          <Card className="h-full w-full flex flex-col justify-between">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
               <div className="flex items-center gap-2">
                 <UserCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -265,7 +269,7 @@ export const ManagerDashboardPage: React.FC = () => {
               </div>
             </CardHeader>
 
-            <CardContent className="p-0">
+            <CardContent className="p-0 flex-1">
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {teamMembers.map((member) => (
                   <div
@@ -346,9 +350,13 @@ export const ManagerDashboardPage: React.FC = () => {
       default:
         // Render Dynamic Charts or Custom Metric Cards
         if (dashlet.type === 'chart' && dashlet.chartType) {
+          const resolvedChartData = dashlet.dataSource
+            ? resolveChartDataFromSource(dashlet.dataSource, candidates, tasks, getAssets())
+            : dashlet.chartData;
+
           return (
-            <Card className="h-full">
-              <CardHeader>
+            <Card className="h-full w-full flex flex-col justify-between">
+              <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <div>
@@ -361,11 +369,11 @@ export const ManagerDashboardPage: React.FC = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1 flex flex-col justify-center p-4">
                 <DynamicDashletChart
                   chartType={dashlet.chartType}
-                  data={dashlet.chartData}
-                  height={180}
+                  data={resolvedChartData}
+                  height={220}
                 />
               </CardContent>
             </Card>
@@ -387,7 +395,7 @@ export const ManagerDashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 text-left w-full animate-fade-in pb-12">
+    <div className="space-y-6 text-left w-full animate-fade-in pb-12 flex-1">
       <PageHeader
         title="Manager Dashboard"
         description="Oversee incoming team members, review Day 1 readiness, track shift attendance, and customize your live operational dashlets."
@@ -444,15 +452,12 @@ export const ManagerDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Unified Movable Dashlets Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Unified Movable 12-Column Responsive Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-6 lg:grid-cols-12 gap-4 items-start">
         {dashlets.map((dashlet, idx) => {
-          const isFullWidth = dashlet.id === 'mgr_widget_team_roster' || dashlet.id === 'list_recent_arrivals';
-          const isLarge =
-            dashlet.type === 'chart' ||
-            dashlet.type === 'list' ||
-            dashlet.type === 'hero' ||
-            dashlet.type === 'progress';
+          const colSpan = dashlet.colSpan || 3;
+          const heightPreset = dashlet.heightPreset || 'normal';
+          const customHeight = dashlet.customHeight;
 
           return (
             <DashletCardWrapper
@@ -463,14 +468,11 @@ export const ManagerDashboardPage: React.FC = () => {
               index={idx}
               total={dashlets.length}
               isCustomizing={isCustomizing}
+              colSpan={colSpan}
+              heightPreset={heightPreset}
+              customHeight={customHeight}
               onLayoutUpdated={refreshDashlets}
-              className={
-                isFullWidth
-                  ? 'col-span-1 sm:col-span-2 lg:col-span-4'
-                  : isLarge
-                  ? 'col-span-1 sm:col-span-2 lg:col-span-2'
-                  : 'col-span-1'
-              }
+              className={cn(getColSpanClass(colSpan), getHeightClass(heightPreset, customHeight))}
             >
               {renderDashletContent(dashlet)}
             </DashletCardWrapper>
