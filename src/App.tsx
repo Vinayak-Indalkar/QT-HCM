@@ -162,6 +162,8 @@ const AppInner: React.FC = () => {
         return <OrganizationSetupPage initialTab="roles" />;
       case 'setup_structure':
         return <OrganizationSetupPage initialTab="structure" />;
+      case 'setup_workflow':
+        return <OrganizationSetupPage initialTab="workflow" />;
       default:
         if (currentRole === 'EMPLOYEE') return <EmployeeDashboardPage />;
         if (currentRole === 'MANAGER') return <ManagerDashboardPage />;

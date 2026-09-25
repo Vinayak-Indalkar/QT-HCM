@@ -132,6 +132,34 @@ export interface LocationRecord {
   status: 'Operational' | 'Maintenance' | 'Planned';
 }
 
+export interface WorkflowStepDef {
+  id: string;
+  stepNumber: number;
+  name: string;
+  description: string;
+  approverRole: 'SUPER_ADMIN' | 'HR' | 'MANAGER' | 'IT_ADMIN' | 'FINANCE_ADMIN' | 'AUTO';
+  slaHours: number;
+  required: boolean;
+  allowSkip: boolean;
+  notificationEmail: boolean;
+}
+
+export interface WorkflowDefinitionRecord {
+  id: string;
+  code: string;
+  name: string;
+  category: 'Onboarding' | 'Offboarding' | 'Approval' | 'Compliance' | 'Asset Management' | 'Performance';
+  description: string;
+  triggerEvent: string;
+  targetDepartment: string;
+  stepsCount: number;
+  steps: WorkflowStepDef[];
+  status: 'Active' | 'Draft' | 'Archived';
+  version: string;
+  lastUpdated: string;
+  updatedBy: string;
+}
+
 const STORAGE_KEY_ORG_PROFILE = 'quantira_erp_org_profile';
 const STORAGE_KEY_BRANCHES = 'quantira_erp_branches';
 const STORAGE_KEY_USERS = 'quantira_erp_users';
@@ -139,6 +167,7 @@ const STORAGE_KEY_ROLES = 'quantira_erp_roles_matrix';
 const STORAGE_KEY_DEPARTMENTS = 'quantira_erp_departments';
 const STORAGE_KEY_DESIGNATIONS = 'quantira_erp_designations';
 const STORAGE_KEY_LOCATIONS = 'quantira_erp_locations';
+const STORAGE_KEY_WORKFLOWS = 'quantira_erp_workflows';
 
 // Default Seed Data for Commercial Multi-Tenant ERP
 export const DEFAULT_ORG_PROFILE: OrganizationProfile = {
@@ -777,6 +806,319 @@ export function saveLocations(locs: LocationRecord[]): void {
 }
 
 // =========================================================================
+// DEFAULT WORKFLOWS DEFINITIONS
+// =========================================================================
+export const DEFAULT_WORKFLOWS: WorkflowDefinitionRecord[] = [
+  {
+    id: 'WF-ONB-01',
+    code: 'WF-EMP-ONBOARDING',
+    name: 'Standard Employee Onboarding Pipeline',
+    category: 'Onboarding',
+    description: 'Mandatory 10-step digital onboarding journey covering personal info, statutory compliance, NDA sign-off, equipment provisioning, and day-1 orientation.',
+    triggerEvent: 'New Candidate Offer Acceptance',
+    targetDepartment: 'All Departments',
+    stepsCount: 5,
+    status: 'Active',
+    version: 'v2.4',
+    lastUpdated: '2026-03-15',
+    updatedBy: 'Sarah Jenkins (Super Admin)',
+    steps: [
+      {
+        id: 'wfs-1',
+        stepNumber: 1,
+        name: 'Digital Persona & Statutory ID Verification',
+        description: 'Candidate submits government photo ID, tax identifier, and permanent address proof.',
+        approverRole: 'HR',
+        slaHours: 24,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      },
+      {
+        id: 'wfs-2',
+        stepNumber: 2,
+        name: 'Corporate Legal Agreements & NDA Signature',
+        description: 'Digitally sign Proprietary Information Agreement, Non-Disclosure Contract, and Code of Conduct.',
+        approverRole: 'SUPER_ADMIN',
+        slaHours: 48,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      },
+      {
+        id: 'wfs-3',
+        stepNumber: 3,
+        name: 'IT Hardware & Cloud Credential Provisioning',
+        description: 'Allocate laptop workstation, configure SSO, issue corporate email, and generate access badge.',
+        approverRole: 'IT_ADMIN',
+        slaHours: 48,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      },
+      {
+        id: 'wfs-4',
+        stepNumber: 4,
+        name: 'Manager 1-on-1 & Team Buddy Alignment',
+        description: 'Reporting manager schedules 30-day KPI goals review and assigns senior onboarding mentor.',
+        approverRole: 'MANAGER',
+        slaHours: 72,
+        required: true,
+        allowSkip: true,
+        notificationEmail: true
+      },
+      {
+        id: 'wfs-5',
+        stepNumber: 5,
+        name: 'Final HR Dossier Verification & Payroll Handshake',
+        description: 'HR Ops validates emergency contacts, direct deposit bank info, and transitions status to Active.',
+        approverRole: 'FINANCE_ADMIN',
+        slaHours: 24,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      }
+    ]
+  },
+  {
+    id: 'WF-DOC-02',
+    code: 'WF-DOC-COMPLIANCE',
+    name: 'Statutory Document Verification & Background Check',
+    category: 'Compliance',
+    description: 'Third-party criminal background check, degree verification, and Form I-9 federal employment verification audit.',
+    triggerEvent: 'Document Upload Complete',
+    targetDepartment: 'All Departments',
+    stepsCount: 3,
+    status: 'Active',
+    version: 'v1.8',
+    lastUpdated: '2026-03-01',
+    updatedBy: 'David Vance (HR Ops)',
+    steps: [
+      {
+        id: 'wfs-21',
+        stepNumber: 1,
+        name: 'Automated OCR & Integrity Scan',
+        description: 'System automatically verifies PDF/Image file resolution and checks document expiry dates.',
+        approverRole: 'AUTO',
+        slaHours: 4,
+        required: true,
+        allowSkip: false,
+        notificationEmail: false
+      },
+      {
+        id: 'wfs-22',
+        stepNumber: 2,
+        name: 'HR Compliance Officer Manual Audit',
+        description: 'HR Compliance officer cross-verifies government records against official tax and immigration databases.',
+        approverRole: 'HR',
+        slaHours: 48,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      },
+      {
+        id: 'wfs-23',
+        stepNumber: 3,
+        name: 'Legal & Risk Clearance Sign-Off',
+        description: 'Final clearance issued and encrypted archival into employee corporate digital locker.',
+        approverRole: 'SUPER_ADMIN',
+        slaHours: 24,
+        required: false,
+        allowSkip: true,
+        notificationEmail: true
+      }
+    ]
+  },
+  {
+    id: 'WF-AST-03',
+    code: 'WF-IT-ASSET-ALLOCATION',
+    name: 'Hardware Asset Allocation & Return Lifecycle',
+    category: 'Asset Management',
+    description: 'End-to-end procurement, configuration, courier dispatch, and remote sign-off for developer laptops and peripherals.',
+    triggerEvent: 'Work Setup Step Approved',
+    targetDepartment: 'Engineering',
+    stepsCount: 4,
+    status: 'Active',
+    version: 'v2.1',
+    lastUpdated: '2026-02-20',
+    updatedBy: 'Kevin Zhang (IT Director)',
+    steps: [
+      {
+        id: 'wfs-31',
+        stepNumber: 1,
+        name: 'Inventory Allocation & Asset Tagging',
+        description: 'Assign serial numbers and affix Quantira ERP barcode tags to MacBook Pro / Dell Workstation.',
+        approverRole: 'IT_ADMIN',
+        slaHours: 24,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      },
+      {
+        id: 'wfs-32',
+        stepNumber: 2,
+        name: 'MDM & Security Policy Enrollment',
+        description: 'Enroll in Microsoft Intune / Jamf Pro MDM, enforce BitLocker / FileVault disk encryption.',
+        approverRole: 'IT_ADMIN',
+        slaHours: 12,
+        required: true,
+        allowSkip: false,
+        notificationEmail: false
+      },
+      {
+        id: 'wfs-33',
+        stepNumber: 3,
+        name: 'Courier Dispatch / Desk Provisioning',
+        description: 'Generate shipping label with tracking code or deliver directly to branch workspace desk.',
+        approverRole: 'HR',
+        slaHours: 48,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      },
+      {
+        id: 'wfs-34',
+        stepNumber: 4,
+        name: 'Employee Receipt Acknowledgment',
+        description: 'Employee uploads unboxing signature or scans QR code upon physical receipt.',
+        approverRole: 'AUTO',
+        slaHours: 72,
+        required: true,
+        allowSkip: true,
+        notificationEmail: true
+      }
+    ]
+  },
+  {
+    id: 'WF-EXIT-04',
+    code: 'WF-EMP-OFFBOARDING',
+    name: 'Employee Offboarding & Exit Clearance',
+    category: 'Offboarding',
+    description: 'Systematic resignation processing, knowledge transfer sign-off, asset recovery, and payroll settlement.',
+    triggerEvent: 'Resignation Submitted or Termination Notice',
+    targetDepartment: 'All Departments',
+    stepsCount: 4,
+    status: 'Active',
+    version: 'v1.5',
+    lastUpdated: '2026-01-18',
+    updatedBy: 'Sarah Jenkins (Super Admin)',
+    steps: [
+      {
+        id: 'wfs-41',
+        stepNumber: 1,
+        name: 'Manager Exit Interview & KT Sign-Off',
+        description: 'Direct manager confirms handoff of active repositories, client accounts, and project deliverables.',
+        approverRole: 'MANAGER',
+        slaHours: 72,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      },
+      {
+        id: 'wfs-42',
+        stepNumber: 2,
+        name: 'IT Hardware Return & Access Revocation',
+        description: 'Revoke SSO, Google Workspace, AWS tokens, and collect laptop / access badge.',
+        approverRole: 'IT_ADMIN',
+        slaHours: 24,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      },
+      {
+        id: 'wfs-43',
+        stepNumber: 3,
+        name: 'Finance & Full & Final (FnF) Settlement',
+        description: 'Compute gratuity, leave encashment, pending reimbursements, and tax deductions.',
+        approverRole: 'FINANCE_ADMIN',
+        slaHours: 48,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      },
+      {
+        id: 'wfs-44',
+        stepNumber: 4,
+        name: 'Release Experience Letter & Relieving Order',
+        description: 'Generate digitally signed service certificate and archive records into alumni database.',
+        approverRole: 'HR',
+        slaHours: 24,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      }
+    ]
+  },
+  {
+    id: 'WF-APPR-05',
+    code: 'WF-PROMOTION-TRANSFER',
+    name: 'Promotion, Band Increment & Branch Transfer',
+    category: 'Approval',
+    description: 'Multi-level executive approval pipeline for employee designation upgrades, salary revisions, and inter-branch relocations.',
+    triggerEvent: 'Manager Promotion / Transfer Request',
+    targetDepartment: 'All Departments',
+    stepsCount: 3,
+    status: 'Active',
+    version: 'v1.2',
+    lastUpdated: '2026-02-10',
+    updatedBy: 'Sarah Jenkins (Super Admin)',
+    steps: [
+      {
+        id: 'wfs-51',
+        stepNumber: 1,
+        name: 'Department Head Justification & Review',
+        description: 'Head of Department reviews performance appraisal score and validates compensation revision band.',
+        approverRole: 'MANAGER',
+        slaHours: 48,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      },
+      {
+        id: 'wfs-52',
+        stepNumber: 2,
+        name: 'Finance Budgetary Impact Audit',
+        description: 'Finance controller confirms department annual budget headroom.',
+        approverRole: 'FINANCE_ADMIN',
+        slaHours: 48,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      },
+      {
+        id: 'wfs-53',
+        stepNumber: 3,
+        name: 'Executive & HR Final Sanction',
+        description: 'Super Admin or HR VP approves designation title change and triggers official revised appointment letter.',
+        approverRole: 'SUPER_ADMIN',
+        slaHours: 24,
+        required: true,
+        allowSkip: false,
+        notificationEmail: true
+      }
+    ]
+  }
+];
+
+// =========================================================================
+// WORKFLOWS STORAGE METHODS
+// =========================================================================
+export function getWorkflows(): WorkflowDefinitionRecord[] {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_WORKFLOWS);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return DEFAULT_WORKFLOWS;
+}
+
+export function saveWorkflows(workflows: WorkflowDefinitionRecord[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY_WORKFLOWS, JSON.stringify(workflows));
+    window.dispatchEvent(new CustomEvent('quantira_workflows_updated', { detail: workflows }));
+  } catch {}
+}
+
+// =========================================================================
 // RESET ALL SETUP TO INITIAL COMMERCIAL DEFAULTS
 // =========================================================================
 export function resetAllSetupDefaults(): void {
@@ -788,6 +1130,7 @@ export function resetAllSetupDefaults(): void {
     localStorage.removeItem(STORAGE_KEY_DEPARTMENTS);
     localStorage.removeItem(STORAGE_KEY_DESIGNATIONS);
     localStorage.removeItem(STORAGE_KEY_LOCATIONS);
+    localStorage.removeItem(STORAGE_KEY_WORKFLOWS);
     window.dispatchEvent(new CustomEvent('quantira_org_profile_updated', { detail: DEFAULT_ORG_PROFILE }));
     window.dispatchEvent(new CustomEvent('quantira_branches_updated', { detail: DEFAULT_BRANCHES }));
     window.dispatchEvent(new CustomEvent('quantira_erp_users_updated', { detail: DEFAULT_ERP_USERS }));
@@ -795,5 +1138,6 @@ export function resetAllSetupDefaults(): void {
     window.dispatchEvent(new CustomEvent('quantira_departments_updated', { detail: DEFAULT_DEPARTMENTS }));
     window.dispatchEvent(new CustomEvent('quantira_designations_updated', { detail: DEFAULT_DESIGNATIONS }));
     window.dispatchEvent(new CustomEvent('quantira_locations_updated', { detail: DEFAULT_LOCATIONS }));
+    window.dispatchEvent(new CustomEvent('quantira_workflows_updated', { detail: DEFAULT_WORKFLOWS }));
   } catch {}
 }

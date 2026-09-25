@@ -29,7 +29,8 @@ import {
   Building,
   ShieldCheck,
   Network,
-  SlidersHorizontal
+  SlidersHorizontal,
+  GitBranch
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -66,9 +67,10 @@ export const SETUP_SUB_ITEMS: Array<{
 }> = [
   { id: 'setup_organization', label: 'Organization', icon: Building2 },
   { id: 'setup_branches', label: 'Branches', icon: Building },
+  { id: 'setup_structure', label: 'Organization Structure', icon: Network },
   { id: 'setup_users', label: 'Users', icon: Users },
   { id: 'setup_roles', label: 'Roles & Permissions', icon: ShieldCheck },
-  { id: 'setup_structure', label: 'Organization Structure', icon: Network }
+  { id: 'setup_workflow', label: 'Workflow', icon: GitBranch }
 ];
 
 import { useOnboardingFlow } from '../../context/OnboardingFlowContext';

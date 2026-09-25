@@ -5,6 +5,7 @@ import { BranchesView } from '../../components/setup/BranchesView';
 import { UsersView } from '../../components/setup/UsersView';
 import { RolesPermissionsView } from '../../components/setup/RolesPermissionsView';
 import { OrganizationStructureView } from '../../components/setup/OrganizationStructureView';
+import { WorkflowSetupView } from '../../components/setup/WorkflowSetupView';
 import {
   Building2,
   Building,
@@ -14,15 +15,17 @@ import {
   Sparkles,
   SlidersHorizontal,
   ChevronRight,
-  Layers
+  Layers,
+  GitBranch
 } from 'lucide-react';
 
 export type SetupSubTab =
   | 'organization'
   | 'branches'
+  | 'structure'
   | 'users'
   | 'roles'
-  | 'structure';
+  | 'workflow';
 
 export interface OrganizationSetupPageProps {
   initialTab?: SetupSubTab;
@@ -39,9 +42,10 @@ export const OrganizationSetupPage: React.FC<OrganizationSetupPageProps> = ({
   const tabs = [
     { id: 'organization', label: 'Organization', icon: Building2, desc: 'Corporate legal entity & branding' },
     { id: 'branches', label: 'Branches', icon: Building, desc: 'Multi-site branch network' },
+    { id: 'structure', label: 'Organization Structure', icon: Network, desc: 'Departments, designations & locations' },
     { id: 'users', label: 'Users', icon: Users, desc: 'ERP system user accounts' },
     { id: 'roles', label: 'Roles & Permissions', icon: ShieldCheck, desc: 'Granular RBAC access policies' },
-    { id: 'structure', label: 'Organization Structure', icon: Network, desc: 'Departments, designations & locations' }
+    { id: 'workflow', label: 'Workflow', icon: GitBranch, desc: 'Automated pipelines & approval gates' }
   ];
 
   return (
@@ -63,7 +67,7 @@ export const OrganizationSetupPage: React.FC<OrganizationSetupPageProps> = ({
                 Enterprise Setup &amp; Organization Master
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Configure corporate identity, multi-site branches, RBAC privileges, and organization structure.
+                Configure corporate identity, multi-site branches, RBAC privileges, organization structure, and automated workflows.
               </p>
             </div>
           </div>
@@ -77,7 +81,7 @@ export const OrganizationSetupPage: React.FC<OrganizationSetupPageProps> = ({
       </div>
 
       {/* Main Setup Tabs Switcher */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isSelected = activeTab === tab.id;
@@ -92,6 +96,7 @@ export const OrganizationSetupPage: React.FC<OrganizationSetupPageProps> = ({
                 else if (tab.id === 'users') navigateTo('setup_users' as any);
                 else if (tab.id === 'roles') navigateTo('setup_roles' as any);
                 else if (tab.id === 'structure') navigateTo('setup_structure' as any);
+                else if (tab.id === 'workflow') navigateTo('setup_workflow' as any);
               }}
               className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                 isSelected
@@ -120,9 +125,10 @@ export const OrganizationSetupPage: React.FC<OrganizationSetupPageProps> = ({
       {/* Render Active View */}
       {activeTab === 'organization' && <OrganizationView />}
       {activeTab === 'branches' && <BranchesView />}
+      {activeTab === 'structure' && <OrganizationStructureView initialSubTab={structureSubTab} />}
       {activeTab === 'users' && <UsersView />}
       {activeTab === 'roles' && <RolesPermissionsView />}
-      {activeTab === 'structure' && <OrganizationStructureView initialSubTab={structureSubTab} />}
+      {activeTab === 'workflow' && <WorkflowSetupView />}
     </div>
   );
 };

@@ -24,7 +24,8 @@ export type NavigationPage =
   | 'setup_branches'
   | 'setup_users'
   | 'setup_roles'
-  | 'setup_structure';
+  | 'setup_structure'
+  | 'setup_workflow';
 
 export type ProfileTabId =
   | 'overview'
