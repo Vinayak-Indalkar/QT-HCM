@@ -216,6 +216,56 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     ]
   },
   {
+    id: 'emp_kpi_performance_score',
+    title: 'Employee Performance & KPI Index',
+    description: 'Calculated performance and Day-1 readiness index evaluating milestone pace, documentation, and compliance',
+    category: 'onboarding',
+    type: 'metric',
+    enabled: true,
+    assignedRoles: ['EMPLOYEE'],
+    order: 14,
+    customData: {
+      value: '96 / 100',
+      subtitle: 'High Velocity Performer',
+      badge: 'Top Tier 96%',
+      badgePositive: true,
+      icon: 'Award'
+    }
+  },
+  {
+    id: 'chart_emp_sla_velocity',
+    title: 'Milestone Velocity & Completion Pace',
+    description: 'Weekly onboarding progression and task submission velocity curve',
+    category: 'onboarding',
+    type: 'chart',
+    chartType: 'line',
+    enabled: true,
+    assignedRoles: ['EMPLOYEE'],
+    order: 15,
+    chartData: [
+      { label: 'Week 1', value: 35, color: '#3b82f6' },
+      { label: 'Week 2', value: 65, color: '#3b82f6' },
+      { label: 'Week 3', value: 85, color: '#3b82f6' },
+      { label: 'Week 4', value: 98, color: '#10b981' }
+    ]
+  },
+  {
+    id: 'chart_emp_compliance_breakdown',
+    title: 'Personal Compliance Clearance Ratio',
+    description: 'Verified statutory paperwork, identity checks, and pending gate submissions',
+    category: 'compliance',
+    type: 'chart',
+    chartType: 'donut',
+    enabled: true,
+    assignedRoles: ['EMPLOYEE'],
+    order: 16,
+    chartData: [
+      { label: 'Verified & Approved', value: 75, color: '#10b981' },
+      { label: 'Under Review', value: 15, color: '#f59e0b' },
+      { label: 'Pending Upload', value: 10, color: '#ef4444' }
+    ]
+  },
+  {
     id: 'list_recent_arrivals',
     title: 'Upcoming Arrivals Queue',
     description: 'Queue of new team arrivals scheduled to join within the next 14 days',

@@ -32,7 +32,9 @@ import {
   Sliders,
   RefreshCw,
   Eye,
-  UserCheck
+  UserCheck,
+  Award,
+  Gauge
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 
@@ -204,6 +206,28 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
             onClick={() => navigateTo('wizard')}
           />
         );
+      case 'emp_kpi_performance_score': {
+        const readinessScore = Math.min(
+          100,
+          Math.round(
+            progressPercent * 0.5 +
+            (uploadedDocs / Math.max(1, totalDocs)) * 30 +
+            (assignedAssets.length > 0 || employee?.equipment?.laptopModel ? 10 : 0) +
+            (checklist.filter((c) => c.completed).length / Math.max(1, checklist.length)) * 10
+          )
+        );
+        return (
+          <StatCard
+            label="Performance & KPI Index"
+            value={`${readinessScore} / 100`}
+            change={readinessScore >= 85 ? 'High Performer' : readinessScore >= 60 ? 'On Track' : 'Needs Attention'}
+            isPositive={readinessScore >= 70}
+            description="Overall Day-1 readiness & milestone velocity"
+            icon={<Award className="w-5 h-5" />}
+            iconBg="bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400"
+          />
+        );
+      }
       case 'kpi_asset_pool':
       case 'emp_kpi_asset_status':
         return (
@@ -419,6 +443,145 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
             </CardContent>
           </Card>
         );
+      case 'chart_emp_readiness': {
+        const calculatedClearance = Math.min(
+          100,
+          Math.round(
+            progressPercent * 0.5 +
+            (uploadedDocs / Math.max(1, totalDocs)) * 30 +
+            (assignedAssets.length > 0 || employee?.equipment?.laptopModel ? 10 : 0) +
+            (checklist.filter((c) => c.completed).length / Math.max(1, checklist.length)) * 10
+          )
+        );
+        return (
+          <Card className="h-full">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Gauge className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {dashlet.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {dashlet.description}
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <DynamicDashletChart
+                chartType="radial_gauge"
+                data={[
+                  {
+                    label: 'Clearance Score',
+                    value: calculatedClearance,
+                    color: calculatedClearance >= 80 ? '#10b981' : calculatedClearance >= 50 ? '#f59e0b' : '#ef4444',
+                    sublabel: 'Target: 100%'
+                  }
+                ]}
+                height={180}
+              />
+            </CardContent>
+          </Card>
+        );
+      }
+      case 'chart_emp_milestones': {
+        const milestoneData = [
+          { label: 'Profile', value: Math.min(100, Math.round((progressPercent / 10) * 100)), color: '#10b981' },
+          { label: 'Docs', value: Math.min(100, Math.round((uploadedDocs / Math.max(1, totalDocs)) * 100)), color: '#3b82f6' },
+          { label: 'NDA', value: (employee?.progress && employee.progress >= 90) || flowData.nda?.accepted ? 100 : Math.round(progressPercent * 0.8), color: '#10b981' },
+          { label: 'Hardware', value: assignedAssets.length > 0 || employee?.equipment?.laptopModel ? 100 : 0, color: '#10b981' },
+          { label: 'Day 1 Tasks', value: Math.round((checklist.filter((c) => c.completed).length / Math.max(1, checklist.length)) * 100), color: '#6366f1' }
+        ];
+        return (
+          <Card className="h-full">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {dashlet.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {dashlet.description}
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <DynamicDashletChart
+                chartType="bar"
+                data={milestoneData}
+                height={180}
+              />
+            </CardContent>
+          </Card>
+        );
+      }
+      case 'chart_emp_sla_velocity': {
+        const velocityData = [
+          { label: 'Week 1', value: Math.min(100, Math.round(progressPercent * 0.35)), color: '#3b82f6' },
+          { label: 'Week 2', value: Math.min(100, Math.round(progressPercent * 0.65)), color: '#3b82f6' },
+          { label: 'Week 3', value: Math.min(100, Math.round(progressPercent * 0.85)), color: '#3b82f6' },
+          { label: 'Week 4', value: progressPercent, color: '#10b981' }
+        ];
+        return (
+          <Card className="h-full">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {dashlet.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {dashlet.description}
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <DynamicDashletChart
+                chartType="line"
+                data={velocityData}
+                height={180}
+              />
+            </CardContent>
+          </Card>
+        );
+      }
+      case 'chart_emp_compliance_breakdown': {
+        const verifiedCount = uploadedDocs;
+        const pendingCount = Math.max(0, totalDocs - uploadedDocs);
+        const compBreakdown = [
+          { label: 'Verified & Approved', value: verifiedCount, color: '#10b981' },
+          { label: 'Pending Submission', value: pendingCount, color: '#f59e0b' }
+        ];
+        return (
+          <Card className="h-full">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {dashlet.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {dashlet.description}
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <DynamicDashletChart
+                chartType="donut"
+                data={compBreakdown}
+                height={180}
+              />
+            </CardContent>
+          </Card>
+        );
+      }
       default:
         // Render Dynamic Charts or Custom Metric Cards
         if (dashlet.type === 'chart' && dashlet.chartType) {

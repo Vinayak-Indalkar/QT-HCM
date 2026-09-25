@@ -73,7 +73,7 @@ const ALL_ROLES: Array<{ role: UserRole; label: string; shortLabel: string; colo
   { role: 'SUPER_ADMIN', label: 'Super Admin', shortLabel: 'Admin', color: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border-purple-200 dark:border-purple-800', icon: '👑' },
   { role: 'HR', label: 'HR Operations', shortLabel: 'HR', color: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-200 dark:border-blue-800', icon: '👥' },
   { role: 'MANAGER', label: 'Manager', shortLabel: 'Manager', color: 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border-teal-200 dark:border-teal-800', icon: '👔' },
-  { role: 'EMPLOYEE', label: 'Employee', shortLabel: 'Employee', color: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-200 dark:border-amber-800', icon: '💼' }
+  { role: 'EMPLOYEE', label: 'Employee Dashboard', shortLabel: 'Employee Dashboard', color: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-200 dark:border-amber-800', icon: '💼' }
 ];
 
 const AVAILABLE_ICONS = [
@@ -119,6 +119,10 @@ export const CustomDashboardsPage: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'enabled' | 'disabled'>('all');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [previewCandidateId, setPreviewCandidateId] = useState<string>(() => candidates[0]?.id || '');
+  const selectedPreviewCandidate = useMemo(() => {
+    return candidates.find((c) => c.id === previewCandidateId) || candidates[0];
+  }, [candidates, previewCandidateId]);
 
   // On-Screen Creation Form State
   const [isAddDashletOpen, setIsAddDashletOpen] = useState(false);
@@ -685,7 +689,7 @@ export const CustomDashboardsPage: React.FC = () => {
               : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           )}
         >
-          <span>💼</span> Employee Preview ({previewDashletsForRole('EMPLOYEE').length})
+          <span>💼</span> Employee Dashboard Preview ({previewDashletsForRole('EMPLOYEE').length})
         </button>
       </div>
 
@@ -740,7 +744,7 @@ export const CustomDashboardsPage: React.FC = () => {
                 <option value="SUPER_ADMIN">👑 Super Admin Assigned</option>
                 <option value="HR">👥 HR Assigned</option>
                 <option value="MANAGER">👔 Manager Assigned</option>
-                <option value="EMPLOYEE">💼 Employee Assigned</option>
+                <option value="EMPLOYEE">💼 Employee Dashboard Assigned</option>
               </select>
             </div>
           </Card>
@@ -895,26 +899,47 @@ export const CustomDashboardsPage: React.FC = () => {
       {/* TAB 2-5: PERSONA LIVE DASHBOARD PREVIEWS */}
       {activeTab !== 'catalog' && (
         <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
               <div>
                 <h3 className="text-xs font-bold text-blue-900 dark:text-blue-300">
-                  Live Preview: {activeTab} Dashboard
+                  Live Preview: {activeTab === 'EMPLOYEE' ? 'Employee Dashboard (Performance & Milestone KPI View)' : `${activeTab.replace('_', ' ')} Dashboard`}
                 </h3>
                 <p className="text-[11px] text-blue-700 dark:text-blue-400">
-                  Showing {previewDashletsForRole(activeTab as UserRole).length} active dashlets assigned to {activeTab}.
+                  {activeTab === 'EMPLOYEE'
+                    ? 'This configured dashboard is displayed when Super Admin & HR Admin click on an employee from the user list to check performance, milestones, and Day-1 clearance.'
+                    : `Showing ${previewDashletsForRole(activeTab as UserRole).length} active dashlets assigned to ${activeTab.replace('_', ' ')}.`}
                 </p>
               </div>
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setActiveTab('catalog')}
-              className="text-xs font-semibold"
-            >
-              &larr; Back to Catalog &amp; Assignments
-            </Button>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {activeTab === 'EMPLOYEE' && candidates.length > 0 && (
+                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs">
+                  <span className="text-[11px] font-bold text-slate-500 whitespace-nowrap">Inspect User:</span>
+                  <select
+                    value={previewCandidateId}
+                    onChange={(e) => setPreviewCandidateId(e.target.value)}
+                    className="text-xs font-semibold text-slate-900 dark:text-white bg-transparent focus:outline-none cursor-pointer"
+                  >
+                    {candidates.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name || `${c.firstName} ${c.lastName}`.trim()} ({c.id}) - {c.progress || 0}%
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setActiveTab('catalog')}
+                className="text-xs font-semibold"
+              >
+                &larr; Back to Catalog &amp; Assignments
+              </Button>
+            </div>
           </div>
 
           {/* RENDER ACTIVE DASHLETS FOR THIS ROLE */}
@@ -923,55 +948,114 @@ export const CustomDashboardsPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {previewDashletsForRole(activeTab as UserRole)
                 .filter((d) => d.type === 'metric' || (d.type === 'custom' && !d.chartType))
-                .map((d) => (
-                  <StatCard
-                    key={d.id}
-                    label={d.title}
-                    value={
-                      d.id === 'kpi_total_employees'
-                        ? String(candidates.length)
-                        : d.id === 'kpi_active_onboarding'
-                        ? String(activeCandidates)
-                        : d.id === 'kpi_avg_sla'
-                        ? '4.2 Days'
-                        : d.id === 'kpi_doc_compliance'
-                        ? '94%'
-                        : d.id === 'kpi_asset_pool'
-                        ? `${availableAssets} Units`
-                        : d.customData?.value || 'Active'
+                .map((d) => {
+                  let metricValue = d.customData?.value || 'Active';
+                  let metricBadge = d.customData?.badge || 'On track';
+                  let isPositive = d.customData?.badgePositive ?? true;
+
+                  if (activeTab === 'EMPLOYEE' && selectedPreviewCandidate) {
+                    const empProgress = selectedPreviewCandidate.progress || 0;
+                    const empDocs = selectedPreviewCandidate.documents?.filter((doc) => doc.status === 'verified' || doc.status === 'submitted').length || Math.round((empProgress / 100) * 8);
+
+                    if (d.id === 'kpi_doc_compliance') {
+                      metricValue = `${empDocs} / 8 Docs`;
+                      metricBadge = empDocs >= 8 ? 'Fully Verified' : 'In Progress';
+                    } else if (d.id === 'emp_kpi_performance_score') {
+                      const score = Math.min(100, Math.round(empProgress * 0.9 + 10));
+                      metricValue = `${score} / 100`;
+                      metricBadge = score >= 85 ? 'High Performer' : 'On Track';
+                    } else if (d.id === 'kpi_active_onboarding' || d.id === 'emp_kpi_progress') {
+                      metricValue = `${empProgress}%`;
+                      metricBadge = `${Math.round((empProgress / 100) * 10)} of 10 Steps`;
+                    } else if (d.id === 'kpi_asset_pool' || d.id === 'emp_kpi_asset_status') {
+                      metricValue = '1 Unit';
+                      metricBadge = 'MacBook Pro M3';
+                    } else if (d.id === 'emp_kpi_tasks_done') {
+                      metricValue = empProgress === 100 ? '5 / 5 Tasks' : '4 / 5 Tasks';
+                      metricBadge = 'Ready for Day 1';
                     }
-                    change={d.customData?.badge || 'On track'}
-                    isPositive={d.customData?.badgePositive ?? true}
-                    description={d.description}
-                    icon={<Sparkles className="w-5 h-5" />}
-                    iconBg="bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400"
-                  />
-                ))}
+                  } else {
+                    if (d.id === 'kpi_total_employees') metricValue = String(candidates.length);
+                    else if (d.id === 'kpi_active_onboarding') metricValue = String(activeCandidates);
+                    else if (d.id === 'kpi_avg_sla') metricValue = '4.2 Days';
+                    else if (d.id === 'kpi_doc_compliance') metricValue = '94%';
+                    else if (d.id === 'kpi_asset_pool') metricValue = `${availableAssets} Units`;
+                  }
+
+                  return (
+                    <StatCard
+                      key={d.id}
+                      label={d.title}
+                      value={metricValue}
+                      change={metricBadge}
+                      isPositive={isPositive}
+                      description={d.description}
+                      icon={<Sparkles className="w-5 h-5" />}
+                      iconBg="bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400"
+                    />
+                  );
+                })}
             </div>
 
             {/* Visual Charts & Specialized Dashlets Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {previewDashletsForRole(activeTab as UserRole)
                 .filter((d) => d.type === 'chart' || (d.type === 'custom' && d.chartType))
-                .map((d) => (
-                  <Card key={d.id} className="border border-slate-200 dark:border-slate-800">
-                    <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <BarChart3 className="w-4 h-4 text-blue-600" />
-                        <h3 className="text-xs font-bold text-slate-900 dark:text-white">
-                          {d.title}
-                        </h3>
-                      </div>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
-                        {d.chartType || 'bar'}
-                      </span>
-                    </CardHeader>
-                    <CardContent className="pt-3">
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{d.description}</p>
-                      <DynamicDashletChart chartType={d.chartType || 'bar'} data={d.chartData} />
-                    </CardContent>
-                  </Card>
-                ))}
+                .map((d) => {
+                  let chartDataToRender = d.chartData;
+
+                  if (activeTab === 'EMPLOYEE' && selectedPreviewCandidate) {
+                    const empProgress = selectedPreviewCandidate.progress || 0;
+                    const empDocs = selectedPreviewCandidate.documents?.filter((doc) => doc.status === 'verified' || doc.status === 'submitted').length || Math.round((empProgress / 100) * 8);
+
+                    if (d.id === 'chart_emp_readiness') {
+                      const score = Math.min(100, Math.round(empProgress * 0.9 + 10));
+                      chartDataToRender = [
+                        { label: 'Clearance Score', value: score, color: score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444', sublabel: 'Target: 100%' }
+                      ];
+                    } else if (d.id === 'chart_emp_milestones') {
+                      chartDataToRender = [
+                        { label: 'Profile', value: Math.min(100, Math.round((empProgress / 10) * 100)), color: '#10b981' },
+                        { label: 'Docs', value: Math.min(100, Math.round((empDocs / 8) * 100)), color: '#3b82f6' },
+                        { label: 'NDA', value: empProgress >= 90 ? 100 : Math.round(empProgress * 0.8), color: '#10b981' },
+                        { label: 'Hardware', value: 100, color: '#10b981' },
+                        { label: 'Day 1 Prep', value: empProgress >= 75 ? 100 : 75, color: '#6366f1' }
+                      ];
+                    } else if (d.id === 'chart_emp_sla_velocity') {
+                      chartDataToRender = [
+                        { label: 'Week 1', value: Math.min(100, Math.round(empProgress * 0.35)), color: '#3b82f6' },
+                        { label: 'Week 2', value: Math.min(100, Math.round(empProgress * 0.65)), color: '#3b82f6' },
+                        { label: 'Week 3', value: Math.min(100, Math.round(empProgress * 0.85)), color: '#3b82f6' },
+                        { label: 'Week 4', value: empProgress, color: '#10b981' }
+                      ];
+                    } else if (d.id === 'chart_emp_compliance_breakdown') {
+                      chartDataToRender = [
+                        { label: 'Verified & Approved', value: empDocs, color: '#10b981' },
+                        { label: 'Pending Submission', value: Math.max(0, 8 - empDocs), color: '#f59e0b' }
+                      ];
+                    }
+                  }
+
+                  return (
+                    <Card key={d.id} className="border border-slate-200 dark:border-slate-800">
+                      <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4 text-blue-600" />
+                          <h3 className="text-xs font-bold text-slate-900 dark:text-white">
+                            {d.title}
+                          </h3>
+                        </div>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                          {d.chartType || 'bar'}
+                        </span>
+                      </CardHeader>
+                      <CardContent className="pt-3">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{d.description}</p>
+                        <DynamicDashletChart chartType={d.chartType || 'bar'} data={chartDataToRender} />
+                      </CardContent>
+                    </Card>
+                  );
+                })}
 
               {/* Other list / progress / hero dashlets */}
               {previewDashletsForRole(activeTab as UserRole)
@@ -987,7 +1071,9 @@ export const CustomDashboardsPage: React.FC = () => {
                     <CardContent className="pt-3">
                       <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{d.description}</p>
                       <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-center text-xs text-slate-500">
-                        Interactive {d.type} dashlet actively rendered in {activeTab} view.
+                        {activeTab === 'EMPLOYEE' && selectedPreviewCandidate
+                          ? `Interactive ${d.type} dashlet configured for employee: ${selectedPreviewCandidate.name || selectedPreviewCandidate.firstName}.`
+                          : `Interactive ${d.type} dashlet actively rendered in ${activeTab} view.`}
                       </div>
                     </CardContent>
                   </Card>
