@@ -54,6 +54,9 @@ const EmployeeDashboardPage = lazy(() =>
 const CustomDashboardsPage = lazy(() =>
   import('./pages/CustomDashboardsPage').then((m) => ({ default: m.CustomDashboardsPage }))
 );
+const OrganizationSetupPage = lazy(() =>
+  import('./pages/setup/OrganizationSetupPage').then((m) => ({ default: m.OrganizationSetupPage }))
+);
 
 const AppInner: React.FC = () => {
   const { mode } = useTheme();
@@ -147,6 +150,18 @@ const AppInner: React.FC = () => {
         return <AssetsManagementPage />;
       case 'custom_dashboards':
         return <CustomDashboardsPage />;
+      case 'setup':
+        return <OrganizationSetupPage initialTab="organization" />;
+      case 'setup_organization':
+        return <OrganizationSetupPage initialTab="organization" />;
+      case 'setup_branches':
+        return <OrganizationSetupPage initialTab="branches" />;
+      case 'setup_users':
+        return <OrganizationSetupPage initialTab="users" />;
+      case 'setup_roles':
+        return <OrganizationSetupPage initialTab="roles" />;
+      case 'setup_structure':
+        return <OrganizationSetupPage initialTab="structure" />;
       default:
         if (currentRole === 'EMPLOYEE') return <EmployeeDashboardPage />;
         if (currentRole === 'MANAGER') return <ManagerDashboardPage />;

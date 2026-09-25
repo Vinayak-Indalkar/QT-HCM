@@ -18,7 +18,13 @@ export type NavigationPage =
   | 'analytics'
   | 'settings'
   | 'assets'
-  | 'custom_dashboards';
+  | 'custom_dashboards'
+  | 'setup'
+  | 'setup_organization'
+  | 'setup_branches'
+  | 'setup_users'
+  | 'setup_roles'
+  | 'setup_structure';
 
 export type ProfileTabId =
   | 'overview'

@@ -24,7 +24,12 @@ import {
   AtSign,
   Lock,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Building2,
+  Building,
+  ShieldCheck,
+  Network,
+  SlidersHorizontal
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -54,6 +59,18 @@ export const CONFIG_SUB_ITEMS: Array<{
   { id: 'custom_dashboards', label: 'Custom Dashboards', icon: LayoutDashboard }
 ];
 
+export const SETUP_SUB_ITEMS: Array<{
+  id: NavigationPage;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}> = [
+  { id: 'setup_organization', label: 'Organization', icon: Building2 },
+  { id: 'setup_branches', label: 'Branches', icon: Building },
+  { id: 'setup_users', label: 'Users', icon: Users },
+  { id: 'setup_roles', label: 'Roles & Permissions', icon: ShieldCheck },
+  { id: 'setup_structure', label: 'Organization Structure', icon: Network }
+];
+
 import { useOnboardingFlow } from '../../context/OnboardingFlowContext';
 import { getAssets } from '../../services/assetService';
 
@@ -68,6 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { data: flowData } = useOnboardingFlow();
   const [isProfileExpanded, setIsProfileExpanded] = React.useState(true);
   const [isConfigExpanded, setIsConfigExpanded] = React.useState(true);
+  const [isSetupExpanded, setIsSetupExpanded] = React.useState(true);
 
   const activeCandidatesCount = candidates.filter(
     (c) => c.status !== 'completed' && c.status !== 'rejected'
@@ -146,13 +164,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       ];
     }
 
-    // 3. Super Admin: Dashboard, My Profile, My Team, Employees, Assets, Documents, Settings, Configurations
+    // 3. Super Admin: Dashboard, Setup, My Profile, My Team, Employees, Assets, Documents, Settings, Configurations
     if (currentRole === 'SUPER_ADMIN') {
       return [
         {
           id: 'dashboard',
           label: 'Dashboard',
           icon: LayoutDashboard
+        },
+        {
+          id: 'setup',
+          label: 'Setup',
+          icon: SlidersHorizontal
         },
         {
           id: 'profile',
@@ -298,7 +321,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 const isProfileActive = isProfileItem && activePage === 'profile';
                 const isConfigItem = item.id === 'analytics';
                 const isConfigActive = isConfigItem && (activePage === 'analytics' || activePage === 'custom_dashboards');
-                const isActive = isProfileItem ? isProfileActive : isConfigItem ? isConfigActive : activePage === item.id;
+                const isSetupItem = item.id === 'setup';
+                const isSetupActive = isSetupItem && (activePage === 'setup' || activePage.startsWith('setup_'));
+                const isActive = isProfileItem ? isProfileActive : isConfigItem ? isConfigActive : isSetupItem ? isSetupActive : activePage === item.id;
                 const IconComponent = item.icon;
 
                 if (isProfileItem) {
@@ -451,6 +476,98 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           {CONFIG_SUB_ITEMS.map((subItem) => {
                             const SubIcon = subItem.icon;
                             const isSubActive = activePage === subItem.id;
+
+                            return (
+                              <button
+                                key={subItem.id}
+                                type="button"
+                                onClick={() => {
+                                  navigateTo(subItem.id);
+                                  if (window.innerWidth < 1024) {
+                                    onClose();
+                                  }
+                                }}
+                                className={cn(
+                                  'w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all text-left select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 cursor-pointer',
+                                  isSubActive
+                                    ? 'bg-blue-100/70 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold'
+                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                                )}
+                              >
+                                <SubIcon
+                                  className={cn(
+                                    'w-3.5 h-3.5 shrink-0',
+                                    isSubActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
+                                  )}
+                                  aria-hidden="true"
+                                />
+                                <span className="truncate">{subItem.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (isSetupItem) {
+                  return (
+                    <div key={item.id} className="space-y-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!isSetupActive) {
+                            navigateTo('setup_organization');
+                            setIsSetupExpanded(true);
+                          } else {
+                            setIsSetupExpanded((prev) => !prev);
+                          }
+                        }}
+                        aria-current={isSetupActive ? 'page' : undefined}
+                        className={cn(
+                          'w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all text-left select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 cursor-pointer',
+                          isSetupActive
+                            ? 'bg-blue-600 text-white shadow-sm font-bold'
+                            : 'text-slate-700 dark:text-slate-200 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <IconComponent
+                            className={cn(
+                              'w-4.5 h-4.5 shrink-0',
+                              isSetupActive ? 'text-white' : 'text-slate-500 dark:text-slate-400'
+                            )}
+                            aria-hidden="true"
+                          />
+                          <span>{item.label}</span>
+                        </div>
+
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsSetupExpanded((prev) => !prev);
+                          }}
+                          className={cn(
+                            'p-1 rounded-md transition-colors',
+                            isSetupActive ? 'hover:bg-white/20' : 'hover:bg-slate-200 dark:hover:bg-slate-700'
+                          )}
+                          title={isSetupExpanded ? 'Collapse sub-menu' : 'Expand sub-menu'}
+                        >
+                          {isSetupExpanded ? (
+                            <ChevronDown className={cn('w-4 h-4', isSetupActive ? 'text-white' : 'text-slate-400')} />
+                          ) : (
+                            <ChevronRight className={cn('w-4 h-4', isSetupActive ? 'text-white' : 'text-slate-400')} />
+                          )}
+                        </span>
+                      </button>
+
+                      {/* Setup Sub-menu */}
+                      {isSetupExpanded && (
+                        <div className="ml-3 pl-3 border-l-2 border-slate-200 dark:border-slate-800 space-y-0.5 py-1">
+                          {SETUP_SUB_ITEMS.map((subItem) => {
+                            const SubIcon = subItem.icon;
+                            const isSubActive = activePage === subItem.id || (activePage === 'setup' && subItem.id === 'setup_organization');
 
                             return (
                               <button
