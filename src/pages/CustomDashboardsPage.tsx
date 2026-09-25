@@ -18,6 +18,7 @@ import {
   deleteDashlet,
   resetMasterDashlets,
   DashletConfig,
+  DashboardPersona,
   ChartVisualizationType,
   ChartDataPoint
 } from '../services/dashboardCustomizationService';
@@ -69,11 +70,12 @@ import {
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 
-const ALL_ROLES: Array<{ role: UserRole; label: string; shortLabel: string; color: string; icon: string }> = [
+const ALL_ROLES: Array<{ role: DashboardPersona; label: string; shortLabel: string; color: string; icon: string }> = [
   { role: 'SUPER_ADMIN', label: 'Super Admin', shortLabel: 'Admin', color: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border-purple-200 dark:border-purple-800', icon: '👑' },
   { role: 'HR', label: 'HR Operations', shortLabel: 'HR', color: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-200 dark:border-blue-800', icon: '👥' },
   { role: 'MANAGER', label: 'Manager', shortLabel: 'Manager', color: 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border-teal-200 dark:border-teal-800', icon: '👔' },
-  { role: 'EMPLOYEE', label: 'Employee Dashboard', shortLabel: 'Employee Dashboard', color: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-200 dark:border-amber-800', icon: '💼' }
+  { role: 'EMPLOYEE', label: 'Employee', shortLabel: 'Employee', color: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-200 dark:border-amber-800', icon: '💼' },
+  { role: 'KPI_DASHBOARD', label: 'KPI Dashboard', shortLabel: 'KPI Dashboard', color: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border-rose-200 dark:border-rose-800', icon: '🎯' }
 ];
 
 const AVAILABLE_ICONS = [
@@ -114,7 +116,7 @@ export const CustomDashboardsPage: React.FC = () => {
   const { candidates } = useOnboarding();
   const { success, info } = useToast();
 
-  const [activeTab, setActiveTab] = useState<'catalog' | 'SUPER_ADMIN' | 'HR' | 'MANAGER' | 'EMPLOYEE'>('catalog');
+  const [activeTab, setActiveTab] = useState<'catalog' | 'SUPER_ADMIN' | 'HR' | 'MANAGER' | 'EMPLOYEE' | 'KPI_DASHBOARD'>('catalog');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'enabled' | 'disabled'>('all');
@@ -131,7 +133,7 @@ export const CustomDashboardsPage: React.FC = () => {
   const [newCategory, setNewCategory] = useState<'onboarding' | 'it' | 'compliance' | 'team' | 'custom'>('onboarding');
   const [newType, setNewType] = useState<'metric' | 'chart' | 'list' | 'progress' | 'hero' | 'custom'>('metric');
   const [newChartType, setNewChartType] = useState<ChartVisualizationType>('bar');
-  const [newRoles, setNewRoles] = useState<UserRole[]>(['SUPER_ADMIN', 'HR']);
+  const [newRoles, setNewRoles] = useState<DashboardPersona[]>(['SUPER_ADMIN', 'HR', 'KPI_DASHBOARD']);
   const [newEnabled, setNewEnabled] = useState(true);
   const [newValue, setNewValue] = useState('');
   const [newSubtitle, setNewSubtitle] = useState('');
@@ -167,7 +169,7 @@ export const CustomDashboardsPage: React.FC = () => {
     );
   };
 
-  const handleToggleRoleAssignment = (dashletId: string, role: UserRole) => {
+  const handleToggleRoleAssignment = (dashletId: string, role: DashboardPersona) => {
     toggleDashletRole(dashletId, role);
     setDashlets(getMasterDashlets());
     const target = dashlets.find((d) => d.id === dashletId);
@@ -258,7 +260,7 @@ export const CustomDashboardsPage: React.FC = () => {
   const availableAssets = assets.filter((a) => a.status === 'Available').length;
   const activeCandidates = candidates.filter((c) => c.status !== 'completed' && c.status !== 'rejected').length;
 
-  const previewDashletsForRole = (role: UserRole) => {
+  const previewDashletsForRole = (role: DashboardPersona) => {
     return dashlets.filter((d) => d.enabled && d.assignedRoles.includes(role));
   };
 
@@ -689,7 +691,20 @@ export const CustomDashboardsPage: React.FC = () => {
               : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           )}
         >
-          <span>💼</span> Employee Dashboard Preview ({previewDashletsForRole('EMPLOYEE').length})
+          <span>💼</span> Employee Preview ({previewDashletsForRole('EMPLOYEE').length})
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('KPI_DASHBOARD')}
+          className={cn(
+            'px-4 py-2.5 text-xs font-bold border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer select-none',
+            activeTab === 'KPI_DASHBOARD'
+              ? 'border-rose-600 text-rose-600 dark:text-rose-400 font-extrabold'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          )}
+        >
+          <span>🎯</span> KPI Dashboard ({previewDashletsForRole('KPI_DASHBOARD').length})
         </button>
       </div>
 
@@ -744,7 +759,8 @@ export const CustomDashboardsPage: React.FC = () => {
                 <option value="SUPER_ADMIN">👑 Super Admin Assigned</option>
                 <option value="HR">👥 HR Assigned</option>
                 <option value="MANAGER">👔 Manager Assigned</option>
-                <option value="EMPLOYEE">💼 Employee Dashboard Assigned</option>
+                <option value="EMPLOYEE">💼 Employee Assigned</option>
+                <option value="KPI_DASHBOARD">🎯 KPI Dashboard Assigned</option>
               </select>
             </div>
           </Card>
@@ -896,7 +912,7 @@ export const CustomDashboardsPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2-5: PERSONA LIVE DASHBOARD PREVIEWS */}
+      {/* TAB 2-6: PERSONA LIVE DASHBOARD PREVIEWS */}
       {activeTab !== 'catalog' && (
         <div className="space-y-6">
           <div className="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -904,18 +920,24 @@ export const CustomDashboardsPage: React.FC = () => {
               <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
               <div>
                 <h3 className="text-xs font-bold text-blue-900 dark:text-blue-300">
-                  Live Preview: {activeTab === 'EMPLOYEE' ? 'Employee Dashboard (Performance & Milestone KPI View)' : `${activeTab.replace('_', ' ')} Dashboard`}
+                  {activeTab === 'KPI_DASHBOARD'
+                    ? 'Live Preview: KPI Dashboard (Employee Performance & Milestones)'
+                    : activeTab === 'EMPLOYEE'
+                    ? 'Live Preview: Employee Workspace Dashboard'
+                    : `Live Preview: ${activeTab.replace('_', ' ')} Dashboard`}
                 </h3>
                 <p className="text-[11px] text-blue-700 dark:text-blue-400">
-                  {activeTab === 'EMPLOYEE'
-                    ? 'This configured dashboard is displayed when Super Admin & HR Admin click on an employee from the user list to check performance, milestones, and Day-1 clearance.'
-                    : `Showing ${previewDashletsForRole(activeTab as UserRole).length} active dashlets assigned to ${activeTab.replace('_', ' ')}.`}
+                  {activeTab === 'KPI_DASHBOARD'
+                    ? 'This configured KPI Dashboard data directly appears when Super Admin & HR Admin click on an employee from the user list to check performance, KPI index, milestone progression, and clearance status.'
+                    : activeTab === 'EMPLOYEE'
+                    ? 'This dashboard is displayed when employees log into their personal portal.'
+                    : `Showing ${previewDashletsForRole(activeTab as DashboardPersona).length} active dashlets assigned to ${activeTab.replace('_', ' ')}.`}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              {activeTab === 'EMPLOYEE' && candidates.length > 0 && (
+              {(activeTab === 'KPI_DASHBOARD' || activeTab === 'EMPLOYEE') && candidates.length > 0 && (
                 <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs">
                   <span className="text-[11px] font-bold text-slate-500 whitespace-nowrap">Inspect User:</span>
                   <select
@@ -946,14 +968,14 @@ export const CustomDashboardsPage: React.FC = () => {
           <div className="p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-6 shadow-xs">
             {/* KPI Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {previewDashletsForRole(activeTab as UserRole)
+              {previewDashletsForRole(activeTab as DashboardPersona)
                 .filter((d) => d.type === 'metric' || (d.type === 'custom' && !d.chartType))
                 .map((d) => {
                   let metricValue = d.customData?.value || 'Active';
                   let metricBadge = d.customData?.badge || 'On track';
                   let isPositive = d.customData?.badgePositive ?? true;
 
-                  if (activeTab === 'EMPLOYEE' && selectedPreviewCandidate) {
+                  if ((activeTab === 'KPI_DASHBOARD' || activeTab === 'EMPLOYEE') && selectedPreviewCandidate) {
                     const empProgress = selectedPreviewCandidate.progress || 0;
                     const empDocs = selectedPreviewCandidate.documents?.filter((doc) => doc.status === 'verified' || doc.status === 'submitted').length || Math.round((empProgress / 100) * 8);
 
@@ -999,12 +1021,12 @@ export const CustomDashboardsPage: React.FC = () => {
 
             {/* Visual Charts & Specialized Dashlets Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {previewDashletsForRole(activeTab as UserRole)
+              {previewDashletsForRole(activeTab as DashboardPersona)
                 .filter((d) => d.type === 'chart' || (d.type === 'custom' && d.chartType))
                 .map((d) => {
                   let chartDataToRender = d.chartData;
 
-                  if (activeTab === 'EMPLOYEE' && selectedPreviewCandidate) {
+                  if ((activeTab === 'KPI_DASHBOARD' || activeTab === 'EMPLOYEE') && selectedPreviewCandidate) {
                     const empProgress = selectedPreviewCandidate.progress || 0;
                     const empDocs = selectedPreviewCandidate.documents?.filter((doc) => doc.status === 'verified' || doc.status === 'submitted').length || Math.round((empProgress / 100) * 8);
 
@@ -1058,7 +1080,7 @@ export const CustomDashboardsPage: React.FC = () => {
                 })}
 
               {/* Other list / progress / hero dashlets */}
-              {previewDashletsForRole(activeTab as UserRole)
+              {previewDashletsForRole(activeTab as DashboardPersona)
                 .filter((d) => d.type !== 'metric' && d.type !== 'chart' && (!d.chartType))
                 .map((d) => (
                   <Card key={d.id} className="border border-slate-200 dark:border-slate-800">
@@ -1071,7 +1093,7 @@ export const CustomDashboardsPage: React.FC = () => {
                     <CardContent className="pt-3">
                       <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{d.description}</p>
                       <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-center text-xs text-slate-500">
-                        {activeTab === 'EMPLOYEE' && selectedPreviewCandidate
+                        {(activeTab === 'KPI_DASHBOARD' || activeTab === 'EMPLOYEE') && selectedPreviewCandidate
                           ? `Interactive ${d.type} dashlet configured for employee: ${selectedPreviewCandidate.name || selectedPreviewCandidate.firstName}.`
                           : `Interactive ${d.type} dashlet actively rendered in ${activeTab} view.`}
                       </div>

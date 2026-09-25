@@ -1,5 +1,7 @@
 import { UserRole } from '../types/auth';
 
+export type DashboardPersona = UserRole | 'KPI_DASHBOARD';
+
 export type ChartVisualizationType =
   | 'bar'
   | 'horizontal_bar'
@@ -26,7 +28,7 @@ export interface DashletConfig {
   chartType?: ChartVisualizationType;
   chartData?: ChartDataPoint[];
   enabled: boolean; // Global ON / OFF switch for this dashlet
-  assignedRoles: UserRole[]; // Which personas will have this dashlet on their dashboard
+  assignedRoles: DashboardPersona[]; // Which personas will have this dashlet on their dashboard
   order: number;
   customData?: {
     value?: string;
@@ -93,7 +95,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     category: 'compliance',
     type: 'metric',
     enabled: true,
-    assignedRoles: ['SUPER_ADMIN', 'HR', 'EMPLOYEE'],
+    assignedRoles: ['SUPER_ADMIN', 'HR', 'EMPLOYEE', 'KPI_DASHBOARD'],
     order: 4
   },
   {
@@ -103,7 +105,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     category: 'it',
     type: 'metric',
     enabled: true,
-    assignedRoles: ['SUPER_ADMIN', 'HR', 'MANAGER', 'EMPLOYEE'],
+    assignedRoles: ['SUPER_ADMIN', 'HR', 'MANAGER', 'EMPLOYEE', 'KPI_DASHBOARD'],
     order: 5
   },
   {
@@ -191,7 +193,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     type: 'chart',
     chartType: 'radial_gauge',
     enabled: true,
-    assignedRoles: ['EMPLOYEE'],
+    assignedRoles: ['EMPLOYEE', 'KPI_DASHBOARD'],
     order: 12,
     chartData: [
       { label: 'Clearance Score', value: 95, color: '#10b981', sublabel: 'Target: 100%' }
@@ -205,7 +207,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     type: 'chart',
     chartType: 'bar',
     enabled: true,
-    assignedRoles: ['EMPLOYEE'],
+    assignedRoles: ['EMPLOYEE', 'KPI_DASHBOARD'],
     order: 13,
     chartData: [
       { label: 'Profile', value: 100, color: '#10b981' },
@@ -222,7 +224,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     category: 'onboarding',
     type: 'metric',
     enabled: true,
-    assignedRoles: ['EMPLOYEE'],
+    assignedRoles: ['EMPLOYEE', 'KPI_DASHBOARD'],
     order: 14,
     customData: {
       value: '96 / 100',
@@ -240,7 +242,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     type: 'chart',
     chartType: 'line',
     enabled: true,
-    assignedRoles: ['EMPLOYEE'],
+    assignedRoles: ['EMPLOYEE', 'KPI_DASHBOARD'],
     order: 15,
     chartData: [
       { label: 'Week 1', value: 35, color: '#3b82f6' },
@@ -257,7 +259,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     type: 'chart',
     chartType: 'donut',
     enabled: true,
-    assignedRoles: ['EMPLOYEE'],
+    assignedRoles: ['EMPLOYEE', 'KPI_DASHBOARD'],
     order: 16,
     chartData: [
       { label: 'Verified & Approved', value: 75, color: '#10b981' },
@@ -273,7 +275,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     type: 'list',
     enabled: true,
     assignedRoles: ['SUPER_ADMIN', 'HR'],
-    order: 14
+    order: 17
   },
   {
     id: 'list_compliance_alerts',
@@ -283,7 +285,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     type: 'list',
     enabled: true,
     assignedRoles: ['SUPER_ADMIN', 'HR'],
-    order: 15
+    order: 18
   },
   {
     id: 'hr_widget_attendance_stream',
@@ -293,7 +295,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     type: 'list',
     enabled: true,
     assignedRoles: ['HR'],
-    order: 16
+    order: 19
   },
   {
     id: 'hr_widget_roster_table',
@@ -303,7 +305,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     type: 'list',
     enabled: true,
     assignedRoles: ['HR'],
-    order: 17
+    order: 20
   },
   {
     id: 'mgr_widget_team_checklist',
@@ -313,7 +315,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     type: 'list',
     enabled: true,
     assignedRoles: ['MANAGER'],
-    order: 18
+    order: 21
   },
   {
     id: 'mgr_widget_team_roster',
@@ -323,7 +325,7 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     type: 'list',
     enabled: true,
     assignedRoles: ['MANAGER'],
-    order: 19
+    order: 22
   },
   {
     id: 'emp_widget_welcome_hero',
@@ -332,8 +334,8 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     category: 'onboarding',
     type: 'hero',
     enabled: true,
-    assignedRoles: ['EMPLOYEE'],
-    order: 20
+    assignedRoles: ['EMPLOYEE', 'KPI_DASHBOARD'],
+    order: 23
   },
   {
     id: 'emp_widget_journey_steps',
@@ -342,8 +344,8 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     category: 'onboarding',
     type: 'progress',
     enabled: true,
-    assignedRoles: ['EMPLOYEE'],
-    order: 21
+    assignedRoles: ['EMPLOYEE', 'KPI_DASHBOARD'],
+    order: 24
   },
   {
     id: 'emp_widget_manager_buddy',
@@ -352,8 +354,8 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     category: 'team',
     type: 'list',
     enabled: true,
-    assignedRoles: ['EMPLOYEE'],
-    order: 22
+    assignedRoles: ['EMPLOYEE', 'KPI_DASHBOARD'],
+    order: 25
   },
   {
     id: 'emp_widget_hardware_card',
@@ -362,8 +364,8 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     category: 'it',
     type: 'list',
     enabled: true,
-    assignedRoles: ['EMPLOYEE'],
-    order: 23
+    assignedRoles: ['EMPLOYEE', 'KPI_DASHBOARD'],
+    order: 26
   },
   {
     id: 'emp_widget_day1_checklist',
@@ -372,8 +374,8 @@ export const DEFAULT_MASTER_DASHLETS: DashletConfig[] = [
     category: 'onboarding',
     type: 'list',
     enabled: true,
-    assignedRoles: ['EMPLOYEE'],
-    order: 24
+    assignedRoles: ['EMPLOYEE', 'KPI_DASHBOARD'],
+    order: 27
   }
 ];
 
@@ -434,7 +436,7 @@ export const toggleDashletEnabled = (dashletId: string, enabled: boolean): void 
   saveMasterDashlets(updated);
 };
 
-export const toggleDashletRole = (dashletId: string, role: UserRole): void => {
+export const toggleDashletRole = (dashletId: string, role: DashboardPersona): void => {
   const current = getMasterDashlets();
   const updated = current.map((d) => {
     if (d.id !== dashletId) return d;
@@ -473,7 +475,7 @@ export const resetMasterDashlets = (): DashletConfig[] => {
 
 // ================= PERSONA DASHBOARD CUSTOMIZATION & MOVE API ================= //
 
-export const getDashletsForPersona = (role: UserRole): DashletConfig[] => {
+export const getDashletsForPersona = (role: DashboardPersona): DashletConfig[] => {
   const master = getMasterDashlets();
   const filtered = master.filter((d) => d.enabled && d.assignedRoles.includes(role));
 
@@ -496,7 +498,7 @@ export const getDashletsForPersona = (role: UserRole): DashletConfig[] => {
 };
 
 export const moveDashletForPersona = (
-  role: UserRole,
+  role: DashboardPersona,
   dashletId: string,
   direction: 'up' | 'down' | 'left' | 'right' | 'top' | 'bottom'
 ): DashletConfig[] => {
@@ -532,11 +534,11 @@ export const moveDashletForPersona = (
   return reordered;
 };
 
-export const removeDashletFromPersona = (role: UserRole, dashletId: string): void => {
+export const removeDashletFromPersona = (role: DashboardPersona, dashletId: string): void => {
   toggleDashletRole(dashletId, role);
 };
 
-export const addDashletToPersona = (role: UserRole, dashletId: string): void => {
+export const addDashletToPersona = (role: DashboardPersona, dashletId: string): void => {
   const master = getMasterDashlets();
   const target = master.find((d) => d.id === dashletId);
   if (target && !target.assignedRoles.includes(role)) {
@@ -544,7 +546,7 @@ export const addDashletToPersona = (role: UserRole, dashletId: string): void => 
   }
 };
 
-export const resetPersonaLayout = (role: UserRole): DashletConfig[] => {
+export const resetPersonaLayout = (role: DashboardPersona): DashletConfig[] => {
   localStorage.removeItem(`${PERSONA_ORDER_PREFIX}${role}`);
   window.dispatchEvent(new CustomEvent('dashboard-config-updated', { detail: { role } }));
   return getDashletsForPersona(role);

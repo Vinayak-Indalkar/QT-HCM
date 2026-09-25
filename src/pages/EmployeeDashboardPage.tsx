@@ -54,12 +54,15 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
   const { data: flowData } = useOnboardingFlow();
 
   const [isCustomizing, setIsCustomizing] = useState(false);
-  const [dashlets, setDashlets] = useState<DashletConfig[]>(() =>
-    getDashletsForPersona('EMPLOYEE')
-  );
+  const currentPersona = employee ? 'KPI_DASHBOARD' : 'EMPLOYEE';
+  const [dashlets, setDashlets] = useState<DashletConfig[]>(() => {
+    const list = getDashletsForPersona(currentPersona);
+    return list.length > 0 ? list : getDashletsForPersona('EMPLOYEE');
+  });
 
   const refreshDashlets = () => {
-    setDashlets(getDashletsForPersona('EMPLOYEE'));
+    const list = getDashletsForPersona(currentPersona);
+    setDashlets(list.length > 0 ? list : getDashletsForPersona('EMPLOYEE'));
   };
 
   useEffect(() => {
