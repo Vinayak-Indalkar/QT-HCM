@@ -1291,140 +1291,169 @@ export const CustomDashboardsPage: React.FC = () => {
             </CardHeader>
 
             <CardContent className="p-0">
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {filteredDashlets.map((dashlet, index) => (
-                  <div
-                    key={dashlet.id}
-                    className={cn(
-                      'p-4 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4',
-                      dashlet.enabled
-                        ? 'bg-white dark:bg-slate-900 hover:bg-slate-50/70 dark:hover:bg-slate-800/40'
-                        : 'bg-slate-50/70 dark:bg-slate-900/40 opacity-70 hover:opacity-100'
-                    )}
-                  >
-                    {/* Left: ON/OFF Switch + Dashlet Name + Info */}
-                    <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
-                      {/* Interactive ON / OFF Toggle Switch */}
-                      <button
-                        type="button"
-                        onClick={() => handleToggleDashlet(dashlet.id)}
-                        className={cn(
-                          'shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1 cursor-pointer',
-                          dashlet.enabled ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-700'
-                        )}
-                        title={dashlet.enabled ? 'Click to Turn OFF' : 'Click to Turn ON'}
-                      >
-                        <span
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="bg-slate-50/50 dark:bg-slate-800/30 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold border-b border-slate-200/70 dark:border-slate-800 tracking-wider whitespace-nowrap">
+                    <tr>
+                      <th className="py-3 px-4 min-w-[90px] text-center whitespace-nowrap">Status</th>
+                      <th className="py-3 px-4 min-w-[320px] whitespace-nowrap">Dashlet &amp; Details</th>
+                      <th className="py-3 px-4 min-w-[170px] whitespace-nowrap">Type &amp; Category</th>
+                      <th className="py-3 px-4 min-w-[360px] whitespace-nowrap">Persona Assignments</th>
+                      <th className="py-3 px-4 min-w-[130px] text-right whitespace-nowrap sticky right-0 bg-slate-50 dark:bg-slate-850 z-10 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)] border-l border-slate-200/70 dark:border-slate-800">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50 font-medium">
+                    {filteredDashlets.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-12 text-center text-slate-400 dark:text-slate-500 text-xs">
+                          No dashlets match your search/filter criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredDashlets.map((dashlet, index) => (
+                        <tr
+                          key={dashlet.id}
                           className={cn(
-                            'inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-xs',
-                            dashlet.enabled ? 'translate-x-6' : 'translate-x-1'
+                            'group transition-colors',
+                            dashlet.enabled
+                              ? 'bg-white dark:bg-slate-900 hover:bg-slate-50/70 dark:hover:bg-slate-800/40'
+                              : 'bg-slate-50/40 dark:bg-slate-900/30 opacity-75 hover:opacity-100'
                           )}
-                        />
-                      </button>
-
-                      {/* Info */}
-                      <div className="space-y-1 min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-extrabold text-slate-900 dark:text-white">
-                            {dashlet.title}
-                          </span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                            {dashlet.type === 'chart' && dashlet.chartType ? `${dashlet.chartType} chart` : dashlet.type}
-                          </span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
-                            {dashlet.category}
-                          </span>
-                          {!dashlet.enabled && (
-                            <span className="px-1.5 py-0.2 text-[9px] font-bold uppercase rounded bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-                              Inactive (OFF)
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
-                          {dashlet.description}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Middle: Persona Assignment Toggles */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
-                      <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                        Assigned To:
-                      </span>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {ALL_ROLES.map((roleObj) => {
-                          const isAssigned = dashlet.assignedRoles.includes(roleObj.role);
-                          return (
-                            <button
-                              key={roleObj.role}
-                              type="button"
-                              onClick={() => handleToggleRoleAssignment(dashlet.id, roleObj.role)}
-                              className={cn(
-                                'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none',
-                                isAssigned
-                                  ? `${roleObj.color} shadow-2xs font-bold`
-                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-400 hover:text-slate-600 dark:hover:text-slate-200 opacity-60'
-                              )}
-                              title={
-                                isAssigned
-                                  ? `Assigned to ${roleObj.label}. Click to unassign.`
-                                  : `Click to assign to ${roleObj.label}.`
-                              }
-                            >
-                              <span>{roleObj.icon}</span>
-                              <span>{roleObj.shortLabel}</span>
-                              {isAssigned ? (
-                                <Check className="w-3 h-3 ml-0.5 text-current" />
-                              ) : (
-                                <Plus className="w-3 h-3 ml-0.5 text-slate-400" />
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Right: Edit, Sequence & Delete Actions */}
-                    <div className="flex items-center gap-1 self-end lg:self-center shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEditDashlet(dashlet)}
-                        className="p-1.5 rounded text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 cursor-pointer transition-colors"
-                        title="Edit Dashlet Configuration"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={index === 0}
-                        onClick={() => handleMoveDashlet(index, 'up')}
-                        className="p-1.5 rounded text-slate-400 hover:text-blue-600 disabled:opacity-20 cursor-pointer"
-                        title="Move Up in Sequence"
-                      >
-                        <MoveUp className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={index === filteredDashlets.length - 1}
-                        onClick={() => handleMoveDashlet(index, 'down')}
-                        className="p-1.5 rounded text-slate-400 hover:text-blue-600 disabled:opacity-20 cursor-pointer"
-                        title="Move Down in Sequence"
-                      >
-                        <MoveDown className="w-4 h-4" />
-                      </button>
-                      {dashlet.id.startsWith('dashlet_custom_') && (
-                        <button
-                          type="button"
-                          onClick={() => setDeletingDashlet(dashlet)}
-                          className="p-1.5 rounded text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
-                          title="Delete Custom Dashlet"
                         >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                          {/* 1. Status Toggle */}
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleDashlet(dashlet.id)}
+                              className={cn(
+                                'shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1 cursor-pointer',
+                                dashlet.enabled ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-700'
+                              )}
+                              title={dashlet.enabled ? 'Click to Turn OFF' : 'Click to Turn ON'}
+                            >
+                              <span
+                                className={cn(
+                                  'inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-xs',
+                                  dashlet.enabled ? 'translate-x-6' : 'translate-x-1'
+                                )}
+                              />
+                            </button>
+                          </td>
+
+                          {/* 2. Dashlet Title & Description */}
+                          <td className="py-3.5 px-4">
+                            <div className="flex flex-col min-w-0 max-w-md">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-xs font-extrabold text-slate-900 dark:text-white truncate">
+                                  {dashlet.title}
+                                </span>
+                                {!dashlet.enabled && (
+                                  <span className="px-1.5 py-0.2 text-[9px] font-bold uppercase rounded bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
+                                    Inactive (OFF)
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+                                {dashlet.description}
+                              </p>
+                            </div>
+                          </td>
+
+                          {/* 3. Type & Category */}
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                {dashlet.type === 'chart' && dashlet.chartType ? `${dashlet.chartType} chart` : dashlet.type}
+                              </span>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                                {dashlet.category}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* 4. Persona Assignments */}
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {ALL_ROLES.map((roleObj) => {
+                                const isAssigned = dashlet.assignedRoles.includes(roleObj.role);
+                                return (
+                                  <button
+                                    key={roleObj.role}
+                                    type="button"
+                                    onClick={() => handleToggleRoleAssignment(dashlet.id, roleObj.role)}
+                                    className={cn(
+                                      'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer select-none',
+                                      isAssigned
+                                        ? `${roleObj.color} shadow-2xs font-bold`
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-400 hover:text-slate-600 dark:hover:text-slate-200 opacity-60'
+                                    )}
+                                    title={
+                                      isAssigned
+                                        ? `Assigned to ${roleObj.label}. Click to unassign.`
+                                        : `Click to assign to ${roleObj.label}.`
+                                    }
+                                  >
+                                    <span>{roleObj.icon}</span>
+                                    <span>{roleObj.shortLabel}</span>
+                                    {isAssigned ? (
+                                      <Check className="w-3 h-3 ml-0.5 text-current" />
+                                    ) : (
+                                      <Plus className="w-3 h-3 ml-0.5 text-slate-400" />
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </td>
+
+                          {/* 5. Fixed / Pinned Actions Column */}
+                          <td className="py-3.5 px-4 text-right whitespace-nowrap sticky right-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-slate-50/90 dark:group-hover:bg-slate-800/80 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)] border-l border-slate-200/50 dark:border-slate-800/80 transition-colors">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditDashlet(dashlet)}
+                                className="p-1.5 rounded text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 cursor-pointer transition-colors"
+                                title="Edit Dashlet Configuration"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={index === 0}
+                                onClick={() => handleMoveDashlet(index, 'up')}
+                                className="p-1.5 rounded text-slate-400 hover:text-blue-600 disabled:opacity-20 cursor-pointer"
+                                title="Move Up in Sequence"
+                              >
+                                <MoveUp className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={index === filteredDashlets.length - 1}
+                                onClick={() => handleMoveDashlet(index, 'down')}
+                                className="p-1.5 rounded text-slate-400 hover:text-blue-600 disabled:opacity-20 cursor-pointer"
+                                title="Move Down in Sequence"
+                              >
+                                <MoveDown className="w-4 h-4" />
+                              </button>
+                              {dashlet.id.startsWith('dashlet_custom_') && (
+                                <button
+                                  type="button"
+                                  onClick={() => setDeletingDashlet(dashlet)}
+                                  className="p-1.5 rounded text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
+                                  title="Delete Custom Dashlet"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
@@ -1536,8 +1565,6 @@ export const CustomDashboardsPage: React.FC = () => {
                         change={metricBadge}
                         isPositive={isPositive}
                         description={d.description}
-                        icon={<Sparkles className="w-5 h-5" />}
-                        iconBg="bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400"
                         className="h-full"
                       />
                     </div>
@@ -1589,12 +1616,9 @@ export const CustomDashboardsPage: React.FC = () => {
                     >
                       <Card className="border border-slate-200 dark:border-slate-800 h-full w-full flex flex-col justify-between">
                         <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <BarChart3 className="w-4 h-4 text-blue-600" />
-                            <h3 className="text-xs font-bold text-slate-900 dark:text-white">
-                              {d.title}
-                            </h3>
-                          </div>
+                          <h3 className="text-xs font-bold text-slate-900 dark:text-white">
+                            {d.title}
+                          </h3>
                           <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
                             {d.chartType || 'bar'}
                           </span>
@@ -1616,8 +1640,7 @@ export const CustomDashboardsPage: React.FC = () => {
                   >
                     <Card className="border border-slate-200 dark:border-slate-800 h-full w-full flex flex-col justify-between">
                       <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
-                        <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                          <Layers className="w-4 h-4 text-blue-600" />
+                        <h3 className="text-xs font-bold text-slate-900 dark:text-white">
                           {d.title}
                         </h3>
                       </CardHeader>

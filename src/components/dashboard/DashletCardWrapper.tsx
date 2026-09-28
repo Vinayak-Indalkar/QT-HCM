@@ -5,7 +5,8 @@ import {
   removeDashletFromPersona,
   setDashletSizeForPersona,
   DashletColSpan,
-  DashletHeightPreset
+  DashletHeightPreset,
+  DashboardPersona
 } from '../../services/dashboardCustomizationService';
 import {
   ArrowLeft,
@@ -28,7 +29,7 @@ import { cn } from '../../utils/cn';
 export interface DashletCardWrapperProps {
   id: string;
   title?: string;
-  role: UserRole;
+  role: DashboardPersona;
   index: number;
   total: number;
   isCustomizing: boolean;

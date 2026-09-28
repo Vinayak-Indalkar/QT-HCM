@@ -5,5 +5,6 @@
  */
 
 export * from '../molecules/StatCard';
+export * from '../molecules/ProgressBar';
 export * from '../molecules/ProgressRing';
 export * from '../molecules/AuditTimeline';

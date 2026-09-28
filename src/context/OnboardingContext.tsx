@@ -5,6 +5,7 @@ import { DocumentStatus } from '../types/document';
 import { UserProfile } from '../types/common';
 import { INITIAL_CANDIDATES, ALL_ONBOARDING_TASKS, CURRENT_USER } from '../services/mockData';
 import { useToast } from './ToastContext';
+import { getEffectiveAvatar } from '../utils/radianAvatars';
 
 export type NavigationPage =
   | 'dashboard'
@@ -37,7 +38,6 @@ export type ProfileTabId =
   | 'documents'
   | 'signature'
   | 'assets'
-  | 'history'
   | 'password';
 
 interface OnboardingContextType {
@@ -82,12 +82,18 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             localStorage.setItem(STORAGE_KEY_CANDIDATES, JSON.stringify(parsed));
           } catch {}
         }
-        return parsed;
+        return parsed.map((c) => ({
+          ...c,
+          avatarUrl: getEffectiveAvatar(c, c.gender, `${c.firstName} ${c.lastName}`)
+        }));
       }
     } catch {
       // fallback
     }
-    return INITIAL_CANDIDATES;
+    return INITIAL_CANDIDATES.map((c) => ({
+      ...c,
+      avatarUrl: getEffectiveAvatar(c, c.gender, `${c.firstName} ${c.lastName}`)
+    }));
   });
 
   const [tasks, setTasks] = useState<OnboardingTask[]>(() => {
@@ -102,7 +108,10 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return ALL_ONBOARDING_TASKS;
   });
 
-  const [currentUser, setCurrentUser] = useState<UserProfile>(CURRENT_USER);
+  const [currentUser, setCurrentUser] = useState<UserProfile>(() => ({
+    ...CURRENT_USER,
+    avatar: getEffectiveAvatar(null, 'Male', CURRENT_USER.name)
+  }));
   const [activePage, setActivePage] = useState<NavigationPage>('dashboard');
   const [activeProfileTab, setActiveProfileTab] = useState<ProfileTabId>('overview');
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
@@ -115,6 +124,45 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks));
   }, [tasks]);
+
+  // Sync profile photo updates across all candidates & current user in real time
+  useEffect(() => {
+    const handleProfilePhotoUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent<{ photoUrl?: string | null; candidateId?: string }>;
+      const photoUrl = customEvent?.detail?.photoUrl;
+      const candidateId = customEvent?.detail?.candidateId;
+
+      setCandidates((prev) =>
+        prev.map((c) => {
+          const isTarget = candidateId
+            ? c.id === candidateId || (c as any).employeeId === candidateId
+            : c.id === 'cand-1' || c.id === 'emp-1' || c.id === 'EMP-2024-0847';
+          if (isTarget) {
+            return {
+              ...c,
+              avatarUrl: photoUrl || getEffectiveAvatar(c, c.gender, `${c.firstName} ${c.lastName}`)
+            };
+          }
+          return {
+            ...c,
+            avatarUrl: getEffectiveAvatar(c, c.gender, `${c.firstName} ${c.lastName}`)
+          };
+        })
+      );
+
+      setCurrentUser((prev) => ({
+        ...prev,
+        avatar: photoUrl || getEffectiveAvatar(null, 'Male', prev.name)
+      }));
+    };
+
+    window.addEventListener('quantira_profile_photo_updated', handleProfilePhotoUpdated);
+    window.addEventListener('storage', handleProfilePhotoUpdated);
+    return () => {
+      window.removeEventListener('quantira_profile_photo_updated', handleProfilePhotoUpdated);
+      window.removeEventListener('storage', handleProfilePhotoUpdated);
+    };
+  }, []);
 
   // Sync completion from employee flow into candidates state
   useEffect(() => {

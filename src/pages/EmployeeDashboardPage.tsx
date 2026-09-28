@@ -117,524 +117,470 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
 
   // Render individual dashlet content
   const renderDashletContent = (dashlet: DashletConfig) => {
-    switch (dashlet.id) {
-      case 'emp_widget_welcome_hero':
-        return (
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 p-6 sm:p-8 text-white shadow-xl">
-            <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-blue-100 text-xs font-semibold">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                  {employee ? `Employee Workspace (ID: ${employee.id})` : 'Employee Onboarding Workspace'}
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                  Welcome to Quantira, {empName}! 👋
-                </h1>
-                <p className="text-sm text-blue-100/90 max-w-xl">
-                  You're set up as <span className="font-semibold text-white">{empRole}</span> in the{' '}
-                  <span className="font-semibold text-white">{empDept}</span> team. Let's make your Day 1 smooth and complete your onboarding setup.
+    // 1. Chart Visualizations
+    if (dashlet.type === 'chart' || dashlet.chartType) {
+      const chartPoints = dashlet.chartData && dashlet.chartData.length > 0 ? dashlet.chartData : undefined;
+      return (
+        <Card className="h-full w-full flex flex-col justify-between border border-slate-200 dark:border-slate-800">
+          <CardHeader className="pb-2 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  {dashlet.title}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                  {dashlet.description}
                 </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3 shrink-0">
-                {employee ? (
-                  onViewProfile && (
-                    <Button
-                      variant="primary"
-                      onClick={() => onViewProfile(employee)}
-                      className="bg-white hover:bg-slate-100 text-blue-900 font-bold text-xs sm:text-sm shadow-md"
-                      leftIcon={<Eye className="w-4 h-4 text-blue-700" />}
-                    >
-                      View &amp; Edit Profile
-                    </Button>
-                  )
-                ) : (
-                  <>
-                    <Button
-                      variant="primary"
-                      onClick={() => navigateTo('wizard')}
-                      className="bg-white hover:bg-slate-100 text-blue-900 font-bold text-xs sm:text-sm shadow-md"
-                      leftIcon={<Sparkles className="w-4 h-4 text-blue-700" />}
-                    >
-                      {progressPercent === 100 ? 'Review Wizard' : 'Resume Onboarding'}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => navigateTo('profile')}
-                      className="bg-white/15 hover:bg-white/25 text-white border-white/20 text-xs sm:text-sm font-semibold backdrop-blur-xs"
-                    >
-                      View My Profile
-                    </Button>
-                  </>
-                )}
               </div>
             </div>
-          </div>
-        );
-      case 'kpi_doc_compliance':
-      case 'emp_kpi_progress':
-        return (
-          <StatCard
-            label="Onboarding Completion"
-            value={`${progressPercent}%`}
-            change={`${completedStepsCount} of 10 steps completed`}
-            isPositive={progressPercent > 50}
-            description="Wizard progression"
-            icon={<Sparkles className="w-5 h-5" />}
-            iconBg="bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400"
-            onClick={() => navigateTo('wizard')}
-          />
-        );
-      case 'emp_kpi_tasks_done':
-        return (
-          <StatCard
-            label="Day 1 Checklist Tasks"
-            value={`${checklist.filter((c) => c.completed).length} / ${checklist.length}`}
-            change={checklist.filter((c) => c.completed).length === checklist.length ? 'All tasks complete' : 'Action items pending'}
-            isPositive={checklist.filter((c) => c.completed).length > 2}
-            description="Readiness checklist"
-            icon={<CheckCircle2 className="w-5 h-5" />}
-            iconBg="bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400"
-          />
-        );
-      case 'emp_kpi_docs_verified':
-        return (
-          <StatCard
-            label="Statutory Documents"
-            value={`${uploadedDocs} / ${totalDocs}`}
-            change={uploadedDocs >= totalDocs ? 'All documents ready' : 'Pending uploads'}
-            isPositive={uploadedDocs >= 2}
-            description="I-9 & Identification"
-            icon={<FileCheck2 className="w-5 h-5" />}
-            iconBg="bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400"
-            onClick={() => navigateTo('wizard')}
-          />
-        );
-      case 'emp_kpi_performance_score': {
-        const readinessScore = Math.min(
-          100,
-          Math.round(
-            progressPercent * 0.5 +
-            (uploadedDocs / Math.max(1, totalDocs)) * 30 +
-            (assignedAssets.length > 0 || employee?.equipment?.laptopModel ? 10 : 0) +
-            (checklist.filter((c) => c.completed).length / Math.max(1, checklist.length)) * 10
-          )
-        );
-        return (
-          <StatCard
-            label="Performance & KPI Index"
-            value={`${readinessScore} / 100`}
-            change={readinessScore >= 85 ? 'High Performer' : readinessScore >= 60 ? 'On Track' : 'Needs Attention'}
-            isPositive={readinessScore >= 70}
-            description="Overall Day-1 readiness & milestone velocity"
-            icon={<Award className="w-5 h-5" />}
-            iconBg="bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400"
-          />
-        );
-      }
-      case 'kpi_asset_pool':
-      case 'emp_kpi_asset_status':
-        return (
-          <StatCard
-            label="Hardware & Accounts"
-            value={assignedAssets.length > 0 ? `${assignedAssets.length} Assets` : 'Active'}
-            change="Okta SSO Enabled"
-            isPositive={true}
-            description="Apple MacBook Pro M3"
-            icon={<Laptop className="w-5 h-5" />}
-            iconBg="bg-teal-50 dark:bg-teal-950/80 text-teal-600 dark:text-teal-400"
-            onClick={() => navigateTo('profile')}
-          />
-        );
-      case 'emp_widget_journey_steps':
-        return (
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full w-full flex flex-col justify-between">
-            <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-              <div>
-                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  Onboarding Journey Progression
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Track the mandatory steps needed to finalize your employment dossier and day-1 badge.
-                </p>
-              </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => navigateTo('wizard')}
-                className="text-xs text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/60"
-                rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-              >
-                Open Wizard
-              </Button>
-            </CardHeader>
-            <CardContent className="pt-5 space-y-4 flex-1 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  <span>Overall Step Completion</span>
-                  <span>{progressPercent}% Complete ({completedStepsCount} of 10 Steps)</span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 h-full rounded-full transition-all duration-500"
-                    style={{ width: `${Math.max(5, progressPercent)}%` }}
-                  />
-                </div>
-              </div>
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+              {dashlet.chartType || 'bar'}
+            </span>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-center p-4">
+            <DynamicDashletChart
+              chartType={dashlet.chartType || 'bar'}
+              data={chartPoints}
+              height={220}
+            />
+          </CardContent>
+        </Card>
+      );
+    }
 
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2">
-                {[
-                  { step: 1, name: 'Personal Info', completed: completedStepsCount >= 1 },
-                  { step: 2, name: 'Documents', completed: completedStepsCount >= 2 },
-                  { step: 3, name: 'Address', completed: completedStepsCount >= 3 },
-                  { step: 4, name: 'Emergency', completed: completedStepsCount >= 4 },
-                  { step: 5, name: 'Family', completed: completedStepsCount >= 5 },
-                  { step: 6, name: 'Education', completed: completedStepsCount >= 6 },
-                  { step: 7, name: 'Experience', completed: completedStepsCount >= 7 },
-                  { step: 8, name: 'Bank & Tax', completed: completedStepsCount >= 8 },
-                  { step: 9, name: 'NDA Sign', completed: completedStepsCount >= 9 },
-                  { step: 10, name: 'Badge Photo', completed: completedStepsCount >= 10 }
-                ].map((s) => (
-                  <div
-                    key={s.step}
-                    className={cn(
-                      'p-2.5 rounded-lg border text-center transition-all',
-                      s.completed
-                        ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900/60 text-blue-900 dark:text-blue-300'
-                        : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400'
-                    )}
+    // 2. Welcome Hero
+    if (dashlet.id === 'emp_widget_welcome_hero') {
+      return (
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 p-6 sm:p-8 text-white shadow-xl">
+          <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-blue-100 text-xs font-semibold">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                {employee ? `Employee Workspace (ID: ${employee.id})` : 'Employee Onboarding Workspace'}
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                Welcome to Quantira, {empName}! 👋
+              </h1>
+              <p className="text-sm text-blue-100/90 max-w-xl">
+                You're set up as <span className="font-semibold text-white">{empRole}</span> in the{' '}
+                <span className="font-semibold text-white">{empDept}</span> team. Let's make your Day 1 smooth and complete your onboarding setup.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              {employee ? (
+                onViewProfile && (
+                  <Button
+                    variant="primary"
+                    onClick={() => onViewProfile(employee)}
+                    className="bg-white hover:bg-slate-100 text-blue-900 font-bold text-xs sm:text-sm shadow-md"
+                    leftIcon={<Eye className="w-4 h-4 text-blue-700" />}
                   >
-                    <div className="flex items-center justify-center gap-1 mb-1">
-                      {s.completed ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                      ) : (
-                        <span className="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-600 inline-block text-[9px] leading-3 text-slate-400">
-                          {s.step}
-                        </span>
-                      )}
-                      <span className="text-[11px] font-bold">Step {s.step}</span>
-                    </div>
-                    <p className="text-[10px] truncate">{s.name}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      case 'emp_widget_manager_buddy':
-        return (
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full w-full flex flex-col justify-between">
-            <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                Your Key Contacts &amp; Support Team
-              </h2>
-            </CardHeader>
-            <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex items-start gap-3">
-                <Avatar name="Marcus Brody" size="md" />
-                <div className="space-y-1 min-w-0">
-                  <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
-                    Reporting Manager
-                  </span>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                    Marcus Brody
-                  </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">VP of Engineering</p>
-                  <div className="pt-1 flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300">
-                    <a href="mailto:manager@quantira.com" className="flex items-center gap-1 hover:text-blue-600 text-[11px]">
-                      <Mail className="w-3.5 h-3.5" /> manager@quantira.com
-                    </a>
-                  </div>
-                </div>
-              </div>
+                    View &amp; Edit Profile
+                  </Button>
+                )
+              ) : (
+                <>
+                  <Button
+                    variant="primary"
+                    onClick={() => navigateTo('wizard')}
+                    className="bg-white hover:bg-slate-100 text-blue-900 font-bold text-xs sm:text-sm shadow-md"
+                    leftIcon={<Sparkles className="w-4 h-4 text-blue-700" />}
+                  >
+                    {progressPercent === 100 ? 'Review Wizard' : 'Resume Onboarding'}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => navigateTo('profile')}
+                    className="bg-white/15 hover:bg-white/25 text-white border-white/20 text-xs sm:text-sm font-semibold backdrop-blur-xs"
+                  >
+                    View My Profile
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
 
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex items-start gap-3">
-                <Avatar name="Eleanor Vance" size="md" />
-                <div className="space-y-1 min-w-0">
-                  <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
-                    People Operations Lead
-                  </span>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                    Eleanor Vance
-                  </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Head of People Operations</p>
-                  <div className="pt-1 flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300">
-                    <a href="mailto:hr@quantira.com" className="flex items-center gap-1 hover:text-purple-600 text-[11px]">
-                      <Mail className="w-3.5 h-3.5" /> hr@quantira.com
-                    </a>
-                  </div>
-                </div>
+    // 3. Employee Specific Lists & Widgets
+    if (dashlet.id === 'emp_todays_attendance') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Today's Attendance &amp; Shift</h3>
+              <p className="text-xs text-slate-500">Live time-card &amp; shift duration</p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Checked In</span>
+          </CardHeader>
+          <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+                <span className="text-[10px] text-slate-400 block">Check In</span>
+                <span className="font-bold text-xs text-slate-900 dark:text-white">09:05 AM</span>
               </div>
-            </CardContent>
-          </Card>
-        );
-      case 'emp_widget_hardware_card':
-        return (
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full w-full flex flex-col justify-between">
-            <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Laptop className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                Assigned IT Equipment
-              </h2>
-            </CardHeader>
-            <CardContent className="pt-4 space-y-3 flex-1 flex flex-col justify-between">
-              <div className="p-3 rounded-xl bg-teal-50/50 dark:bg-teal-950/30 border border-teal-200/70 dark:border-teal-900/60 flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 shrink-0">
-                  <Laptop className="w-4 h-4" />
-                </div>
-                <div className="space-y-0.5 min-w-0">
-                  <span className="text-xs font-bold text-slate-900 dark:text-white block">
-                    Apple MacBook Pro 16" M3 Max
-                  </span>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Asset Tag: <code className="font-mono text-teal-700 dark:text-teal-300">QNT-MBP-2026-089</code>
-                  </p>
-                  <div className="flex items-center gap-1.5 pt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Provisioned &amp; Encryption Active
-                  </div>
-                </div>
+              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+                <span className="text-[10px] text-slate-400 block">Logged</span>
+                <span className="font-bold text-xs text-blue-600 dark:text-blue-400">7h 42m</span>
               </div>
+              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+                <span className="text-[10px] text-slate-400 block">Breaks</span>
+                <span className="font-bold text-xs text-slate-900 dark:text-white">45 mins</span>
+              </div>
+            </div>
+            <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-300 text-xs flex items-center justify-between">
+              <span>Shift: Standard 09:00 - 18:00 (On-Premises HQ)</span>
+              <span className="font-bold">On Schedule</span>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
 
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-white">Enterprise Okta SSO</p>
-                    <p className="text-[11px] text-slate-500">{empEmail}</p>
+    if (dashlet.id === 'emp_my_leave_balance') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">My Leave Balance</h3>
+              <p className="text-xs text-slate-500">Annual statutory entitlements</p>
+            </div>
+            <button type="button" className="px-2.5 py-1 text-xs font-bold rounded bg-blue-600 text-white hover:bg-blue-700 cursor-pointer">
+              Apply Leave
+            </button>
+          </CardHeader>
+          <CardContent className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900">
+                <span className="text-[10px] text-slate-500 block">Casual (CL)</span>
+                <span className="text-sm font-extrabold text-blue-600">6.5 Days</span>
+              </div>
+              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900">
+                <span className="text-[10px] text-slate-500 block">Earned (EL)</span>
+                <span className="text-sm font-extrabold text-emerald-600">8.0 Days</span>
+              </div>
+              <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900">
+                <span className="text-[10px] text-slate-500 block">Sick (SL)</span>
+                <span className="text-sm font-extrabold text-purple-600">2.0 Days</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'emp_my_goals') {
+      const dummyGoals = [
+        { title: 'Complete Cloud Infrastructure Certification', progress: 100, status: 'Completed' },
+        { title: 'Deliver Sprint Performance Optimization SLA', progress: 85, status: 'On Track' },
+        { title: 'Mentor 2 Junior Engineering Apprentices', progress: 70, status: 'In Progress' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              My Quarterly OKRs &amp; Goals
+            </h3>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700">Q3 2026</span>
+          </CardHeader>
+          <CardContent className="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
+            <div className="space-y-2.5 flex-1">
+              {dummyGoals.map((g, i) => (
+                <div key={i} className="space-y-1 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{g.title}</span>
+                    <span className="font-bold text-blue-600">{g.progress}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div className="bg-blue-600 h-full rounded-full" style={{ width: `${g.progress}%` }} />
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                  Active
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'emp_my_tasks' || dashlet.id === 'emp_widget_day1_checklist') {
+      return (
+        <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full w-full flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+              My Assigned Tasks
+            </h2>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+              {checklist.filter((c) => c.completed).length} of {checklist.length} Done
+            </span>
+          </CardHeader>
+          <CardContent className="p-3 space-y-2 flex-1">
+            {checklist.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => toggleChecklist(item.id)}
+                className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer border border-transparent hover:border-slate-200"
+              >
+                <input
+                  type="checkbox"
+                  checked={item.completed}
+                  onChange={() => {}}
+                  className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 border-slate-300 cursor-pointer"
+                />
+                <span className={cn('text-xs font-medium leading-tight', item.completed ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-200')}>
+                  {item.title}
                 </span>
               </div>
-            </CardContent>
-          </Card>
-        );
-      case 'emp_widget_day1_checklist':
-        return (
-          <Card className="border border-slate-200 dark:border-slate-800 shadow-xs h-full w-full flex flex-col justify-between">
-            <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                Day-1 Action Checklist
-              </h2>
-            </CardHeader>
-            <CardContent className="pt-3 space-y-2 flex-1">
-              {checklist.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => toggleChecklist(item.id)}
-                  className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
-                >
-                  <input
-                    type="checkbox"
-                    checked={item.completed}
-                    onChange={() => {}}
-                    className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 h-4 w-4 border-slate-300 cursor-pointer"
-                  />
-                  <span
-                    className={cn(
-                      'text-xs font-medium leading-relaxed select-none',
-                      item.completed
-                        ? 'line-through text-slate-400 dark:text-slate-500'
-                        : 'text-slate-700 dark:text-slate-200'
-                    )}
-                  >
-                    {item.title}
+            ))}
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'emp_my_payslips') {
+      const dummyPayslips = [
+        { month: 'September 2026', net: '$8,450.00', date: 'Sept 25, 2026', status: 'Paid' },
+        { month: 'August 2026', net: '$8,450.00', date: 'Aug 25, 2026', status: 'Paid' },
+        { month: 'July 2026', net: '$8,450.00', date: 'July 25, 2026', status: 'Paid' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              My Payslips &amp; Tax Documents
+            </h3>
+            <span className="text-[11px] text-slate-400">Direct Deposit</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyPayslips.map((p, i) => (
+                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{p.month}</span>
+                    <span className="text-[11px] text-slate-500">Credited: {p.date} • {p.status}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{p.net}</span>
+                    <button type="button" className="px-2 py-1 text-[10px] font-bold rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 cursor-pointer">
+                      Download PDF
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'emp_my_documents') {
+      const dummyDocs = [
+        { name: 'Government Passport & Driver ID', date: 'Verified Sept 04', status: 'Approved' },
+        { name: 'Signed Enterprise NDA Agreement', date: 'Verified Sept 05', status: 'Approved' },
+        { name: 'Academic Degree Transcript', date: 'Verified Sept 06', status: 'Approved' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              My Documents &amp; Certifications
+            </h3>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">All Verified</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyDocs.map((d, i) => (
+                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{d.name}</span>
+                    <span className="text-[11px] text-slate-500">{d.date}</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-600 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50">
+                    {d.status}
                   </span>
                 </div>
               ))}
-            </CardContent>
-          </Card>
-        );
-      case 'chart_emp_readiness': {
-        const calculatedClearance = Math.min(
-          100,
-          Math.round(
-            progressPercent * 0.5 +
-            (uploadedDocs / Math.max(1, totalDocs)) * 30 +
-            (assignedAssets.length > 0 || employee?.equipment?.laptopModel ? 10 : 0) +
-            (checklist.filter((c) => c.completed).length / Math.max(1, checklist.length)) * 10
-          )
-        );
-        return (
-          <Card className="h-full w-full flex flex-col justify-between">
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <Gauge className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    {dashlet.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {dashlet.description}
-                  </p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col justify-center p-4">
-              <DynamicDashletChart
-                chartType="radial_gauge"
-                data={[
-                  {
-                    label: 'Clearance Score',
-                    value: calculatedClearance,
-                    color: calculatedClearance >= 80 ? '#10b981' : calculatedClearance >= 50 ? '#f59e0b' : '#ef4444',
-                    sublabel: 'Target: 100%'
-                  }
-                ]}
-                height={220}
-              />
-            </CardContent>
-          </Card>
-        );
-      }
-      case 'chart_emp_milestones': {
-        const milestoneData = [
-          { label: 'Profile', value: Math.min(100, Math.round((progressPercent / 10) * 100)), color: '#10b981' },
-          { label: 'Docs', value: Math.min(100, Math.round((uploadedDocs / Math.max(1, totalDocs)) * 100)), color: '#3b82f6' },
-          { label: 'NDA', value: (employee?.progress && employee.progress >= 90) || flowData.nda?.accepted ? 100 : Math.round(progressPercent * 0.8), color: '#10b981' },
-          { label: 'Hardware', value: assignedAssets.length > 0 || employee?.equipment?.laptopModel ? 100 : 0, color: '#10b981' },
-          { label: 'Day 1 Tasks', value: Math.round((checklist.filter((c) => c.completed).length / Math.max(1, checklist.length)) * 100), color: '#6366f1' }
-        ];
-        return (
-          <Card className="h-full w-full flex flex-col justify-between">
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    {dashlet.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {dashlet.description}
-                  </p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col justify-center p-4">
-              <DynamicDashletChart
-                chartType="bar"
-                data={milestoneData}
-                height={220}
-              />
-            </CardContent>
-          </Card>
-        );
-      }
-      case 'chart_emp_sla_velocity': {
-        const velocityData = [
-          { label: 'Week 1', value: Math.min(100, Math.round(progressPercent * 0.35)), color: '#3b82f6' },
-          { label: 'Week 2', value: Math.min(100, Math.round(progressPercent * 0.65)), color: '#3b82f6' },
-          { label: 'Week 3', value: Math.min(100, Math.round(progressPercent * 0.85)), color: '#3b82f6' },
-          { label: 'Week 4', value: progressPercent, color: '#10b981' }
-        ];
-        return (
-          <Card className="h-full w-full flex flex-col justify-between">
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    {dashlet.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {dashlet.description}
-                  </p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col justify-center p-4">
-              <DynamicDashletChart
-                chartType="line"
-                data={velocityData}
-                height={220}
-              />
-            </CardContent>
-          </Card>
-        );
-      }
-      case 'chart_emp_compliance_breakdown': {
-        const verifiedCount = uploadedDocs;
-        const pendingCount = Math.max(0, totalDocs - uploadedDocs);
-        const compBreakdown = [
-          { label: 'Verified & Approved', value: verifiedCount, color: '#10b981' },
-          { label: 'Pending Submission', value: pendingCount, color: '#f59e0b' }
-        ];
-        return (
-          <Card className="h-full w-full flex flex-col justify-between">
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    {dashlet.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {dashlet.description}
-                  </p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col justify-center p-4">
-              <DynamicDashletChart
-                chartType="donut"
-                data={compBreakdown}
-                height={220}
-              />
-            </CardContent>
-          </Card>
-        );
-      }
-      default:
-        // Render Dynamic Charts or Custom Metric Cards
-        if (dashlet.type === 'chart' && dashlet.chartType) {
-          return (
-            <Card className="h-full w-full flex flex-col justify-between">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      {dashlet.title}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {dashlet.description}
-                    </p>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'emp_my_training' || dashlet.id === 'kpi_training_certifications') {
+      const dummyTraining = [
+        { course: 'Enterprise Security & OWASP Standards', progress: 100, badge: 'Certified' },
+        { course: 'SOC2 & HIPAA Compliance Protocol', progress: 100, badge: 'Certified' },
+        { course: 'Advanced System Architecture & Scalability', progress: 65, badge: 'In Progress' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Training &amp; Certifications
+            </h3>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">2 Complete</span>
+          </CardHeader>
+          <CardContent className="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
+            <div className="space-y-2.5 flex-1">
+              {dummyTraining.map((t, i) => (
+                <div key={i} className="space-y-1 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{t.course}</span>
+                    <span className={cn('text-[10px] font-bold px-1.5 py-0.2 rounded', t.progress === 100 ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800')}>
+                      {t.badge}
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div className="bg-purple-600 h-full rounded-full" style={{ width: `${t.progress}%` }} />
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col justify-center p-4">
-                <DynamicDashletChart
-                  chartType={dashlet.chartType}
-                  data={dashlet.chartData}
-                  height={220}
-                />
-              </CardContent>
-            </Card>
-          );
-        }
-
-        return (
-          <StatCard
-            label={dashlet.title}
-            value={dashlet.customData?.value || 'Active'}
-            change={dashlet.customData?.badge || 'Employee Metric'}
-            isPositive={dashlet.customData?.badgePositive ?? true}
-            description={dashlet.customData?.subtitle || dashlet.description}
-            icon={<Sparkles className="w-5 h-5" />}
-            iconBg="bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400"
-          />
-        );
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
     }
+
+    if (dashlet.id === 'emp_upcoming_holidays') {
+      const dummyHolidays = [
+        { holiday: 'Thanksgiving Day', date: 'Nov 26, 2026', type: 'Public Holiday' },
+        { holiday: 'Day After Thanksgiving', date: 'Nov 27, 2026', type: 'Company Holiday' },
+        { holiday: 'Winter Break & New Year', date: 'Dec 25 - Jan 01', type: 'Paid Office Closure' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Upcoming Company Holidays
+            </h3>
+            <span className="text-[11px] text-slate-400">Q4 2026</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyHolidays.map((h, i) => (
+                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{h.holiday}</span>
+                    <span className="text-[11px] text-slate-500">{h.type}</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">{h.date}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 4. Specific KPI Dashboard List Widgets
+    if (dashlet.id === 'kpi_manager_feedback') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Manager Observations &amp; Feedback
+            </h3>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Rating: 4.9/5.0</span>
+          </CardHeader>
+          <CardContent className="p-4 space-y-2 flex-1 flex flex-col justify-between">
+            <blockquote className="text-xs text-slate-600 dark:text-slate-300 italic bg-slate-50 dark:bg-slate-800/60 p-3 rounded-lg border-l-3 border-blue-600">
+              "Demonstrates outstanding architectural velocity and deep commitment to team standards. Led the core service migration ahead of deadline with 0 regressions."
+            </blockquote>
+            <span className="text-[11px] text-slate-400 text-right block">— Marcus Brody, VP Engineering</span>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'kpi_recognition_achievements') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Recognition &amp; Accolades
+            </h3>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">3 Awards</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+              <div className="p-3 flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-slate-900 dark:text-white block">Star Performer Q2 2026</span>
+                  <span className="text-[11px] text-slate-500">Excellence in execution</span>
+                </div>
+                <span className="text-[10px] font-bold text-amber-600">$500 Spot Bonus</span>
+              </div>
+              <div className="p-3 flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-slate-900 dark:text-white block">Innovation Sprint Champion</span>
+                  <span className="text-[11px] text-slate-500">AI workflow automation</span>
+                </div>
+                <span className="text-[10px] font-bold text-emerald-600">Team Kudos</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'kpi_development_plan' || dashlet.id === 'kpi_improvement_areas') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Development Plan &amp; Growth Roadmap
+            </h3>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">Staff Track</span>
+          </CardHeader>
+          <CardContent className="p-3.5 space-y-2 flex-1">
+            <div className="p-2.5 rounded-lg bg-blue-50/50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/60 text-xs">
+              <strong className="text-blue-900 dark:text-blue-200 block">1. Technical Leadership:</strong>
+              <p className="text-slate-600 dark:text-slate-300 text-[11px]">Drive cross-functional RFC architecture reviews for Q4 platform release.</p>
+            </div>
+            <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs">
+              <strong className="text-slate-900 dark:text-white block">2. Mentorship Milestone:</strong>
+              <p className="text-slate-500 text-[11px]">Lead bi-weekly technical brown-bag sessions on distributed caching.</p>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 5. Fallback List
+    if (dashlet.type === 'list') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              {dashlet.title}
+            </h3>
+            <p className="text-xs text-slate-500">{dashlet.description}</p>
+          </CardHeader>
+          <CardContent className="p-4 flex-1 flex items-center justify-center text-center text-xs text-slate-400">
+            Interactive view active for {dashlet.title}.
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 6. Metric Dashlets
+    return (
+      <StatCard
+        label={dashlet.title}
+        value={dashlet.customData?.value || '98.5%'}
+        change={dashlet.customData?.badge || 'On Track'}
+        isPositive={dashlet.customData?.badgePositive ?? true}
+        description={dashlet.customData?.subtitle || dashlet.description}
+      />
+    );
   };
 
   return (
     <div className="space-y-6 text-left animate-fade-in pb-12 flex-1 w-full">
-      {!employee && (
+      {!employee ? (
         <PageHeader
           title="My Dashboard"
           description="Track your onboarding progress, complete Day-1 tasks, access company tools, and customize your workspace."
@@ -662,9 +608,9 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
                 onClick={() => setIsCustomizing((prev) => !prev)}
                 leftIcon={<Sliders className="w-3.5 h-3.5" />}
                 className={cn(
-                  'text-xs font-bold transition-all cursor-pointer',
+                  'text-xs font-bold transition-all cursor-pointer shadow-2xs',
                   isCustomizing
-                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
                     : 'text-slate-700 dark:text-slate-200'
                 )}
               >
@@ -673,6 +619,58 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
             </div>
           }
         />
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/60">
+              <Sliders className="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                  {empName}'s Dashboard View
+                </h2>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+                  {dashlets.length} Active Dashlets
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Customizable 12-column responsive layout with amCharts 5 visualizations and milestone analytics.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {isCustomizing && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  resetPersonaLayout(currentPersona);
+                  refreshDashlets();
+                }}
+                leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                className="text-xs font-bold"
+              >
+                Reset Order
+              </Button>
+            )}
+            <Button
+              variant={isCustomizing ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setIsCustomizing((prev) => !prev)}
+              leftIcon={<Sliders className="w-3.5 h-3.5" />}
+              className={cn(
+                'text-xs font-bold transition-all cursor-pointer shadow-2xs',
+                isCustomizing
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                  : 'text-slate-700 dark:text-slate-200'
+              )}
+            >
+              {isCustomizing ? 'Done Customizing' : 'Customize Dashboard'}
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Customize Mode Instruction Notice */}
@@ -706,7 +704,7 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
               key={dashlet.id}
               id={dashlet.id}
               title={dashlet.title}
-              role={employee ? 'SUPER_ADMIN' : 'EMPLOYEE'}
+              role={currentPersona}
               index={idx}
               total={dashlets.length}
               isCustomizing={isCustomizing}

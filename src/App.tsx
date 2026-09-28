@@ -5,10 +5,12 @@ import { ToastProvider } from './context/ToastContext';
 import { DemoRoleProvider, useRole } from './context/RoleContext';
 import { OnboardingFlowProvider, useOnboardingFlow } from './context/OnboardingFlowContext';
 import { OnboardingProvider, useOnboarding } from './context/OnboardingContext';
+import { TourProvider } from './context/TourContext';
 
 import { AppLayout } from './components/shell/AppLayout';
 import { ErrorBoundary } from './components/feedback/ErrorBoundary';
 import { PageSkeleton } from './components/feedback/PageSkeleton';
+import { TourGuideModal } from './components/tour/TourGuideModal';
 
 // Code-split dynamic page imports for optimal bundle performance
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
@@ -180,6 +182,7 @@ const AppInner: React.FC = () => {
             {renderActivePage()}
           </Suspense>
         </ErrorBoundary>
+        <TourGuideModal />
       </AppLayout>
     </SaltProvider>
   );
@@ -191,11 +194,13 @@ export function App() {
       <ThemeProvider>
         <ToastProvider>
           <DemoRoleProvider>
-            <OnboardingFlowProvider>
-              <OnboardingProvider>
-                <AppInner />
-              </OnboardingProvider>
-            </OnboardingFlowProvider>
+            <TourProvider>
+              <OnboardingFlowProvider>
+                <OnboardingProvider>
+                  <AppInner />
+                </OnboardingProvider>
+              </OnboardingFlowProvider>
+            </TourProvider>
           </DemoRoleProvider>
         </ToastProvider>
       </ThemeProvider>

@@ -123,19 +123,6 @@ export const DEFAULT_CUSTOM_FIELDS: CustomProfileField[] = [
     showInAddEmployee: true,
     showInOnboarding: true,
     showInProfile: true
-  },
-  {
-    id: 'f5',
-    label: 'Security Clearance Tier',
-    key: 'clearanceTier',
-    type: 'select',
-    options: ['Tier 1 (Public)', 'Tier 2 (Confidential)', 'Tier 3 (Secret)'],
-    step: 'Corporate SSO',
-    required: true,
-    permission: 'Admin Only',
-    showInAddEmployee: true,
-    showInOnboarding: false,
-    showInProfile: true
   }
 ];
 
@@ -181,24 +168,28 @@ export function getCustomFields(): CustomProfileField[] {
     const saved = localStorage.getItem(STORAGE_KEY_CUSTOM_FIELDS);
     if (saved) {
       const parsed: CustomProfileField[] = JSON.parse(saved);
-      return parsed.map((f) => ({
-        ...f,
-        step: f.step ? f.step.replace(/^Step\s*\d+\s*:\s*/i, '').trim() : 'Personal Info',
-        required: f.key === 'githubUsername' || f.label?.toLowerCase().includes('github')
-          ? false
-          : f.required
-      }));
+      return parsed
+        .filter((f) => f.key !== 'clearanceTier' && f.label !== 'Security Clearance Tier')
+        .map((f) => ({
+          ...f,
+          step: f.step ? f.step.replace(/^Step\s*\d+\s*:\s*/i, '').trim() : 'Personal Info',
+          required: f.key === 'githubUsername' || f.label?.toLowerCase().includes('github')
+            ? false
+            : f.required
+        }));
     }
   } catch {
     // fallback
   }
-  return DEFAULT_CUSTOM_FIELDS.map((f) => ({
-    ...f,
-    step: f.step ? f.step.replace(/^Step\s*\d+\s*:\s*/i, '').trim() : 'Personal Info',
-    required: f.key === 'githubUsername' || f.label?.toLowerCase().includes('github')
-      ? false
-      : f.required
-  }));
+  return DEFAULT_CUSTOM_FIELDS
+    .filter((f) => f.key !== 'clearanceTier' && f.label !== 'Security Clearance Tier')
+    .map((f) => ({
+      ...f,
+      step: f.step ? f.step.replace(/^Step\s*\d+\s*:\s*/i, '').trim() : 'Personal Info',
+      required: f.key === 'githubUsername' || f.label?.toLowerCase().includes('github')
+        ? false
+        : f.required
+    }));
 }
 
 export function saveCustomFields(fields: CustomProfileField[]): void {

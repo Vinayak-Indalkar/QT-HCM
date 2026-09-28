@@ -2,7 +2,6 @@ import React from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 import { PageHeader } from '../components/shell/PageHeader';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { ProgressRing } from '../components/common/ProgressRing';
 import {
   BarChart3,
   TrendingUp,

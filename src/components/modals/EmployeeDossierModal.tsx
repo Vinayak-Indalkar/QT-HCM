@@ -3,7 +3,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Avatar } from '../ui/Avatar';
 import { StatusIndicator } from '../ui/StatusIndicator';
-import { ProgressRing } from '../common/ProgressRing';
+import { ProgressBar } from '../common/ProgressBar';
 import { formatDate } from '../../utils/formatters';
 import { useToast } from '../../context/ToastContext';
 import { DocumentViewerModal, DocumentItem } from './DocumentViewerModal';
@@ -293,16 +293,8 @@ export const EmployeeDossierModal: React.FC<EmployeeDossierModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-4 self-end sm:self-center shrink-0">
-            <div className="flex flex-col items-end">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Progress
-              </span>
-              <span className="text-base font-black text-slate-900 dark:text-white">
-                {employee.progress}% Completed
-              </span>
-            </div>
-            <ProgressRing progress={employee.progress} size={48} strokeWidth={5} />
+          <div className="min-w-[150px] self-end sm:self-center shrink-0">
+            <ProgressBar progress={employee.progress} label="Progress" size="md" />
           </div>
         </div>
 

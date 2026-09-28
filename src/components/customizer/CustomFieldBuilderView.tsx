@@ -230,7 +230,6 @@ export const CustomFieldBuilderView: React.FC<CustomFieldBuilderViewProps> = ({
       salary: 165000,
       startDate: '2024-03-01',
       workModel: 'Hybrid',
-      clearanceTier: 'Tier 3 (Secret)',
       progress: 100,
       status: 'completed'
     };
@@ -642,7 +641,7 @@ export const CustomFieldBuilderView: React.FC<CustomFieldBuilderViewProps> = ({
                       autoFocus
                       type="text"
                       required
-                      placeholder="e.g. Workstation Preference, Security Clearance Tier, Dietary Restrictions"
+                      placeholder="e.g. Workstation Preference, Github Profile, Dietary Restrictions"
                       value={label}
                       onChange={(e) => handleLabelChange(e.target.value)}
                       className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-600"

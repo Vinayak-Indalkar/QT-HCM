@@ -1680,9 +1680,6 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
               {activeTab === 'employee' ? unifiedEmployeeFields.length : activeTab === 'assets' ? assetFields.length : stepConfigs.length}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
-            {activeTab === 'employee' ? <Users className="w-5 h-5" /> : activeTab === 'assets' ? <Laptop className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
-          </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
@@ -1697,9 +1694,6 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
                 ? assetFields.filter((f) => f.required).length
                 : stepConfigs.filter((s) => s.required).length}
             </span>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
-            <ShieldCheck className="w-5 h-5" />
           </div>
         </div>
 
@@ -1716,9 +1710,6 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
                 : stepConfigs.filter((s) => s.enabled).length}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
-            <Sparkles className="w-5 h-5" />
-          </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
@@ -1729,9 +1720,6 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
             <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
               {activeTab === 'employee' ? allEmpSections.length : activeTab === 'assets' ? allAssetSections.length : allWorkflowSections.length}
             </span>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
-            <Layers className="w-5 h-5" />
           </div>
         </div>
       </div>
@@ -1747,7 +1735,6 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
               : 'bg-white dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <Users className="w-4 h-4" />
           <span>Add Employee</span>
           <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
             activeTab === 'employee' ? 'bg-blue-700 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
@@ -1765,7 +1752,6 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
               : 'bg-white dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <Laptop className="w-4 h-4" />
           <span>Add Assets</span>
           <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
             activeTab === 'assets' ? 'bg-blue-700 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
@@ -1783,7 +1769,6 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
               : 'bg-white dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <CheckSquare className="w-4 h-4" />
           <span>Onboarding Workflow</span>
           <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
             activeTab === 'steps' ? 'bg-blue-700 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
@@ -2012,7 +1997,7 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
                                   <th className="py-3 px-4 min-w-[200px] whitespace-nowrap">Rules / Constraints</th>
                                   <th className="py-3 px-4 min-w-[140px] text-center whitespace-nowrap">Requirement</th>
                                   <th className="py-3 px-4 min-w-[130px] text-center whitespace-nowrap">Visibility</th>
-                                  <th className="py-3 px-4 min-w-[120px] text-right whitespace-nowrap">Actions</th>
+                                  <th className="py-3 px-4 min-w-[120px] text-right whitespace-nowrap sticky right-0 bg-slate-50 dark:bg-slate-850 z-10 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)] border-l border-slate-200/70 dark:border-slate-800">Actions</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50 font-medium">
@@ -2039,7 +2024,7 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
                                       setDraggedItem(null);
                                       setDragOverTarget(null);
                                     }}
-                                    className={`transition-colors ${
+                                    className={`group transition-colors ${
                                       dragOverTarget?.id === field.id
                                         ? 'bg-blue-50/80 dark:bg-blue-950/60 ring-2 ring-blue-500 ring-inset'
                                         : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/30'
@@ -2177,7 +2162,11 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
                                       </button>
                                     </td>
 
-                                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                                    <td className={`py-3 px-4 text-right whitespace-nowrap sticky right-0 z-10 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)] border-l border-slate-200/50 dark:border-slate-800/80 transition-colors ${
+                                      dragOverTarget?.id === field.id
+                                        ? 'bg-blue-50 dark:bg-blue-950'
+                                        : 'bg-white dark:bg-slate-900 group-hover:bg-slate-50/90 dark:group-hover:bg-slate-800/80'
+                                    }`}>
                                       {!field.isCustom ? (
                                         <span className="text-xs text-slate-400 italic">
                                           System Core
@@ -2436,7 +2425,7 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
                                   <th className="py-3 px-4 min-w-[200px] whitespace-nowrap">Rules / Constraints</th>
                                   <th className="py-3 px-4 min-w-[140px] text-center whitespace-nowrap">Requirement</th>
                                   <th className="py-3 px-4 min-w-[130px] text-center whitespace-nowrap">Visibility</th>
-                                  <th className="py-3 px-4 min-w-[120px] text-right whitespace-nowrap">Actions</th>
+                                  <th className="py-3 px-4 min-w-[120px] text-right whitespace-nowrap sticky right-0 bg-slate-50 dark:bg-slate-850 z-10 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)] border-l border-slate-200/70 dark:border-slate-800">Actions</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50 font-medium">
@@ -2465,7 +2454,7 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
                                         setDraggedItem(null);
                                         setDragOverTarget(null);
                                       }}
-                                      className={`transition-colors ${
+                                      className={`group transition-colors ${
                                         dragOverTarget?.id === field.id
                                           ? 'bg-blue-50/80 dark:bg-blue-950/60 ring-2 ring-blue-500 ring-inset'
                                           : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/30'
@@ -2576,7 +2565,11 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
                                         </button>
                                       </td>
 
-                                      <td className="py-3 px-4 text-right whitespace-nowrap">
+                                      <td className={`py-3 px-4 text-right whitespace-nowrap sticky right-0 z-10 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)] border-l border-slate-200/50 dark:border-slate-800/80 transition-colors ${
+                                        dragOverTarget?.id === field.id
+                                          ? 'bg-blue-50 dark:bg-blue-950'
+                                          : 'bg-white dark:bg-slate-900 group-hover:bg-slate-50/90 dark:group-hover:bg-slate-800/80'
+                                      }`}>
                                         {!isCustom ? (
                                           <span className="text-xs text-slate-400 italic">
                                             System Core
@@ -2834,7 +2827,7 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
                                   <th className="py-3 px-4 min-w-[180px] whitespace-nowrap">Workflow Category</th>
                                   <th className="py-3 px-4 min-w-[160px] text-center whitespace-nowrap">Gate Requirement</th>
                                   <th className="py-3 px-4 min-w-[150px] text-center whitespace-nowrap">Workflow Status</th>
-                                  <th className="py-3 px-4 min-w-[120px] text-right whitespace-nowrap">Actions</th>
+                                  <th className="py-3 px-4 min-w-[120px] text-right whitespace-nowrap sticky right-0 bg-slate-50 dark:bg-slate-850 z-10 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)] border-l border-slate-200/70 dark:border-slate-800">Actions</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50 font-medium">
@@ -2864,7 +2857,7 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
                                         setDraggedItem(null);
                                         setDragOverTarget(null);
                                       }}
-                                      className={`transition-colors ${
+                                      className={`group transition-colors ${
                                         dragOverTarget?.id === step.id
                                           ? 'bg-blue-50/80 dark:bg-blue-950/60 ring-2 ring-blue-500 ring-inset'
                                           : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/30'
@@ -2954,7 +2947,11 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
                                         </button>
                                       </td>
 
-                                      <td className="py-3 px-4 text-right whitespace-nowrap">
+                                      <td className={`py-3 px-4 text-right whitespace-nowrap sticky right-0 z-10 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.4)] border-l border-slate-200/50 dark:border-slate-800/80 transition-colors ${
+                                        dragOverTarget?.id === step.id
+                                          ? 'bg-blue-50 dark:bg-blue-950'
+                                          : 'bg-white dark:bg-slate-900 group-hover:bg-slate-50/90 dark:group-hover:bg-slate-800/80'
+                                      }`}>
                                         <div className="flex items-center justify-end gap-1">
                                           <button
                                             type="button"

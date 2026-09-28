@@ -104,3 +104,59 @@ export const RADIAN_PERSONA_AVATARS = {
   oliviaMartinez: getRadianAvatarUrl(208),
   rachelGreen: getRadianAvatarUrl(210)
 } as const;
+
+/**
+ * Return the authoritative profile avatar for an employee or candidate across all personas.
+ * Precedence:
+ * 1. Explicit custom uploaded photo in localStorage for this specific employee / candidate ID
+ * 2. Candidate role shared uploaded photo in localStorage
+ * 3. person.avatarUrl or person.avatar (if valid data/URL)
+ * 4. Deterministic gender-based Radian avatar hashed by employee name
+ */
+export const getEffectiveAvatar = (
+  person?: {
+    id?: string;
+    employeeId?: string;
+    gender?: string;
+    firstName?: string;
+    lastName?: string;
+    name?: string;
+    avatarUrl?: string;
+    avatar?: string;
+  } | null,
+  fallbackGender?: string,
+  fallbackName?: string
+): string => {
+  if (!person) {
+    return getAvatarByGender(fallbackGender, fallbackName || 'Alex Mercer');
+  }
+
+  const id = person.id || person.employeeId || '';
+  const fullName = person.name || `${person.firstName || ''} ${person.lastName || ''}`.trim() || fallbackName || 'Alex Mercer';
+  const gender = person.gender || fallbackGender;
+
+  try {
+    if (id) {
+      const stored = localStorage.getItem(`quantira_avatar_${id}`) || localStorage.getItem(`quantira_profile_photo_${id}`);
+      if (stored) return stored;
+    }
+    if (id === 'cand-1' || id === 'emp-1' || id === 'EMP-2024-0847' || id === 'usr-emp-john-doe' || !id) {
+      const storedCandidate =
+        localStorage.getItem('quantira_profile_photo_CANDIDATE') ||
+        localStorage.getItem('quantira_avatar_CANDIDATE') ||
+        localStorage.getItem('quantira_avatar_EMPLOYEE') ||
+        localStorage.getItem('quantira_profile_photo_cand-1') ||
+        localStorage.getItem('quantira_avatar_cand-1');
+      if (storedCandidate) return storedCandidate;
+    }
+  } catch {}
+
+  if (person.avatarUrl && (person.avatarUrl.startsWith('data:') || person.avatarUrl.startsWith('blob:') || person.avatarUrl.includes('jsdelivr.net') || person.avatarUrl.includes('http'))) {
+    return person.avatarUrl;
+  }
+  if (person.avatar && (person.avatar.startsWith('data:') || person.avatar.startsWith('blob:') || person.avatar.includes('jsdelivr.net') || person.avatar.includes('http'))) {
+    return person.avatar;
+  }
+
+  return getAvatarByGender(gender, fullName);
+};

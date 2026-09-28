@@ -640,10 +640,14 @@ export const AddEmployeeView: React.FC<AddEmployeeViewProps> = ({
     };
 
     try {
+      const initialAvatar = getAvatarByGender(gender, finalName);
+      localStorage.setItem(`quantira_avatar_${employeeId}`, initialAvatar);
+      localStorage.setItem(`quantira_profile_photo_${employeeId}`, initialAvatar);
       localStorage.setItem(`onboarding_flow_${employeeId}`, JSON.stringify(initialFlow));
       localStorage.setItem('onboarding_mvp_flow_data', JSON.stringify(initialFlow));
       localStorage.setItem('quantira_active_onboarding_id', employeeId);
       localStorage.setItem('quantira_employee_custom_values', JSON.stringify(customFieldValues));
+      window.dispatchEvent(new CustomEvent('quantira_profile_photo_updated', { detail: { photoUrl: initialAvatar, candidateId: employeeId } }));
     } catch {}
 
     loadEmployee(employeeId, initialFlow.personalInfo);

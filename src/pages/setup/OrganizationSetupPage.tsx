@@ -58,18 +58,13 @@ export const OrganizationSetupPage: React.FC<OrganizationSetupPageProps> = ({
             <ChevronRight className="w-3.5 h-3.5" />
             <span className="text-blue-600 dark:text-blue-400">Enterprise Setup</span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20">
-              <SlidersHorizontal className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                Enterprise Setup &amp; Organization Master
-              </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Configure corporate identity, multi-site branches, RBAC privileges, organization structure, and automated workflows.
-              </p>
-            </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Enterprise Setup &amp; Organization Master
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Configure corporate identity, multi-site branches, RBAC privileges, organization structure, and automated workflows.
+            </p>
           </div>
         </div>
 
@@ -83,7 +78,6 @@ export const OrganizationSetupPage: React.FC<OrganizationSetupPageProps> = ({
       {/* Main Setup Tabs Switcher */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
         {tabs.map((tab) => {
-          const Icon = tab.icon;
           const isSelected = activeTab === tab.id;
           return (
             <button
@@ -104,13 +98,6 @@ export const OrganizationSetupPage: React.FC<OrganizationSetupPageProps> = ({
                   : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50/80 dark:hover:bg-slate-800/50'
               }`}
             >
-              <div
-                className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 ${
-                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-              </div>
               <div>
                 <span className="text-xs font-bold block leading-tight">{tab.label}</span>
                 <span className={`text-[10px] mt-0.5 line-clamp-1 ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>

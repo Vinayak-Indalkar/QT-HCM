@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { UserRole, Permission, User, ROLE_CONFIGS } from '../types/auth';
-import { RADIAN_PERSONA_AVATARS } from '../utils/radianAvatars';
+import { RADIAN_PERSONA_AVATARS, getEffectiveAvatar } from '../utils/radianAvatars';
 
 export interface RoleContextType {
   currentRole: UserRole;
@@ -82,7 +82,30 @@ export const DemoRoleProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return 'HR'; // Default role after login
   });
 
-  const currentUser = DEMO_USERS[currentRole];
+  const [avatarTick, setAvatarTick] = useState(0);
+
+  useEffect(() => {
+    const handleAvatarUpdate = () => setAvatarTick((t) => t + 1);
+    window.addEventListener('quantira_profile_photo_updated', handleAvatarUpdate);
+    window.addEventListener('storage', handleAvatarUpdate);
+    return () => {
+      window.removeEventListener('quantira_profile_photo_updated', handleAvatarUpdate);
+      window.removeEventListener('storage', handleAvatarUpdate);
+    };
+  }, []);
+
+  const currentUser = useMemo(() => {
+    const base = DEMO_USERS[currentRole];
+    const effectiveAvatar = getEffectiveAvatar({
+      id: base.id,
+      name: base.name,
+      avatar: base.avatar
+    });
+    return {
+      ...base,
+      avatar: effectiveAvatar
+    };
+  }, [currentRole, avatarTick]);
 
   const setRole = useCallback((role: UserRole) => {
     setCurrentRole(role);

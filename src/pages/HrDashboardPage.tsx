@@ -16,6 +16,7 @@ import { Candidate } from '../types/candidate';
 import { formatDate } from '../utils/formatters';
 import { getAssets } from '../services/assetService';
 import { getStoredPunchRecords, PunchRecord } from '../services/attendanceService';
+import { getEffectiveAvatar } from '../utils/radianAvatars';
 import {
   getDashletsForPersona,
   resetPersonaLayout,
@@ -127,7 +128,7 @@ export const HrDashboardPage: React.FC = () => {
       progressSteps: isLiveFlow
         ? `${activeFlowData.completedSteps.length} / 10`
         : `${Math.round((cand.progress / 100) * 10)} / 10`,
-      avatar: cand.avatarUrl || activeFlowData.photo.photoUrl,
+      avatar: (isLiveFlow && activeFlowData.photo?.photoUrl) || getEffectiveAvatar(cand, cand.gender, `${cand.firstName} ${cand.lastName}`),
       startDate: cand.startDate,
       isLiveFlow,
       rawCandidate: cand
@@ -296,324 +297,421 @@ export const HrDashboardPage: React.FC = () => {
 
   // Render individual dashlet content based on config ID
   const renderDashletContent = (dashlet: DashletConfig) => {
-    switch (dashlet.id) {
-      case 'kpi_total_employees':
-      case 'hr_kpi_active_pipeline':
-        return (
-          <StatCard
-            label="Active In Pipeline"
-            value={employeeRecords.length}
-            change="+3 this month"
-            isPositive={true}
-            description="Total enrolled employees"
-            icon={<Users className="w-5 h-5" aria-hidden="true" />}
-            iconBg="bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400"
-            onClick={() => navigateTo('candidates')}
-          />
-        );
-      case 'kpi_doc_compliance':
-      case 'hr_kpi_pending_docs':
-        return (
-          <StatCard
-            label="Pending Verification"
-            value={employeeRecords.filter((e) => e.status !== 'Completed').length}
-            change="Action required"
-            isPositive={false}
-            description="Requires candidate/HR action"
-            icon={<Clock className="w-5 h-5" aria-hidden="true" />}
-            iconBg="bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400"
-            onClick={() => navigateTo('compliance')}
-          />
-        );
-      case 'kpi_active_onboarding':
-      case 'hr_kpi_day1_ready':
-        return (
-          <StatCard
-            label="Ready for Day 1"
-            value={employeeRecords.filter((e) => e.status === 'Completed').length}
-            change="100% Onboarding verified"
-            isPositive={true}
-            description="Day 1 Orientation ready"
-            icon={<CheckCircle2 className="w-5 h-5" aria-hidden="true" />}
-            iconBg="bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400"
-            onClick={() => navigateTo('candidates')}
-          />
-        );
-      case 'kpi_asset_pool':
-      case 'hr_kpi_it_staging':
-        return (
-          <StatCard
-            label="Live Attendance"
-            value={punchRecords.length > 0 && punchRecords[punchRecords.length - 1].type === 'in' ? '1 On Clock' : 'Active'}
-            change={punchRecords.length > 0 ? `Latest: ${punchRecords[punchRecords.length - 1].employeeName}` : 'Time-card tracking active'}
-            isPositive={true}
-            description="Shift & Punch Status"
-            icon={<Activity className="w-5 h-5" aria-hidden="true" />}
-            iconBg="bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400"
-          />
-        );
-      case 'kpi_avg_sla':
-        return (
-          <StatCard
-            label="Average SLA Turnaround"
-            value="3.2 Days"
-            change="18% Faster"
-            isPositive={true}
-            description="Target: Under 5 Days"
-            icon={<Clock className="w-5 h-5" aria-hidden="true" />}
-            iconBg="bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400"
-          />
-        );
-      case 'hr_widget_attendance_stream':
-        return (
-          <Card className="overflow-hidden shadow-xs border border-slate-200 dark:border-slate-700 dark:border-slate-800 h-full w-full flex flex-col justify-between">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
-                  <Clock className="w-5 h-5" />
-                </div>
+    // 1. Chart Visualizations
+    if (dashlet.type === 'chart' || dashlet.chartType) {
+      const resolvedChartData = dashlet.dataSource
+        ? resolveChartDataFromSource(dashlet.dataSource, candidates, tasks, getAssets())
+        : (dashlet.chartData && dashlet.chartData.length > 0 ? dashlet.chartData : undefined);
+
+      return (
+        <Card className="h-full w-full flex flex-col justify-between border border-slate-200 dark:border-slate-800">
+          <CardHeader className="pb-2 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <div>
-                  <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                    Employee Attendance &amp; Shift Logs
-                  </h2>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {dashlet.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                    {dashlet.description}
+                  </p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Live Sync Active
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                {dashlet.chartType || 'bar'}
               </span>
-            </CardHeader>
-            <CardContent className="p-0 flex-1">
-              <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-80 overflow-y-auto">
-                {punchRecords.slice().reverse().map((record) => (
-                  <div
-                    key={record.id}
-                    className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-xl ${
-                        record.type === 'in'
-                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
-                          : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
-                      }`}>
-                        {record.type === 'in' ? <LogIn className="w-4 h-4" /> : <LogOut className="w-4 h-4" />}
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-center p-4">
+            <DynamicDashletChart
+              chartType={dashlet.chartType || 'bar'}
+              data={resolvedChartData}
+              height={220}
+            />
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 2. Attendance Stream
+    if (dashlet.id === 'hr_widget_attendance_stream') {
+      return (
+        <Card className="overflow-hidden shadow-xs border border-slate-200 dark:border-slate-700 dark:border-slate-800 h-full w-full flex flex-col justify-between">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                  Live Attendance &amp; Shift Stream
+                </h2>
+                <p className="text-xs text-slate-500">Real-time punch activity feed</p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Live Sync Active
+            </span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-80 overflow-y-auto">
+              {punchRecords.slice().reverse().map((record) => (
+                <div
+                  key={record.id}
+                  className="p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-xl ${
+                      record.type === 'in'
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                        : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
+                    }`}>
+                      {record.type === 'in' ? <LogIn className="w-4 h-4" /> : <LogOut className="w-4 h-4" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-slate-900 dark:text-white text-sm">
+                          {record.employeeName}
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                          {record.employeeId}
+                        </span>
+                        <span className={`font-black uppercase text-[10px] px-2 py-0.5 rounded-full ${
+                          record.type === 'in'
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                            : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                        }`}>
+                          {record.type === 'in' ? 'Punch In' : 'Punch Out'}
+                        </span>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-slate-900 dark:text-white text-sm">
-                            {record.employeeName}
+                      <span className="text-slate-400 text-[11px] block mt-0.5">
+                        {record.dateFormatted} at <strong>{record.timeFormatted}</strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-left sm:text-right text-xs">
+                    <span className="font-medium text-slate-700 dark:text-slate-300 block">
+                      {record.location}
+                    </span>
+                    <span className="text-[11px] text-slate-400 block">
+                      {record.device || 'Web Session'} • Verified Time-Card
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 3. Roster Table
+    if (dashlet.id === 'hr_widget_roster_table' || dashlet.id === 'list_recent_arrivals') {
+      return (
+        <div className="space-y-4 h-full w-full flex flex-col justify-between">
+          <Card className="p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border border-slate-200 dark:border-slate-800">
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search employees by name, role, department, ID..."
+                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-2 pl-9 pr-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-slate-400" />
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-2 px-3 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Verification">Verification</option>
+                <option value="IT Provisioning">IT Provisioning</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+          </Card>
+
+          <Card className="overflow-hidden flex-1 flex flex-col justify-between border border-slate-200 dark:border-slate-800">
+            <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-blue-600" />
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Employee Onboarding Pipeline ({filteredEmployees.length} Records)
+                </h2>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-0 flex-1">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredEmployees.slice(0, 4).map((emp) => (
+                  <div
+                    key={emp.id}
+                    onClick={() => handleOpenEmployeeDashboard(emp)}
+                    className="p-3.5 sm:p-4 hover:bg-slate-50/90 dark:hover:bg-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar src={emp.avatar} name={emp.name} size="md" className="w-10 h-10 shrink-0" />
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            {emp.name}
                           </span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                            {record.employeeId}
-                          </span>
-                          <span className={`font-black uppercase text-[10px] px-2 py-0.5 rounded-full ${
-                            record.type === 'in'
-                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                              : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
-                          }`}>
-                            {record.type === 'in' ? 'Punch In' : 'Punch Out'}
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            {emp.id}
                           </span>
                         </div>
-                        <span className="text-slate-400 text-[11px] block mt-0.5">
-                          {record.dateFormatted} at <strong>{record.timeFormatted}</strong>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                          {emp.role} • {emp.department}
                         </span>
                       </div>
                     </div>
 
-                    <div className="text-left sm:text-right text-xs">
-                      <span className="font-medium text-slate-700 dark:text-slate-300 block">
-                        {record.location}
+                    <div
+                      className="flex items-center gap-3 self-end sm:self-center shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span
+                        className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase ${
+                          emp.status === 'Completed'
+                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                            : emp.status === 'Verification'
+                            ? 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300'
+                            : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
+                        }`}
+                      >
+                        {emp.status}
                       </span>
-                      <span className="text-[11px] text-slate-400 block">
-                        {record.device || 'Web Session'} • Verified Time-Card
-                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEmployeeDashboard(emp)}
+                        className="p-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-xs"
+                        title="View Employee Workspace"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
-        );
-      case 'hr_widget_roster_table':
-      case 'list_recent_arrivals':
-        return (
-          <div className="space-y-4 h-full w-full flex flex-col justify-between">
-            {/* Filter and Search Bar */}
-            <Card className="p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <div className="relative flex-1 max-w-md">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                <input
-                  type="search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search employees by name, role, department, ID..."
-                  className="w-full text-sm rounded-lg border border-slate-200 dark:border-slate-700 dark:border-slate-800 bg-white dark:bg-slate-900 py-2.5 pl-10 pr-3.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-              </div>
+        </div>
+      );
+    }
 
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-slate-400" />
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="text-sm rounded-lg border border-slate-200 dark:border-slate-700 dark:border-slate-800 bg-white dark:bg-slate-900 py-2.5 px-3.5 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
-                >
-                  <option value="ALL">All Statuses</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Verification">Verification</option>
-                  <option value="IT Provisioning">IT Provisioning</option>
-                  <option value="Completed">Completed</option>
-                </select>
-              </div>
-            </Card>
-
-            {/* Employees Table Card */}
-            <Card className="overflow-hidden flex-1 flex flex-col justify-between">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-blue-600" />
-                  <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                    Employee Onboarding Pipeline ({filteredEmployees.length} Records)
-                  </h2>
-                </div>
-              </CardHeader>
-
-              <CardContent className="p-0 flex-1">
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {filteredEmployees.map((emp) => (
-                    <div
-                      key={emp.id}
-                      onClick={() => handleOpenEmployeeDashboard(emp)}
-                      className="p-4 sm:p-5 hover:bg-slate-50/90 dark:hover:bg-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        <Avatar src={emp.avatar} name={emp.name} size="md" className="w-11 h-11 shrink-0" />
-                        <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                              {emp.name}
-                            </span>
-                            <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                              {emp.id}
-                            </span>
-                            {emp.isLiveFlow && (
-                              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
-                                Active Demo
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                            {emp.role} • {emp.department}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div
-                        className="flex items-center gap-4 sm:gap-6 self-end sm:self-center shrink-0"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex flex-col items-end text-xs sm:text-sm">
-                          <span className="font-semibold text-slate-900 dark:text-white">
-                            Start: {formatDate(emp.startDate)}
-                          </span>
-                          <span className="text-xs text-slate-400">
-                            Progress: <strong>{emp.progressSteps}</strong> Steps ({emp.progress}%)
-                          </span>
-                        </div>
-
-                        <span
-                          className={`px-3 py-1 text-xs font-bold rounded-full uppercase ${
-                            emp.status === 'Completed'
-                              ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
-                              : emp.status === 'Verification'
-                              ? 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300'
-                              : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
-                          }`}
-                        >
-                          {emp.status}
-                        </span>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setSharingEmployee({
-                                id: emp.id,
-                                name: emp.name,
-                                email: emp.email,
-                                role: emp.role
-                              })
-                            }
-                            className="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors cursor-pointer"
-                            title="Share Onboarding Link"
-                            aria-label="Share Onboarding Link"
-                          >
-                            <Share2 className="w-4 h-4" />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEmployeeDashboard(emp)}
-                            className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-xs"
-                            title="View Employee Dashboard"
-                            aria-label="View Employee Dashboard"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-      default:
-        // Render Dynamic Charts or Custom Metric Cards
-        if (dashlet.type === 'chart' && dashlet.chartType) {
-          const resolvedChartData = dashlet.dataSource
-            ? resolveChartDataFromSource(dashlet.dataSource, candidates, tasks, getAssets())
-            : dashlet.chartData;
-
-          return (
-            <Card className="h-full w-full flex flex-col justify-between">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+    // 4. Specific HR Lists
+    if (dashlet.id === 'hr_probation_review_due') {
+      const dummyProbation = [
+        { name: 'Alex Johnson', role: 'Frontend Engineer', dept: 'Engineering', dueDate: 'Oct 05, 2026', manager: 'Marcus Brody' },
+        { name: 'Chloe Dubois', role: 'Talent Specialist', dept: 'Human Resources', dueDate: 'Oct 12, 2026', manager: 'Sarah Jenkins' },
+        { name: 'Vikram Mehta', role: 'DevOps Lead', dept: 'Infrastructure', dueDate: 'Oct 18, 2026', manager: 'Marcus Brody' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Probation Review Due</h3>
+              <p className="text-xs text-slate-500">Upcoming 90-day confirmation appraisals</p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">3 Due</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyProbation.map((item, i) => (
+                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      {dashlet.title}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {dashlet.description}
-                    </p>
+                    <span className="font-bold text-slate-900 dark:text-white block">{item.name}</span>
+                    <span className="text-[11px] text-slate-500">{item.role} • Mgr: {item.manager}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 block">Due: {item.dueDate}</span>
+                    <button type="button" onClick={() => success('Appraisal Dispatched', `Sent probation review form for ${item.name}`)} className="text-[10px] text-blue-600 hover:underline cursor-pointer">
+                      Send Review Form
+                    </button>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col justify-center p-4">
-                <DynamicDashletChart
-                  chartType={dashlet.chartType}
-                  data={resolvedChartData}
-                  height={220}
-                />
-              </CardContent>
-            </Card>
-          );
-        }
-
-        return (
-          <StatCard
-            label={dashlet.title}
-            value={dashlet.customData?.value || 'Active'}
-            change={dashlet.customData?.badge || 'HR Metric'}
-            isPositive={dashlet.customData?.badgePositive ?? true}
-            description={dashlet.customData?.subtitle || dashlet.description}
-            icon={<Sparkles className="w-5 h-5" />}
-            iconBg="bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400"
-          />
-        );
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
     }
+
+    if (dashlet.id === 'hr_documents_pending') {
+      const dummyMissingDocs = [
+        { name: 'Sarah Chen', missing: 'Form I-9 & Passport Copy', dept: 'Product', daysWaiting: '3 Days' },
+        { name: 'Marcus Brody', missing: 'Direct Deposit Form', dept: 'Engineering', daysWaiting: '1 Day' },
+        { name: 'Priya Sharma', missing: 'Signed NDA Agreement', dept: 'Marketing', daysWaiting: '4 Days' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Documents Pending</h3>
+              <p className="text-xs text-slate-500">Missing statutory verification proofs</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => success('Reminders Dispatched', 'Sent bulk document upload reminder emails.')}
+              className="text-xs text-blue-600 hover:underline font-semibold cursor-pointer"
+            >
+              Notify All
+            </button>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyMissingDocs.map((item, i) => (
+                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{item.name}</span>
+                    <span className="text-[11px] text-rose-600 dark:text-rose-400">{item.missing}</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600">
+                    {item.daysWaiting}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'hr_upcoming_birthdays') {
+      const dummyBirthdays = [
+        { name: 'Liam O’Connor', date: 'Tomorrow (Sept 29)', dept: 'Engineering' },
+        { name: 'Aaliyah Khan', date: 'Oct 03, 2026', dept: 'Design' },
+        { name: 'Zack Morris', date: 'Oct 09, 2026', dept: 'Sales' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Upcoming Birthdays
+            </h3>
+            <span className="text-[11px] text-slate-400">Next 30 Days</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyBirthdays.map((b, i) => (
+                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{b.name}</span>
+                    <span className="text-[11px] text-slate-500">{b.dept}</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">{b.date}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'hr_upcoming_work_anniversaries') {
+      const dummyAnniversaries = [
+        { name: 'Rachel Green', milestone: '3-Year Milestone', date: 'Oct 01, 2026', dept: 'People Ops' },
+        { name: 'Carlos Santos', milestone: '5-Year Veteran', date: 'Oct 14, 2026', dept: 'Infrastructure' },
+        { name: 'Maya Lin', milestone: '1-Year Anniversary', date: 'Oct 20, 2026', dept: 'Product' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Upcoming Work Anniversaries
+            </h3>
+            <span className="text-[11px] text-slate-400">October 2026</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyAnniversaries.map((a, i) => (
+                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{a.name}</span>
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">{a.milestone} • {a.dept}</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500">{a.date}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'hr_hr_action_items') {
+      const dummyHrActions = [
+        { task: 'Monthly Payroll Lock & Final Timesheet Verification', due: 'Oct 01', priority: 'Urgent' },
+        { task: 'Quarterly Statutory Compliance Filing (Form 941)', due: 'Oct 15', priority: 'High' },
+        { task: 'Benefits Open Enrollment Notice Dispatch', due: 'Oct 20', priority: 'Medium' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              HR Operations Action Items
+            </h3>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700">3 Items</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyHrActions.map((act, i) => (
+                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-semibold text-slate-900 dark:text-slate-100 block">{act.task}</span>
+                    <span className="text-[10px] text-slate-400">Deadline: {act.due}</span>
+                  </div>
+                  <span className={cn(
+                    'text-[9px] font-bold uppercase px-1.5 py-0.5 rounded',
+                    act.priority === 'Urgent' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                  )}>
+                    {act.priority}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 5. Fallback List Dashlet
+    if (dashlet.type === 'list') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              {dashlet.title}
+            </h3>
+            <p className="text-xs text-slate-500">{dashlet.description}</p>
+          </CardHeader>
+          <CardContent className="p-4 flex-1 flex items-center justify-center text-center text-xs text-slate-400">
+            Active list stream configured for {dashlet.title}.
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 6. Metric Dashlets
+    return (
+      <StatCard
+        label={dashlet.title}
+        value={dashlet.customData?.value || '248'}
+        change={dashlet.customData?.badge || '+5 this month'}
+        isPositive={dashlet.customData?.badgePositive ?? true}
+        description={dashlet.customData?.subtitle || dashlet.description}
+      />
+    );
   };
 
   return (

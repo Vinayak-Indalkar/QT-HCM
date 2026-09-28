@@ -6,7 +6,6 @@ import { Button } from '../components/ui/Button';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { StatusIndicator } from '../components/ui/StatusIndicator';
 import { Avatar } from '../components/ui/Avatar';
-import { ProgressRing } from '../components/common/ProgressRing';
 import { formatDate } from '../utils/formatters';
 import { getAssets } from '../services/assetService';
 import {
@@ -22,6 +21,7 @@ import { DashletCardWrapper } from '../components/dashboard/DashletCardWrapper';
 import { DynamicDashletChart } from '../components/dashboard/DynamicDashletChart';
 import { EmployeeProfileView } from '../components/employee/EmployeeProfileView';
 import { Candidate } from '../types/candidate';
+import { getEffectiveAvatar } from '../utils/radianAvatars';
 import {
   Users,
   Clock,
@@ -35,7 +35,8 @@ import {
   BarChart3,
   Activity,
   Sliders,
-  RefreshCw
+  RefreshCw,
+  Layers
 } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
@@ -79,232 +80,249 @@ export const DashboardPage: React.FC = () => {
 
   // Render individual dashlet content based on its config
   const renderDashletContent = (dashlet: DashletConfig) => {
-    switch (dashlet.id) {
-      case 'kpi_active_onboarding':
-        return (
-          <StatCard
-            label="Active In Pipeline"
-            value={totalActive}
-            change="+3 this month"
-            isPositive={true}
-            description="In-progress onboarding"
-            icon={<Users className="w-5 h-5" aria-hidden="true" />}
-            iconBg="bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400"
-            onClick={() => navigateTo('candidates')}
-          />
-        );
-      case 'kpi_doc_compliance':
-        return (
-          <StatCard
-            label="Pending Verification"
-            value={pendingVerification}
-            change="Action required"
-            isPositive={false}
-            description="I-9 & Identification"
-            icon={<Clock className="w-5 h-5" aria-hidden="true" />}
-            iconBg="bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400"
-            onClick={() => navigateTo('compliance')}
-          />
-        );
-      case 'kpi_asset_pool':
-        return (
-          <StatCard
-            label="IT Hardware Staging"
-            value={inITProvisioning}
-            change="On track"
-            isPositive={true}
-            description="Laptops & Credentials"
-            icon={<Laptop className="w-5 h-5" aria-hidden="true" />}
-            iconBg="bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400"
-            onClick={() => navigateTo('tasks')}
-          />
-        );
-      case 'kpi_total_employees':
-        return (
-          <StatCard
-            label="Orientation Ready"
-            value={orientationReady}
-            change={`${completed} onboarded YTD`}
-            isPositive={true}
-            description="Ready for Day 1"
-            icon={<CheckCircle2 className="w-5 h-5" aria-hidden="true" />}
-            iconBg="bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400"
-            onClick={() => navigateTo('candidates')}
-          />
-        );
-      case 'kpi_avg_sla':
-        return (
-          <StatCard
-            label="Average SLA Turnaround"
-            value="3.2 Days"
-            change="18% Faster"
-            isPositive={true}
-            description="Target: Under 5 Days"
-            icon={<Activity className="w-5 h-5" aria-hidden="true" />}
-            iconBg="bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400"
-          />
-        );
-      case 'list_recent_arrivals':
-        return (
-          <Card className="h-full">
-            <CardHeader>
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
-                  <Calendar className="w-5 h-5" aria-hidden="true" />
-                </div>
-                <div>
-                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-                    Upcoming Start Dates &amp; Pipeline Status
-                  </h2>
-                </div>
-              </div>
+    // 1. Chart Visualization Dashlets
+    if (dashlet.type === 'chart' || dashlet.chartType) {
+      const resolvedChartData = dashlet.dataSource
+        ? resolveChartDataFromSource(dashlet.dataSource, candidates, tasks, getAssets())
+        : (dashlet.chartData && dashlet.chartData.length > 0 ? dashlet.chartData : undefined);
 
-              <Button
-                variant="tertiary"
-                size="sm"
-                rightIcon={<ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />}
-                onClick={() => navigateTo('directory')}
-              >
-                View All
-              </Button>
-            </CardHeader>
-
-            <CardContent className="p-0">
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {upcomingHires.map((candidate) => (
-                  <div
-                    key={candidate.id}
-                    onClick={() => setViewingDashboardCandidate(candidate)}
-                    className="p-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Avatar
-                        src={candidate.avatarUrl}
-                        name={`${candidate.firstName} ${candidate.lastName}`}
-                        size="md"
-                      />
-                      <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
-                            {candidate.firstName} {candidate.lastName}
-                          </span>
-                          <span className="text-[11px] text-slate-400">({candidate.workModel})</span>
-                        </div>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                          {candidate.jobTitle} • {candidate.department}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 self-end sm:self-center shrink-0">
-                      <div className="flex flex-col items-end">
-                        <span className="text-xs font-semibold text-slate-900 dark:text-white">
-                          Start: {formatDate(candidate.startDate)}
-                        </span>
-                        <StatusIndicator status={candidate.status} size="sm" />
-                      </div>
-
-                      <ProgressRing progress={candidate.progress} size={42} strokeWidth={4} />
-
-                      <ChevronRight className="w-4 h-4 text-slate-400" aria-hidden="true" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      case 'list_compliance_alerts':
-        return (
-          <Card className="h-full">
-            <CardHeader>
+      return (
+        <Card className="h-full w-full flex flex-col justify-between border border-slate-200 dark:border-slate-800">
+          <CardHeader className="pb-2 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-500" aria-hidden="true" />
-                <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-                  Urgent Action Items
-                </h2>
+                <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {dashlet.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                    {dashlet.description}
+                  </p>
+                </div>
               </div>
-              <Button
-                variant="tertiary"
-                size="sm"
-                onClick={() => navigateTo('tasks')}
-              >
-                All Tasks
-              </Button>
-            </CardHeader>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                {dashlet.chartType || 'bar'}
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-center p-4">
+            <DynamicDashletChart
+              chartType={dashlet.chartType || 'bar'}
+              data={resolvedChartData}
+              height={220}
+            />
+          </CardContent>
+        </Card>
+      );
+    }
 
-            <CardContent className="p-0">
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {urgentTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    onClick={() => navigateTo('tasks')}
-                    className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-xs font-bold text-slate-900 dark:text-white line-clamp-2">
-                        {task.title}
+    // 2. Specialized List Dashlets
+    if (dashlet.id === 'sa_recent_joiners' || dashlet.id === 'list_recent_arrivals') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                Recent Joiners &amp; Pipeline Status
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">New arrivals across corporate units</p>
+            </div>
+            <Button
+              variant="tertiary"
+              size="sm"
+              onClick={() => navigateTo('directory')}
+            >
+              View All
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {upcomingHires.slice(0, 4).map((candidate) => (
+                <div
+                  key={candidate.id}
+                  onClick={() => setViewingDashboardCandidate(candidate)}
+                  className="p-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 flex items-center justify-between gap-3 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar
+                      src={getEffectiveAvatar(candidate, candidate.gender, `${candidate.firstName} ${candidate.lastName}`)}
+                      name={`${candidate.firstName} ${candidate.lastName}`}
+                      size="sm"
+                    />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        {candidate.firstName} {candidate.lastName}
                       </span>
-                      <span className="px-1.5 py-0.5 text-[10px] font-bold rounded uppercase bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 shrink-0">
-                        {task.priority}
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                        {candidate.jobTitle} • {candidate.department}
                       </span>
-                    </div>
-
-                    <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
-                      <span>Candidate: {task.candidateName || 'Company-wide'}</span>
-                      <span>Due {formatDate(task.dueDate)}</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      default:
-        // Render Dynamic Charts or Custom Metric Cards
-        if (dashlet.type === 'chart' && dashlet.chartType) {
-          const resolvedChartData = dashlet.dataSource
-            ? resolveChartDataFromSource(dashlet.dataSource, candidates, tasks, getAssets())
-            : dashlet.chartData;
-
-          return (
-            <Card className="h-full w-full flex flex-col justify-between">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      {dashlet.title}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {dashlet.description}
-                    </p>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <StatusIndicator status={candidate.status} size="sm" />
+                    <div className="w-20 hidden sm:block">
+                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-0.5">
+                        <span>{candidate.progress}%</span>
+                      </div>
+                      <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className={cn(
+                            'h-1.5 rounded-full transition-all',
+                            candidate.progress >= 100 ? 'bg-emerald-500' : 'bg-blue-600'
+                          )}
+                          style={{ width: `${candidate.progress}%` }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col justify-center p-4">
-                <DynamicDashletChart
-                  chartType={dashlet.chartType}
-                  data={resolvedChartData}
-                  height={220}
-                />
-              </CardContent>
-            </Card>
-          );
-        }
-
-        return (
-          <StatCard
-            label={dashlet.title}
-            value={dashlet.customData?.value || 'Active'}
-            change={dashlet.customData?.badge || 'Custom Dashlet'}
-            isPositive={dashlet.customData?.badgePositive ?? true}
-            description={dashlet.customData?.subtitle || dashlet.description}
-            icon={<Sparkles className="w-5 h-5" />}
-            iconBg="bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400"
-          />
-        );
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
     }
+
+    if (dashlet.id === 'sa_recent_exits') {
+      const dummyExits = [
+        { name: 'David Vance', role: 'Staff Backend Architect', dept: 'Engineering', date: 'Sept 15, 2026', status: 'Cleared', type: 'Voluntary' },
+        { name: 'Elena Rostova', role: 'Senior Product Marketer', dept: 'Marketing', date: 'Sept 22, 2026', status: 'Asset Return Pending', type: 'Relocation' },
+        { name: 'Samir Patel', role: 'Sales Account Executive', dept: 'Sales', date: 'Sept 30, 2026', status: 'Handover Active', type: 'Career Transition' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Recent Exits &amp; Offboarding</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Formal handover &amp; asset reclamation</p>
+            </div>
+            <span className="text-[11px] font-bold text-slate-500">Last 30 Days</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyExits.map((exit, i) => (
+                <div key={i} className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{exit.name}</span>
+                    <span className="text-[11px] text-slate-500">{exit.role} • {exit.dept}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 block mb-1">
+                      {exit.status}
+                    </span>
+                    <span className="text-[10px] text-slate-400">Exit: {exit.date}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'sa_pending_hr_actions' || dashlet.id === 'list_compliance_alerts') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Pending HR Actions</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Items requiring administrative sign-off</p>
+            </div>
+            <Button variant="tertiary" size="sm" onClick={() => navigateTo('tasks')}>
+              All Tasks
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {urgentTasks.slice(0, 3).map((task) => (
+                <div
+                  key={task.id}
+                  onClick={() => navigateTo('tasks')}
+                  className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1">
+                      {task.title}
+                    </span>
+                    <span className="px-1.5 py-0.5 text-[9px] font-bold rounded uppercase bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 shrink-0">
+                      {task.priority}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>{task.candidateName || 'Company-wide'}</span>
+                    <span>Due {formatDate(task.dueDate)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'sa_system_alerts') {
+      const dummyAlerts = [
+        { title: 'Okta SSO Certificate Expiry in 14 Days', level: 'warning', time: '10m ago' },
+        { title: 'Automated Daily Payroll Data Sync Succeeded', level: 'success', time: '1h ago' },
+        { title: 'AWS Workspaces Cloud Capacity at 88%', level: 'info', time: '3h ago' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">System &amp; Integration Alerts</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Cloud infra &amp; identity feed</p>
+            </div>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Live Health" />
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyAlerts.map((alert, i) => (
+                <div key={i} className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2.5">
+                    <span className={cn(
+                      'w-2 h-2 rounded-full',
+                      alert.level === 'warning' ? 'bg-amber-500' : alert.level === 'success' ? 'bg-emerald-500' : 'bg-blue-500'
+                    )} />
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">{alert.title}</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 shrink-0">{alert.time}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 3. Fallback for any other custom list
+    if (dashlet.type === 'list') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              {dashlet.title}
+            </h3>
+            <p className="text-xs text-slate-500">{dashlet.description}</p>
+          </CardHeader>
+          <CardContent className="p-4 flex-1 flex items-center justify-center text-center text-xs text-slate-400">
+            Active list stream configured for {dashlet.title}.
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 4. Metric Dashlets
+    return (
+      <StatCard
+        label={dashlet.title}
+        value={dashlet.customData?.value || '248'}
+        change={dashlet.customData?.badge || '+12% YoY'}
+        isPositive={dashlet.customData?.badgePositive ?? true}
+        description={dashlet.customData?.subtitle || dashlet.description}
+      />
+    );
   };
 
   if (viewingDashboardCandidate) {

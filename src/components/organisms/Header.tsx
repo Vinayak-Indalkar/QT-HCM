@@ -2,9 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useRole } from '../../context/RoleContext';
+import { useTour } from '../../context/TourContext';
 import { Avatar } from '../atoms/Avatar';
 import { IconButton } from '../atoms/IconButton';
 import { QuantiraLogo } from '../atoms/Logo';
+import { getEffectiveAvatar } from '../../utils/radianAvatars';
 import {
   Bell,
   Sun,
@@ -15,7 +17,9 @@ import {
   CheckCircle2,
   AlertCircle,
   LogOut,
-  User
+  User,
+  Compass,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -30,12 +34,25 @@ export const Header: React.FC<HeaderProps> = ({
   const { currentUser: onboardingUser, tasks, candidates, navigateTo } = useOnboarding();
   const { currentRole, currentUser: roleUser, logout } = useRole();
   const { mode, toggleTheme } = useTheme();
+  const { startTour } = useTour();
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [avatarTick, setAvatarTick] = useState(0);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
+
+  // Real-time photo & avatar synchronization
+  useEffect(() => {
+    const handleAvatarUpdate = () => setAvatarTick((t) => t + 1);
+    window.addEventListener('quantira_profile_photo_updated', handleAvatarUpdate);
+    window.addEventListener('storage', handleAvatarUpdate);
+    return () => {
+      window.removeEventListener('quantira_profile_photo_updated', handleAvatarUpdate);
+      window.removeEventListener('storage', handleAvatarUpdate);
+    };
+  }, []);
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -85,21 +102,35 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Right side controls */}
         <div className="flex items-center gap-2">
 
+          {/* Product Tour Guide Launcher */}
+          <button
+            type="button"
+            data-tour="header-tour-btn"
+            onClick={() => startTour()}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/80 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-bold transition-all cursor-pointer shadow-2xs hover:shadow-xs"
+            title="Launch Interactive Product Tour"
+          >
+            <Compass className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <span className="hidden sm:inline">Tour Guide</span>
+          </button>
+
           {/* Theme Toggle Button */}
-          <IconButton
-            icon={
-              mode === 'dark' ? (
-                <Sun className="w-4 h-4 text-amber-400" aria-hidden="true" />
-              ) : (
-                <Moon className="w-4 h-4 text-slate-600" aria-hidden="true" />
-              )
-            }
-            aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
-            onClick={toggleTheme}
-          />
+          <div data-tour="header-theme-toggle">
+            <IconButton
+              icon={
+                mode === 'dark' ? (
+                  <Sun className="w-4 h-4 text-amber-400" aria-hidden="true" />
+                ) : (
+                  <Moon className="w-4 h-4 text-slate-600" aria-hidden="true" />
+                )
+              }
+              aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
+              onClick={toggleTheme}
+            />
+          </div>
 
           {/* Notification Menu */}
-          <div ref={notifRef} className="relative">
+          <div ref={notifRef} className="relative" data-tour="header-notifications">
             <div className="relative">
               <IconButton
                 icon={<Bell className="w-4 h-4 text-slate-600 dark:text-slate-300" aria-hidden="true" />}
@@ -206,18 +237,23 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* User Profile & Role Switcher */}
           {(() => {
-            const customAvatar = localStorage.getItem(`quantira_avatar_${currentRole}`) || (roleUser?.id ? localStorage.getItem(`quantira_profile_photo_${roleUser.id}`) : null);
+            const userName = roleUser?.name || onboardingUser?.name;
             const activeUser = {
-              name: roleUser?.name || onboardingUser?.name,
+              name: userName,
               roleTitle: roleUser?.roleTitle || onboardingUser?.roleTitle,
               email: roleUser?.email || onboardingUser?.email,
-              avatar: customAvatar || roleUser?.avatar || onboardingUser?.avatar
+              avatar: getEffectiveAvatar({
+                id: roleUser?.id || (currentRole === 'EMPLOYEE' ? 'usr-emp-john-doe' : undefined),
+                name: userName,
+                avatar: roleUser?.avatar || onboardingUser?.avatar
+              })
             };
 
             return (
-              <div ref={userMenuRef} className="relative">
+              <div ref={userMenuRef} className="relative" data-tour="header-user-menu">
                 <button
                   type="button"
+                  data-tour="header-user-menu-btn"
                   onClick={() => setIsUserMenuOpen((prev) => !prev)}
                   aria-expanded={isUserMenuOpen}
                   aria-haspopup="true"
@@ -263,6 +299,18 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
 
                     <div className="pt-2 mt-1 border-t border-slate-100 dark:border-slate-800 space-y-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          startTour();
+                        }}
+                        className="w-full text-left px-2 py-1.5 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded font-semibold flex items-center gap-2 cursor-pointer"
+                      >
+                        <Compass className="w-3.5 h-3.5" />
+                        ✨ Take Product Tour
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => {

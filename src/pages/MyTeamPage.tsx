@@ -9,6 +9,7 @@ import { EmployeeDossierModal, EmployeeDossierData } from '../components/modals/
 import { EmployeeProfileView } from '../components/employee/EmployeeProfileView';
 import { formatDate } from '../utils/formatters';
 import { getStoredPunchRecords, PunchRecord } from '../services/attendanceService';
+import { getEffectiveAvatar } from '../utils/radianAvatars';
 import {
   Users,
   UserCheck,
@@ -105,7 +106,7 @@ export const MyTeamPage: React.FC = () => {
       phone: candidate.phone,
       jobTitle: candidate.jobTitle,
       department: candidate.department,
-      avatar: candidate.avatarUrl,
+      avatar: getEffectiveAvatar(candidate, candidate.gender, `${candidate.firstName} ${candidate.lastName}`),
       startDate: candidate.startDate,
       workLocation: candidate.officeLocation || 'San Francisco HQ',
       workModel: candidate.workModel || 'Hybrid',
@@ -234,7 +235,7 @@ export const MyTeamPage: React.FC = () => {
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div className="relative shrink-0">
                       <Avatar
-                        src={member.avatarUrl}
+                        src={getEffectiveAvatar(member, member.gender, `${member.firstName} ${member.lastName}`)}
                         name={`${member.firstName} ${member.lastName}`}
                         size="lg"
                         className="w-14 h-14 ring-2 ring-blue-500/20 group-hover:ring-blue-500 transition-all"

@@ -6,7 +6,7 @@ import { Avatar } from '../components/ui/Avatar';
 import { Button } from '../components/ui/Button';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Tabs } from '../components/ui/Tabs';
-import { ProgressRing } from '../components/common/ProgressRing';
+import { ProgressBar } from '../components/common/ProgressBar';
 import { AuditTimeline } from '../components/common/AuditTimeline';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Modal } from '../components/ui/Modal';
@@ -14,6 +14,7 @@ import { TextArea } from '../components/ui/TextArea';
 import { formatDate, formatCurrency } from '../utils/formatters';
 import confetti from 'canvas-confetti';
 import { EmployeeDashboardPage } from './EmployeeDashboardPage';
+import { getEffectiveAvatar } from '../utils/radianAvatars';
 import {
   CheckCircle2,
   FileCheck2,
@@ -171,7 +172,7 @@ export const CandidateDetailPage: React.FC = () => {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <Avatar
-              src={selectedCandidate.avatarUrl}
+              src={getEffectiveAvatar(selectedCandidate, selectedCandidate.gender, `${selectedCandidate.firstName} ${selectedCandidate.lastName}`)}
               name={`${selectedCandidate.firstName} ${selectedCandidate.lastName}`}
               size="xl"
             />
@@ -207,16 +208,8 @@ export const CandidateDetailPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 self-end md:self-center">
-            <div className="flex flex-col items-end">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Overall Progress
-              </span>
-              <span className="text-lg font-bold text-slate-900 dark:text-white">
-                {selectedCandidate.progress}% Complete
-              </span>
-            </div>
-            <ProgressRing progress={selectedCandidate.progress} size={68} strokeWidth={6} />
+          <div className="min-w-[180px] self-end md:self-center">
+            <ProgressBar progress={selectedCandidate.progress} label="Overall Progress" size="md" />
           </div>
         </div>
       </Card>

@@ -11,6 +11,7 @@ export * from './Card';
 export * from './EmptyState';
 export * from './FormSection';
 export * from './MultiSelect';
+export * from './ProgressBar';
 export * from './ProgressRing';
 export * from './RadioGroup';
 export * from './SearchInput';

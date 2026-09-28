@@ -10,7 +10,7 @@ import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Modal } from '../components/ui/Modal';
 import { Select } from '../components/ui/Select';
-import { ProgressRing } from '../components/common/ProgressRing';
+import { ProgressBar } from '../components/common/ProgressBar';
 import { formatDate, formatCurrency } from '../utils/formatters';
 import { DEPARTMENTS } from '../services/mockData';
 import { AddEmployeeView } from '../components/employee/AddEmployeeView';
@@ -23,6 +23,7 @@ import { ResetPasswordModal } from '../components/modals/ResetPasswordModal';
 import { AssignAssetsManagerModal } from '../components/modals/AssignAssetsManagerModal';
 import { useOnboardingFlow } from '../context/OnboardingFlowContext';
 import { useRole } from '../context/RoleContext';
+import { getEffectiveAvatar } from '../utils/radianAvatars';
 import {
   UserPlus,
   Eye,
@@ -90,7 +91,7 @@ export const CandidatesDirectoryPage: React.FC = () => {
           return (
             <div className="flex items-center gap-3">
               <Avatar
-                src={candidate.avatarUrl}
+                src={getEffectiveAvatar(candidate, candidate.gender, displayName)}
                 name={displayName}
                 size="sm"
               />
@@ -158,21 +159,10 @@ export const CandidatesDirectoryPage: React.FC = () => {
         accessorKey: 'progress',
         sortable: true,
         defaultVisible: true,
-        minWidth: '150px',
+        minWidth: '140px',
         cell: (candidate) => (
-          <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-            <ProgressRing progress={candidate.progress} size={34} strokeWidth={4} />
-            <div className="flex-1 min-w-0 hidden sm:block">
-              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                <div
-                  className="bg-blue-600 h-1.5 rounded-full transition-all"
-                  style={{ width: `${candidate.progress}%` }}
-                />
-              </div>
-              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 block">
-                {candidate.progress}%
-              </span>
-            </div>
+          <div className="w-full max-w-[130px]">
+            <ProgressBar progress={candidate.progress} showLabel={false} showPercentage={true} size="md" />
           </div>
         )
       },

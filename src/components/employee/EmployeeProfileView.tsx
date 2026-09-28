@@ -7,12 +7,12 @@ import { Card, CardHeader, CardContent } from '../ui/Card';
 import { getCustomFields, CustomProfileField } from '../../services/customFieldsService';
 import { Button } from '../ui/Button';
 import { Avatar } from '../ui/Avatar';
-import { ProgressRing } from '../common/ProgressRing';
 import { formatDate, formatDateTime } from '../../utils/formatters';
 import {
   RADIAN_PERSONA_AVATARS,
   getRadianAvatarByName,
-  getRandomRadianAvatar
+  getRandomRadianAvatar,
+  getAvatarByGender
 } from '../../utils/radianAvatars';
 import { DocumentViewerModal, DocumentItem, downloadDocumentFile } from '../modals/DocumentViewerModal';
 import { AddDocumentModal } from '../modals/AddDocumentModal';
@@ -119,7 +119,6 @@ const PROFILE_TABS: ProfileTabConfig[] = [
   { id: 'documents', label: 'Documents', icon: FileText },
   { id: 'signature', label: 'Signature', icon: AtSign },
   { id: 'assets', label: 'Assets', icon: Laptop },
-  { id: 'history', label: 'History & Activity', icon: History },
   { id: 'password', label: 'Change Password', icon: Lock }
 ];
 
@@ -340,7 +339,10 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
   const avatarStorageKey = employee ? `quantira_avatar_${employee.id}` : `quantira_avatar_${currentRole}`;
   const [customAvatar, setCustomAvatar] = useState<string | null>(() => {
     try {
-      return localStorage.getItem(avatarStorageKey);
+      if (employee?.id) {
+        return localStorage.getItem(`quantira_avatar_${employee.id}`) || localStorage.getItem(`quantira_profile_photo_${employee.id}`);
+      }
+      return localStorage.getItem(`quantira_avatar_CANDIDATE`) || localStorage.getItem(`quantira_profile_photo_CANDIDATE`) || localStorage.getItem(avatarStorageKey);
     } catch {
       return null;
     }
@@ -351,13 +353,28 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
   const avatarFileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(avatarStorageKey);
-      setCustomAvatar(stored);
-    } catch {
-      setCustomAvatar(null);
-    }
-  }, [avatarStorageKey]);
+    const handleAvatarUpdate = (e?: any) => {
+      try {
+        if (e?.detail?.photoUrl !== undefined) {
+          setCustomAvatar(e.detail.photoUrl);
+          return;
+        }
+        const stored = employee
+          ? localStorage.getItem(`quantira_avatar_${employee.id}`) || localStorage.getItem(`quantira_profile_photo_${employee.id}`)
+          : localStorage.getItem(`quantira_avatar_CANDIDATE`) || localStorage.getItem(`quantira_profile_photo_CANDIDATE`) || localStorage.getItem(avatarStorageKey);
+        setCustomAvatar(stored);
+      } catch {
+        setCustomAvatar(null);
+      }
+    };
+    handleAvatarUpdate();
+    window.addEventListener('quantira_profile_photo_updated', handleAvatarUpdate);
+    window.addEventListener('storage', handleAvatarUpdate);
+    return () => {
+      window.removeEventListener('quantira_profile_photo_updated', handleAvatarUpdate);
+      window.removeEventListener('storage', handleAvatarUpdate);
+    };
+  }, [avatarStorageKey, employee]);
 
   // IT Asset Assignment State for HR Admin & Super Admin
   const [enterpriseAssets, setEnterpriseAssets] = useState<ITAsset[]>(() => getAssets());
@@ -487,6 +504,10 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
 
   const effectiveProfile = React.useMemo(() => {
     if (employee) {
+      const empGender = employee.gender || effectiveFlowData.personalInfo?.gender || 'Male';
+      const empName = `${employee.firstName} ${employee.lastName}`.trim() || employee.name || 'Alex Mercer';
+      const defaultEmpAvatar = getAvatarByGender(empGender, empName);
+
       return {
         title: employee.title || effectiveFlowData.personalInfo?.title || 'Mr.',
         firstName: employee.firstName,
@@ -503,7 +524,7 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
         phone: employee.phone || employee.contactNumber1 || effectiveFlowData.personalInfo?.phone || '+1 (415) 555-0199',
         contactNumber1: employee.contactNumber1 || employee.phone || effectiveFlowData.personalInfo?.contactNumber1 || '+1 (415) 555-0199',
         contactNumber2: employee.contactNumber2 || effectiveFlowData.personalInfo?.contactNumber2 || '',
-        gender: employee.gender || effectiveFlowData.personalInfo?.gender || 'Prefer not to say',
+        gender: empGender,
         dateOfBirth: employee.dateOfBirth || effectiveFlowData.personalInfo?.dateOfBirth || '1994-08-14',
         maritalStatus: employee.maritalStatus || effectiveFlowData.personalInfo?.maritalStatus || 'Single',
         nationality: employee.nationality || effectiveFlowData.personalInfo?.nationality || 'United States',
@@ -512,7 +533,7 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
         linkedinUrl: employee.linkedinUrl || effectiveFlowData.personalInfo?.linkedinUrl || '',
         workModel: employee.workModel || effectiveFlowData.personalInfo?.workModel || 'Hybrid',
         education: (employee as any).education || effectiveFlowData.personalInfo?.education || 'Bachelor of Science (Computer Science & Engineering)',
-        avatar: customAvatar || employee.avatarUrl || getRadianAvatarByName(`${employee.firstName} ${employee.lastName}`),
+        avatar: customAvatar || (employee.id === effectiveFlowData.personalInfo?.employeeId ? effectiveFlowData.photo?.photoUrl : null) || employee.avatarUrl || defaultEmpAvatar,
         startDate: employee.startDate,
         workLocation: employee.officeLocation || 'San Francisco HQ',
         employmentType: employee.employmentType || 'Full-time Regular',
@@ -558,11 +579,10 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
         line2Manager: 'Board of Directors'
       };
     }
-    const defaultRoleAvatar = currentRole === 'SUPER_ADMIN'
-      ? RADIAN_PERSONA_AVATARS.alexandraWright
-      : currentRole === 'HR'
-      ? RADIAN_PERSONA_AVATARS.eleanorVance
-      : RADIAN_PERSONA_AVATARS.johnDoe;
+
+    const candidateGender = effectiveFlowData.personalInfo?.gender || 'Male';
+    const candidateName = `${effectiveFlowData.personalInfo?.firstName || 'John'} ${effectiveFlowData.personalInfo?.lastName || 'Doe'}`.trim();
+    const defaultCandidateAvatar = getAvatarByGender(candidateGender, candidateName);
 
     return {
       title: effectiveFlowData.personalInfo.title || 'Mr.',
@@ -570,7 +590,7 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
       middleName: effectiveFlowData.personalInfo.middleName || '',
       lastName: effectiveFlowData.personalInfo.lastName || 'Doe',
       preferredName: effectiveFlowData.personalInfo.preferredName || effectiveFlowData.personalInfo.firstName || 'John',
-      name: `${effectiveFlowData.personalInfo.firstName} ${effectiveFlowData.personalInfo.lastName}`,
+      name: `${effectiveFlowData.personalInfo.firstName || 'John'} ${effectiveFlowData.personalInfo.lastName || 'Doe'}`,
       employeeId: effectiveFlowData.personalInfo.employeeId || 'EMP-2024-0847',
       jobTitle: effectiveFlowData.personalInfo.jobTitle || 'Software Engineer',
       department: effectiveFlowData.personalInfo.department || 'Engineering',
@@ -580,7 +600,7 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
       phone: effectiveFlowData.personalInfo.phone || effectiveFlowData.personalInfo.contactNumber1 || '+1 (415) 555-0199',
       contactNumber1: effectiveFlowData.personalInfo.contactNumber1 || effectiveFlowData.personalInfo.phone || '+1 (415) 555-0199',
       contactNumber2: effectiveFlowData.personalInfo.contactNumber2 || '',
-      gender: effectiveFlowData.personalInfo.gender || 'Prefer not to say',
+      gender: candidateGender,
       dateOfBirth: effectiveFlowData.personalInfo.dateOfBirth || '1994-08-14',
       maritalStatus: effectiveFlowData.personalInfo.maritalStatus || 'Single',
       nationality: effectiveFlowData.personalInfo.nationality || 'United States',
@@ -589,7 +609,7 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
       linkedinUrl: effectiveFlowData.personalInfo.linkedinUrl || '',
       workModel: effectiveFlowData.personalInfo.workModel || 'Hybrid',
       education: effectiveFlowData.personalInfo.education || 'Bachelor of Science (Computer Science & Engineering)',
-      avatar: customAvatar || effectiveFlowData.photo.photoUrl || defaultRoleAvatar,
+      avatar: customAvatar || effectiveFlowData.photo?.photoUrl || defaultCandidateAvatar,
       startDate: effectiveFlowData.personalInfo.startDate || '2026-09-15',
       workLocation: effectiveFlowData.personalInfo.workLocation || 'San Francisco HQ',
       employmentType: effectiveFlowData.personalInfo.employmentType || 'Full-time Regular',
@@ -2495,15 +2515,6 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   Verified &amp; Active
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setShowProfileHistoryModal(true)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-white/15 hover:bg-white/25 text-blue-100 hover:text-white border border-white/25 shadow-xs transition-all cursor-pointer backdrop-blur-xs active:scale-95"
-                  title="View Profile History & Audit Timeline"
-                >
-                  <History className="w-3.5 h-3.5 text-blue-300" />
-                  Profile History ({profileHistoryList.length})
-                </button>
               </div>
 
               <p className="text-lg font-bold text-slate-200">
@@ -2592,27 +2603,6 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                 )}
               </div>
             </div>
-
-            {/* History & Activity Button below attendance card */}
-            <div className="flex items-center justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  if (employee) {
-                    setActiveTab('history');
-                  }
-                  setShowProfileHistoryModal(true);
-                }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-black border border-white/20 hover:border-white/35 transition-all shadow-lg backdrop-blur-md cursor-pointer active:scale-95 group"
-                title="View Profile History & Activity Timeline"
-              >
-                <History className="w-4 h-4 text-blue-300 group-hover:rotate-[-45deg] transition-transform" />
-                <span>History &amp; Activity</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/30 text-blue-200 border border-blue-400/40 ml-0.5">
-                  {profileHistoryList.length}
-                </span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -2661,16 +2651,6 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setActiveTab('history')}
-                    leftIcon={<History className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />}
-                    className="text-xs font-bold"
-                  >
-                    View History Log ({profileHistoryList.length})
-                  </Button>
                   <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     HRIS Synchronized
@@ -3934,7 +3914,7 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                                 {f.label}
                               </span>
                               <span className="text-sm font-bold text-slate-900 dark:text-white block">
-                                {employeeCustomValues[f.key] || (f.key === 'githubUsername' ? '@octocat-engineer' : f.key === 'tshirtSize' ? 'Large (L)' : f.key === 'dietaryRestrictions' ? 'Vegetarian' : f.key === 'clearanceTier' ? 'Tier 2 (Confidential)' : 'Verified')}
+                                {employeeCustomValues[f.key] || (f.key === 'githubUsername' ? '@octocat-engineer' : f.key === 'tshirtSize' ? 'Large (L)' : f.key === 'dietaryRestrictions' ? 'Vegetarian' : 'Verified')}
                               </span>
                               <span className="text-[10px] text-purple-600 dark:text-purple-400 font-medium">
                                 {f.required ? 'Mandatory Policy Field' : 'Optional Enterprise Field'}
@@ -5876,405 +5856,7 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
             </div>
           )}
 
-          {/* ========================================================================= */}
-          {/* 11. HISTORY & ACTIVITY TAB (Requested Feature) */}
-          {/* ========================================================================= */}
-          {activeTab === 'history' && (
-            <div className="space-y-6">
-              <Card className="shadow-xs border border-slate-200 dark:border-slate-800">
-                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
-                      <History className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        Profile Lifecycle &amp; Audit History
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
-                          {profileHistoryList.length} Events
-                        </span>
-                      </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Immutable chronological record of identity provisioning, document compliance, asset allocations, and profile updates.
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={handleExportProfileHistory}
-                      leftIcon={<Download className="w-3.5 h-3.5" />}
-                      className="text-xs font-bold"
-                    >
-                      Export Logs (JSON)
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="primary"
-                      size="sm"
-                      onClick={() => setShowAddNoteForm(true)}
-                      leftIcon={<Plus className="w-3.5 h-3.5" />}
-                      className="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      Add Audit Entry
-                    </Button>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="p-6 space-y-6">
-                  {/* Category Pill Filters */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-100 dark:border-slate-800">
-                    {[
-                      'All',
-                      'Demographics',
-                      'Contact & Address',
-                      'Family & Dependents',
-                      'Documents & Compliance',
-                      'Assets & IT',
-                      'Security & SSO',
-                      'Attendance',
-                      'Role & Management',
-                      'General'
-                    ].map((cat) => {
-                      const isSelected = historyCategoryFilter === cat;
-                      const count =
-                        cat === 'All'
-                          ? profileHistoryList.length
-                          : profileHistoryList.filter((item) => item.category === cat).length;
-                      return (
-                        <button
-                          key={cat}
-                          type="button"
-                          onClick={() => setHistoryCategoryFilter(cat)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                            isSelected
-                              ? 'bg-blue-600 text-white shadow-xs ring-2 ring-blue-600/30'
-                              : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                          }`}
-                        >
-                          <span>{cat}</span>
-                          <span
-                            className={`px-1.5 py-0.2 rounded-md text-[10px] font-extrabold ${
-                              isSelected
-                                ? 'bg-white/20 text-white'
-                                : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                            }`}
-                          >
-                            {count}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Search and Type Filter Bar */}
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                    <div className="sm:col-span-8 relative">
-                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input
-                        type="text"
-                        value={historySearchQuery}
-                        onChange={(e) => setHistorySearchQuery(e.target.value)}
-                        placeholder="Search audit history by action, actor, category, or detail notes..."
-                        className="w-full pl-10 pr-9 py-2 rounded-xl text-xs border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                      />
-                      {historySearchQuery && (
-                        <button
-                          type="button"
-                          onClick={() => setHistorySearchQuery('')}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="sm:col-span-4 flex items-center gap-2">
-                      <div className="relative w-full">
-                        <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <select
-                          value={historyTypeFilter}
-                          onChange={(e) => setHistoryTypeFilter(e.target.value)}
-                          className="w-full pl-8.5 pr-8 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
-                        >
-                          <option value="All">All Event Types</option>
-                          <option value="success">Success Events</option>
-                          <option value="info">Info / Updates</option>
-                          <option value="warning">Warnings / Removals</option>
-                          <option value="error">Errors / Alerts</option>
-                        </select>
-                      </div>
-
-                      {(historySearchQuery || historyCategoryFilter !== 'All' || historyTypeFilter !== 'All') && (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => {
-                            setHistorySearchQuery('');
-                            setHistoryCategoryFilter('All');
-                            setHistoryTypeFilter('All');
-                          }}
-                          className="text-xs shrink-0"
-                          title="Reset Filters"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Add Manual Audit Note Inline Drawer / Card */}
-                  {showAddNoteForm && (
-                    <form
-                      onSubmit={handleAddManualAuditNote}
-                      className="p-5 rounded-2xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 space-y-4 animate-fade-in"
-                    >
-                      <div className="flex items-center justify-between pb-2 border-b border-blue-200/60 dark:border-blue-900/40">
-                        <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-2">
-                          <Plus className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                          Log Custom Profile Audit Note
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setShowAddNoteForm(false)}
-                          className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div className="sm:col-span-2">
-                          <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                            Activity / Audit Event Title *
-                          </label>
-                          <input
-                            type="text"
-                            value={newAuditNoteAction}
-                            onChange={(e) => setNewAuditNoteAction(e.target.value)}
-                            placeholder="e.g. Annual Compliance Review Completed"
-                            required
-                            className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                            Category
-                          </label>
-                          <select
-                            value={newAuditNoteCategory}
-                            onChange={(e) => setNewAuditNoteCategory(e.target.value as any)}
-                            className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="General">General</option>
-                            <option value="Demographics">Demographics</option>
-                            <option value="Contact & Address">Contact & Address</option>
-                            <option value="Family & Dependents">Family & Dependents</option>
-                            <option value="Documents & Compliance">Documents & Compliance</option>
-                            <option value="Assets & IT">Assets & IT</option>
-                            <option value="Security & SSO">Security & SSO</option>
-                            <option value="Attendance">Attendance</option>
-                            <option value="Role & Management">Role & Management</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div className="sm:col-span-2">
-                          <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                            Detailed Description / Observations
-                          </label>
-                          <textarea
-                            rows={2}
-                            value={newAuditNoteDetails}
-                            onChange={(e) => setNewAuditNoteDetails(e.target.value)}
-                            placeholder="Provide supplementary details or references regarding this profile action..."
-                            className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                            Event Type / Severity
-                          </label>
-                          <select
-                            value={newAuditNoteType}
-                            onChange={(e) => setNewAuditNoteType(e.target.value as any)}
-                            className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="info">Info (Standard Event)</option>
-                            <option value="success">Success (Approval / Verified)</option>
-                            <option value="warning">Warning (Caution / Revoked)</option>
-                            <option value="error">Error (Breach / Alert)</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-end gap-2 pt-1">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => setShowAddNoteForm(false)}
-                          className="text-xs"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="submit"
-                          variant="primary"
-                          size="sm"
-                          leftIcon={<Save className="w-3.5 h-3.5" />}
-                          className="text-xs font-bold bg-blue-600 text-white"
-                        >
-                          Record Audit Entry
-                        </Button>
-                      </div>
-                    </form>
-                  )}
-
-                  {/* Results Count Summary */}
-                  <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
-                    <span>
-                      Showing <strong>{filteredHistoryList.length}</strong> of <strong>{profileHistoryList.length}</strong> recorded activities
-                    </span>
-                    {filteredHistoryList.length < profileHistoryList.length && (
-                      <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                        (Filtered view)
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Timeline Listing */}
-                  {filteredHistoryList.length > 0 ? (
-                    <div className="relative pl-6 space-y-6 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
-                      {filteredHistoryList.map((entry) => {
-                        const isSuccess = entry.type === 'success';
-                        const isWarning = entry.type === 'warning';
-                        const isError = entry.type === 'error';
-
-                        const getCategoryBadgeClass = (category: string) => {
-                          switch (category) {
-                            case 'Security & SSO':
-                              return 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800';
-                            case 'Documents & Compliance':
-                              return 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800';
-                            case 'Assets & IT':
-                              return 'bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800';
-                            case 'Attendance':
-                              return 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
-                            case 'Family & Dependents':
-                              return 'bg-pink-100 dark:bg-pink-950 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-800';
-                            case 'Contact & Address':
-                              return 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';
-                            case 'Demographics':
-                              return 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800';
-                            default:
-                              return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
-                          }
-                        };
-
-                        return (
-                          <div key={entry.id} className="relative group">
-                            {/* Dot Icon Indicator */}
-                            <span
-                              className={`absolute -left-6 top-1.5 flex items-center justify-center w-6 h-6 rounded-full ring-4 ring-white dark:ring-slate-900 shadow-xs ${
-                                isSuccess
-                                  ? 'bg-emerald-500 text-white'
-                                  : isWarning
-                                  ? 'bg-amber-500 text-white'
-                                  : isError
-                                  ? 'bg-rose-500 text-white'
-                                  : 'bg-blue-600 text-white'
-                              }`}
-                            >
-                              {isSuccess ? (
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                              ) : isWarning ? (
-                                <AlertTriangle className="w-3.5 h-3.5" />
-                              ) : isError ? (
-                                <AlertCircle className="w-3.5 h-3.5" />
-                              ) : (
-                                <Clock className="w-3.5 h-3.5" />
-                              )}
-                            </span>
-
-                            {/* Card Content */}
-                            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all space-y-2">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                                    {entry.action}
-                                  </h3>
-                                  <span
-                                    className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border ${getCategoryBadgeClass(
-                                      entry.category
-                                    )}`}
-                                  >
-                                    {entry.category}
-                                  </span>
-                                </div>
-
-                                <div className="flex items-center gap-2 text-xs text-slate-400 shrink-0">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  <span>{formatDateTime(entry.timestamp)}</span>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                                <span>Recorded by:</span>
-                                <span className="font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
-                                  {entry.user}
-                                </span>
-                              </div>
-
-                              {entry.details && (
-                                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-mono">
-                                  {entry.details}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="py-12 text-center space-y-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
-                        <History className="w-6 h-6" />
-                      </div>
-                      <div className="space-y-1">
-                        <h4 className="text-sm font-bold text-slate-800 dark:text-white">
-                          No History Logs Found
-                        </h4>
-                        <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                          No audit events matched the current search criteria or category filter.
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => {
-                          setHistorySearchQuery('');
-                          setHistoryCategoryFilter('All');
-                          setHistoryTypeFilter('All');
-                        }}
-                        className="text-xs font-bold"
-                      >
-                        Reset All Filters
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
         </div>
         </>
       )}
@@ -7129,198 +6711,7 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
         </Modal>
       )}
 
-      {/* Profile Audit & Activity History Tracking Modal */}
-      {showProfileHistoryModal && (
-        <Modal
-          isOpen={showProfileHistoryModal}
-          onClose={() => setShowProfileHistoryModal(false)}
-          title={`Profile History & Audit Trail — ${effectiveProfile.name}`}
-          size="xl"
-          footer={
-            <div className="flex items-center justify-between w-full">
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                Employee ID: <strong>{effectiveProfile.employeeId}</strong> • Total Events: <strong>{profileHistoryList.length}</strong>
-              </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleExportProfileHistory}
-                  leftIcon={<Download className="w-3.5 h-3.5" />}
-                  className="text-xs"
-                >
-                  Export JSON
-                </Button>
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="sm"
-                  onClick={() => setShowProfileHistoryModal(false)}
-                  className="text-xs bg-blue-600 text-white font-bold"
-                >
-                  Done
-                </Button>
-              </div>
-            </div>
-          }
-        >
-          <div className="space-y-6 text-left max-h-[70vh] overflow-y-auto pr-1">
-            {/* Category Pill Filters */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-100 dark:border-slate-800">
-              {[
-                'All',
-                'Demographics',
-                'Contact & Address',
-                'Family & Dependents',
-                'Documents & Compliance',
-                'Assets & IT',
-                'Security & SSO',
-                'Attendance',
-                'Role & Management',
-                'General'
-              ].map((cat) => {
-                const isSelected = historyCategoryFilter === cat;
-                const count =
-                  cat === 'All'
-                    ? profileHistoryList.length
-                    : profileHistoryList.filter((item) => item.category === cat).length;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setHistoryCategoryFilter(cat)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                      isSelected
-                        ? 'bg-blue-600 text-white shadow-xs ring-2 ring-blue-600/30'
-                        : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    <span>{cat}</span>
-                    <span
-                      className={`px-1.5 py-0.2 rounded-md text-[10px] font-extrabold ${
-                        isSelected
-                          ? 'bg-white/20 text-white'
-                          : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
 
-            {/* Search and Filter */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-              <div className="sm:col-span-8 relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  value={historySearchQuery}
-                  onChange={(e) => setHistorySearchQuery(e.target.value)}
-                  placeholder="Search audit history by action, actor, category, or notes..."
-                  className="w-full pl-10 pr-9 py-2 rounded-xl text-xs border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                />
-                {historySearchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setHistorySearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-
-              <div className="sm:col-span-4 flex items-center gap-2">
-                <div className="relative w-full">
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <select
-                    value={historyTypeFilter}
-                    onChange={(e) => setHistoryTypeFilter(e.target.value)}
-                    className="w-full pl-8.5 pr-8 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
-                  >
-                    <option value="All">All Event Types</option>
-                    <option value="success">Success Events</option>
-                    <option value="info">Info / Updates</option>
-                    <option value="warning">Warnings / Removals</option>
-                    <option value="error">Errors / Alerts</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Timeline */}
-            {filteredHistoryList.length > 0 ? (
-              <div className="relative pl-6 space-y-4 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
-                {filteredHistoryList.map((entry) => {
-                  const isSuccess = entry.type === 'success';
-                  const isWarning = entry.type === 'warning';
-                  const isError = entry.type === 'error';
-
-                  return (
-                    <div key={entry.id} className="relative group">
-                      <span
-                        className={`absolute -left-6 top-1.5 flex items-center justify-center w-6 h-6 rounded-full ring-4 ring-white dark:ring-slate-900 shadow-xs ${
-                          isSuccess
-                            ? 'bg-emerald-500 text-white'
-                            : isWarning
-                            ? 'bg-amber-500 text-white'
-                            : isError
-                            ? 'bg-rose-500 text-white'
-                            : 'bg-blue-600 text-white'
-                        }`}
-                      >
-                        {isSuccess ? (
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                        ) : isWarning ? (
-                          <AlertTriangle className="w-3.5 h-3.5" />
-                        ) : isError ? (
-                          <AlertCircle className="w-3.5 h-3.5" />
-                        ) : (
-                          <Clock className="w-3.5 h-3.5" />
-                        )}
-                      </span>
-
-                      <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1.5">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                              {entry.action}
-                            </h4>
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
-                              {entry.category}
-                            </span>
-                          </div>
-                          <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formatDateTime(entry.timestamp)}
-                          </span>
-                        </div>
-
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                          By <strong className="font-semibold text-slate-700 dark:text-slate-300">{entry.user}</strong>
-                        </div>
-
-                        {entry.details && (
-                          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
-                            {entry.details}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="py-8 text-center text-xs text-slate-400">
-                No history entries found matching your filter criteria.
-              </div>
-            )}
-          </div>
-        </Modal>
-      )}
 
       {/* Generic Action Confirmation Popup */}
       {actionConfirmation && (

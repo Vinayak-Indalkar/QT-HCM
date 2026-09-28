@@ -5,7 +5,6 @@ import { PageHeader } from '../components/shell/PageHeader';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Avatar } from '../components/ui/Avatar';
-import { ProgressRing } from '../components/common/ProgressRing';
 import { StatCard } from '../components/common/StatCard';
 import { EmployeeDossierModal, EmployeeDossierData } from '../components/modals/EmployeeDossierModal';
 import { formatDate } from '../utils/formatters';
@@ -21,6 +20,7 @@ import {
 import { cn } from '../utils/cn';
 import { DashletCardWrapper } from '../components/dashboard/DashletCardWrapper';
 import { DynamicDashletChart } from '../components/dashboard/DynamicDashletChart';
+import { getEffectiveAvatar } from '../utils/radianAvatars';
 import {
   UserCheck,
   Eye,
@@ -101,7 +101,7 @@ export const ManagerDashboardPage: React.FC = () => {
       phone: candidate.phone,
       jobTitle: candidate.jobTitle,
       department: candidate.department,
-      avatar: candidate.avatarUrl,
+      avatar: getEffectiveAvatar(candidate, candidate.gender, `${candidate.firstName} ${candidate.lastName}`),
       startDate: candidate.startDate,
       workLocation: candidate.officeLocation || 'San Francisco HQ',
       workModel: candidate.workModel || 'Hybrid',
@@ -146,252 +146,384 @@ export const ManagerDashboardPage: React.FC = () => {
 
   // Render individual dashlet content
   const renderDashletContent = (dashlet: DashletConfig) => {
-    switch (dashlet.id) {
-      case 'kpi_total_employees':
-      case 'mgr_kpi_team_count':
-        return (
-          <StatCard
-            label="Total Team Members"
-            value={String(teamMembers.length)}
-            change="+2 this month"
-            isPositive={true}
-            description="Active Engineering Team"
-            icon={<Users className="w-5 h-5 text-blue-600" />}
-            iconBg="bg-blue-50 dark:bg-blue-950/80"
-          />
-        );
-      case 'kpi_active_onboarding':
-      case 'mgr_kpi_in_onboarding':
-        return (
-          <StatCard
-            label="Onboarding In Progress"
-            value={String(teamMembers.filter((m) => m.status !== 'completed').length)}
-            change="Incoming arrivals"
-            isPositive={true}
-            description="Currently in pipeline"
-            icon={<Clock className="w-5 h-5 text-amber-600" />}
-            iconBg="bg-amber-50 dark:bg-amber-950/80"
-          />
-        );
-      case 'kpi_doc_compliance':
-      case 'mgr_kpi_day1_ready':
-        return (
-          <StatCard
-            label="Day 1 Ready (100%)"
-            value={String(teamMembers.filter((m) => m.progress >= 80).length)}
-            change="Hardware & Access set"
-            isPositive={true}
-            description="Clearance Verified"
-            icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
-            iconBg="bg-emerald-50 dark:bg-emerald-950/80"
-          />
-        );
-      case 'kpi_asset_pool':
-      case 'mgr_kpi_hardware_ok':
-        return (
-          <StatCard
-            label="Manager Checklist"
-            value={`${checklist.filter((c) => c.completed).length} / ${checklist.length}`}
-            change="Tasks completed"
-            isPositive={true}
-            description="Day-1 readiness gates"
-            icon={<Coffee className="w-5 h-5 text-purple-600" />}
-            iconBg="bg-purple-50 dark:bg-purple-950/80"
-          />
-        );
-      case 'mgr_widget_team_checklist':
-        return (
-          <Card className="h-full w-full flex flex-col justify-between">
-            <CardHeader className="pb-2">
+    // 1. Chart Visualizations
+    if (dashlet.type === 'chart' || dashlet.chartType) {
+      const resolvedChartData = dashlet.dataSource
+        ? resolveChartDataFromSource(dashlet.dataSource, candidates, tasks, getAssets())
+        : (dashlet.chartData && dashlet.chartData.length > 0 ? dashlet.chartData : undefined);
+
+      return (
+        <Card className="h-full w-full flex flex-col justify-between border border-slate-200 dark:border-slate-800">
+          <CardHeader className="pb-2 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
-                <Coffee className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-                  Manager Day-1 Kickoff Checklist
-                </h3>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3 pt-2 flex-1 flex flex-col justify-between">
-              <div className="space-y-2 pt-1 flex-1">
-                {checklist.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => toggleChecklistItem(item.id)}
-                    className={`flex items-start gap-3 p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
-                      item.completed
-                        ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-400 line-through'
-                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-purple-300'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={item.completed}
-                      onChange={() => {}}
-                      className="mt-0.5 rounded text-purple-600 focus:ring-purple-500"
-                    />
-                    <span className="font-medium leading-tight">{item.title}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      case 'mgr_widget_team_roster':
-      case 'list_recent_arrivals':
-        return (
-          <Card className="h-full w-full flex flex-col justify-between">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
-              <div className="flex items-center gap-2">
-                <UserCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-                  Team Members &amp; Incoming Hires
-                </h2>
-              </div>
-
-              <div className="flex items-center gap-2.5 w-full sm:w-auto">
-                <div className="relative w-full sm:w-52">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Search team..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-                  />
+                <BarChart3 className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {dashlet.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                    {dashlet.description}
+                  </p>
                 </div>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => navigateTo('directory')}
-                  className="text-xs font-bold text-blue-600 dark:text-blue-400 shrink-0"
-                >
-                  View in My Team
-                </Button>
               </div>
-            </CardHeader>
-
-            <CardContent className="p-0 flex-1">
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {teamMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    onClick={() => handleOpenDossier(member)}
-                    className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
-                  >
-                    <div className="flex items-start sm:items-center gap-3.5 min-w-0">
-                      <Avatar
-                        src={member.avatarUrl}
-                        name={`${member.firstName} ${member.lastName}`}
-                        size="lg"
-                        className="shrink-0 group-hover:ring-2 group-hover:ring-blue-500 transition-all"
-                      />
-                      <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
-                            {member.firstName} {member.lastName}
-                          </span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 shrink-0">
-                            {member.workModel}
-                          </span>
-                        </div>
-                        <span className="text-xs text-slate-600 dark:text-slate-300 truncate">
-                          {member.jobTitle} • <span className="text-blue-600 dark:text-blue-400">{member.department}</span>
-                        </span>
-                        <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 mt-1">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-slate-400" />
-                            Starts: <strong>{formatDate(member.startDate)}</strong>
-                          </span>
-                          <span>•</span>
-                          <span>Manager: {member.manager}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 self-end sm:self-center shrink-0">
-                      <div className="flex items-center gap-3 text-right">
-                        <div className="hidden sm:flex flex-col items-end">
-                          <span className="text-xs font-bold text-slate-900 dark:text-white">
-                            {member.progress}% Done
-                          </span>
-                          <span className="text-[10px] text-slate-400 capitalize">
-                            {member.status.replace('_', ' ')}
-                          </span>
-                        </div>
-                        <ProgressRing progress={member.progress} size={40} strokeWidth={4}>
-                          <span className="text-[10px] font-bold">{member.progress}%</span>
-                        </ProgressRing>
-                      </div>
-
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        leftIcon={<Eye className="w-3.5 h-3.5" />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenDossier(member);
-                        }}
-                        className="text-xs font-semibold text-blue-600 dark:text-blue-400"
-                      >
-                        Details
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-
-                {teamMembers.length === 0 && (
-                  <div className="p-8 text-center text-slate-400 text-xs">
-                    No team members found matching your search.
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      default:
-        // Render Dynamic Charts or Custom Metric Cards
-        if (dashlet.type === 'chart' && dashlet.chartType) {
-          const resolvedChartData = dashlet.dataSource
-            ? resolveChartDataFromSource(dashlet.dataSource, candidates, tasks, getAssets())
-            : dashlet.chartData;
-
-          return (
-            <Card className="h-full w-full flex flex-col justify-between">
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      {dashlet.title}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {dashlet.description}
-                    </p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col justify-center p-4">
-                <DynamicDashletChart
-                  chartType={dashlet.chartType}
-                  data={resolvedChartData}
-                  height={220}
-                />
-              </CardContent>
-            </Card>
-          );
-        }
-
-        return (
-          <StatCard
-            label={dashlet.title}
-            value={dashlet.customData?.value || 'Active'}
-            change={dashlet.customData?.badge || 'Manager Metric'}
-            isPositive={dashlet.customData?.badgePositive ?? true}
-            description={dashlet.customData?.subtitle || dashlet.description}
-            icon={<Sparkles className="w-5 h-5" />}
-            iconBg="bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400"
-          />
-        );
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300">
+                {dashlet.chartType || 'bar'}
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-center p-4">
+            <DynamicDashletChart
+              chartType={dashlet.chartType || 'bar'}
+              data={resolvedChartData}
+              height={220}
+            />
+          </CardContent>
+        </Card>
+      );
     }
+
+    // 2. Manager Team Checklist
+    if (dashlet.id === 'mgr_widget_team_checklist' || dashlet.id === 'mgr_team_action_items') {
+      return (
+        <Card className="h-full w-full flex flex-col justify-between border border-slate-200 dark:border-slate-800">
+          <CardHeader className="pb-2 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Coffee className="w-4.5 h-4.5 text-teal-600 dark:text-teal-400" />
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Manager Action &amp; Kickoff Checklist
+                </h3>
+                <p className="text-xs text-slate-500">Day-1 gates &amp; team readiness items</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300">
+              {checklist.filter((c) => c.completed).length} / {checklist.length} Done
+            </span>
+          </CardHeader>
+          <CardContent className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+            <div className="space-y-2 flex-1">
+              {checklist.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => toggleChecklistItem(item.id)}
+                  className={`flex items-start gap-3 p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
+                    item.completed
+                      ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-400 line-through'
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-teal-300'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={item.completed}
+                    onChange={() => {}}
+                    className="mt-0.5 rounded text-teal-600 focus:ring-teal-500"
+                  />
+                  <span className="font-medium leading-tight">{item.title}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 3. Team Members Roster
+    if (dashlet.id === 'mgr_widget_team_roster' || dashlet.id === 'mgr_team_members' || dashlet.id === 'list_recent_arrivals') {
+      return (
+        <Card className="h-full w-full flex flex-col justify-between border border-slate-200 dark:border-slate-800">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <UserCheck className="w-4.5 h-4.5 text-teal-600 dark:text-teal-400" />
+              <div>
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Direct Reports &amp; Team Roster ({teamMembers.length} Members)
+                </h2>
+                <p className="text-xs text-slate-500">Live progress rings &amp; dossier inspections</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              <div className="relative w-full sm:w-48">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search team..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-600"
+                />
+              </div>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => navigateTo('directory')}
+                className="text-xs font-bold text-teal-600 dark:text-teal-400 shrink-0"
+              >
+                View Directory
+              </Button>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {teamMembers.slice(0, 4).map((member) => (
+                <div
+                  key={member.id}
+                  onClick={() => handleOpenDossier(member)}
+                  className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-start sm:items-center gap-3 min-w-0">
+                    <Avatar
+                      src={getEffectiveAvatar(member, member.gender, `${member.firstName} ${member.lastName}`)}
+                      name={`${member.firstName} ${member.lastName}`}
+                      size="md"
+                      className="shrink-0"
+                    />
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors truncate">
+                          {member.firstName} {member.lastName}
+                        </span>
+                        <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 shrink-0">
+                          {member.workModel}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-slate-500 truncate">
+                        {member.jobTitle} • {member.department}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+                    <div className="flex flex-col items-end gap-1 w-24">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">
+                        {member.progress}% Done
+                      </span>
+                      <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className={cn(
+                            'h-1.5 rounded-full transition-all',
+                            member.progress >= 100 ? 'bg-emerald-500' : 'bg-teal-600'
+                          )}
+                          style={{ width: `${member.progress}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      leftIcon={<Eye className="w-3 h-3" />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDossier(member);
+                      }}
+                      className="text-xs text-teal-600 dark:text-teal-400 py-1 px-2.5 h-auto"
+                    >
+                      Dossier
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 4. Pending Leave Requests
+    if (dashlet.id === 'mgr_pending_leave_requests') {
+      const dummyLeaves = [
+        { name: 'Sarah Connor', type: 'Annual Paid Time Off (PTO)', dates: 'Oct 04 - Oct 08 (5 Days)', reason: 'Family vacation' },
+        { name: 'Alex Johnson', type: 'Casual Leave (CL)', dates: 'Oct 11 (1 Day)', reason: 'Personal errand' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Pending Leave Requests</h3>
+              <p className="text-xs text-slate-500">Requires manager clearance</p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300">2 Requests</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyLeaves.map((l, i) => (
+                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{l.name}</span>
+                    <span className="text-[11px] text-teal-600 dark:text-teal-400 font-semibold">{l.type}</span>
+                    <span className="text-[10px] text-slate-400 block">{l.dates} • {l.reason}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 self-end sm:self-center">
+                    <button type="button" className="px-2.5 py-1 text-[11px] font-bold rounded bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer">
+                      Approve
+                    </button>
+                    <button type="button" className="px-2.5 py-1 text-[11px] font-bold rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 cursor-pointer">
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 5. Pending Timesheets
+    if (dashlet.id === 'mgr_pending_timesheets') {
+      const dummyTimesheets = [
+        { name: 'Vikram Mehta', hours: '40.0 Hrs', period: 'Week ending Sept 25, 2026', project: 'Core Platform v2' },
+        { name: 'Chloe Dubois', hours: '38.5 Hrs', period: 'Week ending Sept 25, 2026', project: 'Design System & UI' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Pending Timesheets</h3>
+              <p className="text-xs text-slate-500">Weekly project hours verification</p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700">2 Submitted</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyTimesheets.map((ts, i) => (
+                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{ts.name}</span>
+                    <span className="text-[11px] text-slate-500">{ts.project} • {ts.period}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{ts.hours}</span>
+                    <button type="button" className="px-2 py-1 text-[10px] font-bold rounded bg-teal-600 text-white hover:bg-teal-700 cursor-pointer">
+                      Approve
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 6. Performance Reviews Due
+    if (dashlet.id === 'mgr_performance_reviews_due') {
+      const dummyReviews = [
+        { name: 'Sarah Connor', cycle: 'Q3 OKR Appraisal', due: 'Oct 02, 2026', status: 'Self-Review Done' },
+        { name: 'Vikram Mehta', cycle: 'Mid-Year 360 Feedback', due: 'Oct 15, 2026', status: 'Pending Manager Feedback' }
+      ];
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Performance Reviews Due</h3>
+              <p className="text-xs text-slate-500">1-on-1 appraisals &amp; scoring</p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800">2 Due</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {dummyReviews.map((r, i) => (
+                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{r.name}</span>
+                    <span className="text-[11px] text-slate-500">{r.cycle} • {r.status}</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-teal-600 dark:text-teal-400">Due {r.due}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 7. Team Birthdays & Anniversaries
+    if (dashlet.id === 'mgr_upcoming_birthdays') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Team Birthdays
+            </h3>
+            <span className="text-[11px] text-slate-400">October 2026</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="p-3 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-bold text-slate-900 dark:text-white block">Alex Johnson</span>
+                  <span className="text-[11px] text-slate-500">Frontend Engineer</span>
+                </div>
+                <span className="text-[11px] font-bold text-teal-600">Oct 06</span>
+              </div>
+              <div className="p-3 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-bold text-slate-900 dark:text-white block">Chloe Dubois</span>
+                  <span className="text-[11px] text-slate-500">Product Designer</span>
+                </div>
+                <span className="text-[11px] font-bold text-teal-600">Oct 19</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (dashlet.id === 'mgr_upcoming_anniversaries') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              Team Work Anniversaries
+            </h3>
+            <span className="text-[11px] text-slate-400">Next 60 Days</span>
+          </CardHeader>
+          <CardContent className="p-0 flex-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="p-3 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-bold text-slate-900 dark:text-white block">Sarah Connor</span>
+                  <span className="text-[11px] text-emerald-600 font-semibold">2-Year Anniversary</span>
+                </div>
+                <span className="text-[11px] font-bold text-slate-500">Oct 10</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 8. Fallback List
+    if (dashlet.type === 'list') {
+      return (
+        <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              {dashlet.title}
+            </h3>
+            <p className="text-xs text-slate-500">{dashlet.description}</p>
+          </CardHeader>
+          <CardContent className="p-4 flex-1 flex items-center justify-center text-center text-xs text-slate-400">
+            Active stream configured for {dashlet.title}.
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // 9. Metric Dashlets
+    return (
+      <StatCard
+        label={dashlet.title}
+        value={dashlet.customData?.value || '14'}
+        change={dashlet.customData?.badge || '100% Staffed'}
+        isPositive={dashlet.customData?.badgePositive ?? true}
+        description={dashlet.customData?.subtitle || dashlet.description}
+      />
+    );
   };
 
   return (

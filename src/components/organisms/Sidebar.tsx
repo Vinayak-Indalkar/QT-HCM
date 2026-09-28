@@ -206,11 +206,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           icon: FileText
         },
         {
-          id: 'setup',
-          label: 'Setup',
-          icon: SlidersHorizontal
-        },
-        {
           id: 'settings',
           label: 'Settings',
           icon: Settings
@@ -223,7 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       ];
     }
 
-    // 4. Default: HR User: Dashboard, My Profile, My Team, Employees, Assets, Documents, Setup, & Settings
+    // 4. Default: HR User: Dashboard, My Profile, My Team, Employees, Assets, Documents, & Settings
     return [
       {
         id: 'dashboard',
@@ -260,11 +255,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         id: 'compliance',
         label: 'Documents',
         icon: FileText
-      },
-      {
-        id: 'setup',
-        label: 'Setup',
-        icon: SlidersHorizontal
       },
       {
         id: 'settings',
@@ -335,9 +325,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
                 if (isProfileItem) {
                   return (
-                    <div key={item.id} className="space-y-1">
+                    <div key={item.id} className="space-y-1" data-tour="nav-profile">
                       <button
                         type="button"
+                        data-tour="nav-profile-btn"
                         onClick={() => {
                           if (!isProfileActive) {
                             navigateTo('profile');
@@ -395,6 +386,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                               <button
                                 key={subItem.id}
                                 type="button"
+                                data-tour={`profile-tab-${subItem.id}`}
                                 onClick={() => {
                                   setActiveProfileTab(subItem.id);
                                   navigateTo('profile', undefined, subItem.id);
@@ -428,9 +420,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
                 if (isConfigItem) {
                   return (
-                    <div key={item.id} className="space-y-1">
+                    <div key={item.id} className="space-y-1" data-tour="nav-analytics">
                       <button
                         type="button"
+                        data-tour="nav-analytics-btn"
                         onClick={() => {
                           if (!isConfigActive) {
                             navigateTo('analytics');
@@ -488,6 +481,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                               <button
                                 key={subItem.id}
                                 type="button"
+                                data-tour={subItem.id === 'custom_dashboards' ? 'nav-custom-dashboards' : `nav-${subItem.id}`}
                                 onClick={() => {
                                   navigateTo(subItem.id);
                                   if (window.innerWidth < 1024) {
@@ -520,9 +514,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
                 if (isSetupItem) {
                   return (
-                    <div key={item.id} className="space-y-1">
+                    <div key={item.id} className="space-y-1" data-tour="nav-setup">
                       <button
                         type="button"
+                        data-tour="nav-setup-btn"
                         onClick={() => {
                           if (!isSetupActive) {
                             navigateTo('setup_organization');
@@ -580,6 +575,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                               <button
                                 key={subItem.id}
                                 type="button"
+                                data-tour={`nav-${subItem.id}`}
                                 onClick={() => {
                                   navigateTo(subItem.id);
                                   if (window.innerWidth < 1024) {
@@ -614,6 +610,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <button
                     key={item.id}
                     type="button"
+                    data-tour={`nav-${item.id}`}
                     onClick={() => handleNavClick(item.id)}
                     aria-current={isActive ? 'page' : undefined}
                     className={cn(
