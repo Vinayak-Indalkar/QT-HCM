@@ -22,6 +22,7 @@ import { DynamicDashletChart } from '../components/dashboard/DynamicDashletChart
 import { EmployeeProfileView } from '../components/employee/EmployeeProfileView';
 import { Candidate } from '../types/candidate';
 import { getEffectiveAvatar } from '../utils/radianAvatars';
+import { MOCK_RECENT_EXITS, MOCK_SYSTEM_ALERTS } from '../services/mockData';
 import {
   Users,
   Clock,
@@ -185,11 +186,6 @@ export const DashboardPage: React.FC = () => {
     }
 
     if (dashlet.id === 'sa_recent_exits') {
-      const dummyExits = [
-        { name: 'David Vance', role: 'Staff Backend Architect', dept: 'Engineering', date: 'Sept 15, 2026', status: 'Cleared', type: 'Voluntary' },
-        { name: 'Elena Rostova', role: 'Senior Product Marketer', dept: 'Marketing', date: 'Sept 22, 2026', status: 'Asset Return Pending', type: 'Relocation' },
-        { name: 'Samir Patel', role: 'Sales Account Executive', dept: 'Sales', date: 'Sept 30, 2026', status: 'Handover Active', type: 'Career Transition' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -201,8 +197,8 @@ export const DashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyExits.map((exit, i) => (
-                <div key={i} className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+              {MOCK_RECENT_EXITS.map((exit) => (
+                <div key={exit.id} className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{exit.name}</span>
                     <span className="text-[11px] text-slate-500">{exit.role} • {exit.dept}</span>
@@ -262,11 +258,6 @@ export const DashboardPage: React.FC = () => {
     }
 
     if (dashlet.id === 'sa_system_alerts') {
-      const dummyAlerts = [
-        { title: 'Okta SSO Certificate Expiry in 14 Days', level: 'warning', time: '10m ago' },
-        { title: 'Automated Daily Payroll Data Sync Succeeded', level: 'success', time: '1h ago' },
-        { title: 'AWS Workspaces Cloud Capacity at 88%', level: 'info', time: '3h ago' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -278,8 +269,8 @@ export const DashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyAlerts.map((alert, i) => (
-                <div key={i} className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+              {MOCK_SYSTEM_ALERTS.map((alert) => (
+                <div key={alert.id} className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2.5">
                     <span className={cn(
                       'w-2 h-2 rounded-full',

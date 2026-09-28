@@ -19,6 +19,14 @@ import { DashletCardWrapper } from '../components/dashboard/DashletCardWrapper';
 import { DynamicDashletChart } from '../components/dashboard/DynamicDashletChart';
 import { Candidate } from '../types/candidate';
 import {
+  MOCK_EMPLOYEE_GOALS,
+  MOCK_EMPLOYEE_PAYSLIPS,
+  MOCK_EMPLOYEE_DOCS,
+  MOCK_EMPLOYEE_TRAININGS,
+  MOCK_COMPANY_HOLIDAYS,
+  MOCK_RECOGNITIONS
+} from '../services/mockData';
+import {
   Sparkles,
   CheckCircle2,
   Clock,
@@ -274,11 +282,6 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
     }
 
     if (dashlet.id === 'emp_my_goals') {
-      const dummyGoals = [
-        { title: 'Complete Cloud Infrastructure Certification', progress: 100, status: 'Completed' },
-        { title: 'Deliver Sprint Performance Optimization SLA', progress: 85, status: 'On Track' },
-        { title: 'Mentor 2 Junior Engineering Apprentices', progress: 70, status: 'In Progress' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -289,8 +292,8 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
           </CardHeader>
           <CardContent className="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
             <div className="space-y-2.5 flex-1">
-              {dummyGoals.map((g, i) => (
-                <div key={i} className="space-y-1 text-xs">
+              {MOCK_EMPLOYEE_GOALS.map((g) => (
+                <div key={g.id} className="space-y-1 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-slate-800 dark:text-slate-200">{g.title}</span>
                     <span className="font-bold text-blue-600">{g.progress}%</span>
@@ -341,11 +344,6 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
     }
 
     if (dashlet.id === 'emp_my_payslips') {
-      const dummyPayslips = [
-        { month: 'September 2026', net: '$8,450.00', date: 'Sept 25, 2026', status: 'Paid' },
-        { month: 'August 2026', net: '$8,450.00', date: 'Aug 25, 2026', status: 'Paid' },
-        { month: 'July 2026', net: '$8,450.00', date: 'July 25, 2026', status: 'Paid' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -356,8 +354,8 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyPayslips.map((p, i) => (
-                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+              {MOCK_EMPLOYEE_PAYSLIPS.map((p) => (
+                <div key={p.id} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{p.month}</span>
                     <span className="text-[11px] text-slate-500">Credited: {p.date} • {p.status}</span>
@@ -377,11 +375,6 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
     }
 
     if (dashlet.id === 'emp_my_documents') {
-      const dummyDocs = [
-        { name: 'Government Passport & Driver ID', date: 'Verified Sept 04', status: 'Approved' },
-        { name: 'Signed Enterprise NDA Agreement', date: 'Verified Sept 05', status: 'Approved' },
-        { name: 'Academic Degree Transcript', date: 'Verified Sept 06', status: 'Approved' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -392,8 +385,8 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyDocs.map((d, i) => (
-                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+              {MOCK_EMPLOYEE_DOCS.map((d) => (
+                <div key={d.id} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{d.name}</span>
                     <span className="text-[11px] text-slate-500">{d.date}</span>
@@ -410,11 +403,6 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
     }
 
     if (dashlet.id === 'emp_my_training' || dashlet.id === 'kpi_training_certifications') {
-      const dummyTraining = [
-        { course: 'Enterprise Security & OWASP Standards', progress: 100, badge: 'Certified' },
-        { course: 'SOC2 & HIPAA Compliance Protocol', progress: 100, badge: 'Certified' },
-        { course: 'Advanced System Architecture & Scalability', progress: 65, badge: 'In Progress' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -425,8 +413,8 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
           </CardHeader>
           <CardContent className="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
             <div className="space-y-2.5 flex-1">
-              {dummyTraining.map((t, i) => (
-                <div key={i} className="space-y-1 text-xs">
+              {MOCK_EMPLOYEE_TRAININGS.map((t) => (
+                <div key={t.id} className="space-y-1 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-slate-800 dark:text-slate-200">{t.course}</span>
                     <span className={cn('text-[10px] font-bold px-1.5 py-0.2 rounded', t.progress === 100 ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800')}>
@@ -445,11 +433,6 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
     }
 
     if (dashlet.id === 'emp_upcoming_holidays') {
-      const dummyHolidays = [
-        { holiday: 'Thanksgiving Day', date: 'Nov 26, 2026', type: 'Public Holiday' },
-        { holiday: 'Day After Thanksgiving', date: 'Nov 27, 2026', type: 'Company Holiday' },
-        { holiday: 'Winter Break & New Year', date: 'Dec 25 - Jan 01', type: 'Paid Office Closure' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -460,8 +443,8 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyHolidays.map((h, i) => (
-                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+              {MOCK_COMPANY_HOLIDAYS.map((h) => (
+                <div key={h.id} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{h.holiday}</span>
                     <span className="text-[11px] text-slate-500">{h.type}</span>
@@ -506,20 +489,15 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-              <div className="p-3 flex items-center justify-between">
-                <div>
-                  <span className="font-bold text-slate-900 dark:text-white block">Star Performer Q2 2026</span>
-                  <span className="text-[11px] text-slate-500">Excellence in execution</span>
+              {MOCK_RECOGNITIONS.map((rec) => (
+                <div key={rec.id} className="p-3 flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{rec.title}</span>
+                    <span className="text-[11px] text-slate-500">{rec.subtitle}</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-amber-600">{rec.reward}</span>
                 </div>
-                <span className="text-[10px] font-bold text-amber-600">$500 Spot Bonus</span>
-              </div>
-              <div className="p-3 flex items-center justify-between">
-                <div>
-                  <span className="font-bold text-slate-900 dark:text-white block">Innovation Sprint Champion</span>
-                  <span className="text-[11px] text-slate-500">AI workflow automation</span>
-                </div>
-                <span className="text-[10px] font-bold text-emerald-600">Team Kudos</span>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>

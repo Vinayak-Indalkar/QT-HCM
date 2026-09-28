@@ -991,3 +991,105 @@ export const LOCATIONS = [
   'Remote (US)',
   'Remote (International)'
 ];
+
+export const MOCK_SYSTEM_ALERTS = [
+  { id: 'sa-1', title: 'Okta SSO Certificate Expiry in 14 Days', level: 'warning' as const, time: '10m ago' },
+  { id: 'sa-2', title: 'Automated Daily Payroll Data Sync Succeeded', level: 'success' as const, time: '1h ago' },
+  { id: 'sa-3', title: 'AWS Workspaces Cloud Capacity at 88%', level: 'info' as const, time: '3h ago' }
+];
+
+export const MOCK_RECENT_EXITS = [
+  { id: 'exit-1', name: 'David Vance', role: 'Staff Backend Architect', dept: 'Engineering', date: 'Sept 15, 2026', status: 'Cleared', type: 'Voluntary' },
+  { id: 'exit-2', name: 'Elena Rostova', role: 'Senior Product Marketer', dept: 'Marketing', date: 'Sept 22, 2026', status: 'Asset Return Pending', type: 'Relocation' },
+  { id: 'exit-3', name: 'Samir Patel', role: 'Sales Account Executive', dept: 'Sales', date: 'Sept 30, 2026', status: 'Handover Active', type: 'Career Transition' }
+];
+
+export const MOCK_PROBATION_REVIEWS = [
+  { id: 'pr-1', name: 'Alex Johnson', role: 'Frontend Engineer', dept: 'Engineering', dueDate: 'Oct 05, 2026', manager: 'Marcus Brody' },
+  { id: 'pr-2', name: 'Chloe Dubois', role: 'Talent Specialist', dept: 'Human Resources', dueDate: 'Oct 12, 2026', manager: 'Sarah Jenkins' },
+  { id: 'pr-3', name: 'Vikram Mehta', role: 'DevOps Lead', dept: 'Infrastructure', dueDate: 'Oct 18, 2026', manager: 'Marcus Brody' }
+];
+
+export const MOCK_PENDING_DOCS = [
+  { id: 'pd-1', name: 'Sarah Chen', missing: 'Form I-9 & Passport Copy', dept: 'Product', daysWaiting: '3 Days' },
+  { id: 'pd-2', name: 'Marcus Brody', missing: 'Direct Deposit Form', dept: 'Engineering', daysWaiting: '1 Day' },
+  { id: 'pd-3', name: 'Priya Sharma', missing: 'Signed NDA Agreement', dept: 'Marketing', daysWaiting: '4 Days' }
+];
+
+export const MOCK_UPCOMING_BIRTHDAYS = [
+  { id: 'bday-1', name: 'Liam O’Connor', date: 'Tomorrow (Sept 29)', dept: 'Engineering' },
+  { id: 'bday-2', name: 'Aaliyah Khan', date: 'Oct 03, 2026', dept: 'Design' },
+  { id: 'bday-3', name: 'Zack Morris', date: 'Oct 09, 2026', dept: 'Sales' }
+];
+
+export const MOCK_WORK_ANNIVERSARIES = [
+  { id: 'anniv-1', name: 'Rachel Green', milestone: '3-Year Milestone', date: 'Oct 01, 2026', dept: 'People Ops' },
+  { id: 'anniv-2', name: 'Carlos Santos', milestone: '5-Year Veteran', date: 'Oct 14, 2026', dept: 'Infrastructure' },
+  { id: 'anniv-3', name: 'Maya Lin', milestone: '1-Year Anniversary', date: 'Oct 20, 2026', dept: 'Product' }
+];
+
+export const MOCK_HR_ACTIONS = [
+  { id: 'act-1', task: 'Monthly Payroll Lock & Final Timesheet Verification', due: 'Oct 01', priority: 'Urgent' as const },
+  { id: 'act-2', task: 'Quarterly Statutory Compliance Filing (Form 941)', due: 'Oct 15', priority: 'High' as const },
+  { id: 'act-3', task: 'Benefits Open Enrollment Notice Dispatch', due: 'Oct 20', priority: 'Medium' as const }
+];
+
+export const MOCK_PENDING_LEAVE_REQUESTS = [
+  { id: 'leave-1', name: 'Sarah Connor', type: 'Annual Paid Time Off (PTO)', dates: 'Oct 04 - Oct 08 (5 Days)', reason: 'Family vacation' },
+  { id: 'leave-2', name: 'Alex Johnson', type: 'Casual Leave (CL)', dates: 'Oct 11 (1 Day)', reason: 'Personal errand' }
+];
+
+export const MOCK_PENDING_TIMESHEETS = [
+  { id: 'ts-1', name: 'Vikram Mehta', hours: '40.0 Hrs', period: 'Week ending Sept 25, 2026', project: 'Core Platform v2' },
+  { id: 'ts-2', name: 'Chloe Dubois', hours: '38.5 Hrs', period: 'Week ending Sept 25, 2026', project: 'Design System & UI' }
+];
+
+export const MOCK_PERFORMANCE_REVIEWS = [
+  { id: 'perf-1', name: 'Sarah Connor', cycle: 'Q3 OKR Appraisal', due: 'Oct 02, 2026', status: 'Self-Review Done' },
+  { id: 'perf-2', name: 'Vikram Mehta', cycle: 'Mid-Year 360 Feedback', due: 'Oct 15, 2026', status: 'Pending Manager Feedback' }
+];
+
+export const MOCK_TEAM_BIRTHDAYS = [
+  { id: 'tbday-1', name: 'Alex Johnson', dept: 'Frontend Engineer', date: 'Oct 06' },
+  { id: 'tbday-2', name: 'Chloe Dubois', dept: 'Product Designer', date: 'Oct 19' }
+];
+
+export const MOCK_TEAM_ANNIVERSARIES = [
+  { id: 'tanniv-1', name: 'Sarah Connor', milestone: '2-Year Anniversary', date: 'Oct 10' }
+];
+
+export const MOCK_EMPLOYEE_GOALS = [
+  { id: 'g-1', title: 'Complete Cloud Infrastructure Certification', progress: 100, status: 'Completed' },
+  { id: 'g-2', title: 'Deliver Sprint Performance Optimization SLA', progress: 85, status: 'On Track' },
+  { id: 'g-3', title: 'Mentor 2 Junior Engineering Apprentices', progress: 70, status: 'In Progress' }
+];
+
+export const MOCK_EMPLOYEE_PAYSLIPS = [
+  { id: 'ps-1', month: 'September 2026', net: '$8,450.00', date: 'Sept 25, 2026', status: 'Paid' },
+  { id: 'ps-2', month: 'August 2026', net: '$8,450.00', date: 'Aug 25, 2026', status: 'Paid' },
+  { id: 'ps-3', month: 'July 2026', net: '$8,450.00', date: 'July 25, 2026', status: 'Paid' }
+];
+
+export const MOCK_EMPLOYEE_DOCS = [
+  { id: 'ed-1', name: 'Government Passport & Driver ID', date: 'Verified Sept 04', status: 'Approved' },
+  { id: 'ed-2', name: 'Signed Enterprise NDA Agreement', date: 'Verified Sept 05', status: 'Approved' },
+  { id: 'ed-3', name: 'Academic Degree Transcript', date: 'Verified Sept 06', status: 'Approved' }
+];
+
+export const MOCK_EMPLOYEE_TRAININGS = [
+  { id: 'tr-1', course: 'Enterprise Security & OWASP Standards', progress: 100, badge: 'Certified' },
+  { id: 'tr-2', course: 'SOC2 & HIPAA Compliance Protocol', progress: 100, badge: 'Certified' },
+  { id: 'tr-3', course: 'Advanced System Architecture & Scalability', progress: 65, badge: 'In Progress' }
+];
+
+export const MOCK_COMPANY_HOLIDAYS = [
+  { id: 'hol-1', holiday: 'Thanksgiving Day', date: 'Nov 26, 2026', type: 'Public Holiday' },
+  { id: 'hol-2', holiday: 'Day After Thanksgiving', date: 'Nov 27, 2026', type: 'Company Holiday' },
+  { id: 'hol-3', holiday: 'Winter Break & New Year', date: 'Dec 25 - Jan 01', type: 'Paid Office Closure' }
+];
+
+export const MOCK_RECOGNITIONS = [
+  { id: 'rec-1', title: 'Star Performer Q2 2026', subtitle: 'Excellence in execution', reward: '$500 Spot Bonus' },
+  { id: 'rec-2', title: 'Innovation Sprint Champion', subtitle: 'AI workflow automation', reward: 'Team Kudos' }
+];
+

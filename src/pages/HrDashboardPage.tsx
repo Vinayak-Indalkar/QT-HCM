@@ -18,6 +18,13 @@ import { getAssets } from '../services/assetService';
 import { getStoredPunchRecords, PunchRecord } from '../services/attendanceService';
 import { getEffectiveAvatar } from '../utils/radianAvatars';
 import {
+  MOCK_PROBATION_REVIEWS,
+  MOCK_PENDING_DOCS,
+  MOCK_UPCOMING_BIRTHDAYS,
+  MOCK_WORK_ANNIVERSARIES,
+  MOCK_HR_ACTIONS
+} from '../services/mockData';
+import {
   getDashletsForPersona,
   resetPersonaLayout,
   getColSpanClass,
@@ -511,11 +518,6 @@ export const HrDashboardPage: React.FC = () => {
 
     // 4. Specific HR Lists
     if (dashlet.id === 'hr_probation_review_due') {
-      const dummyProbation = [
-        { name: 'Alex Johnson', role: 'Frontend Engineer', dept: 'Engineering', dueDate: 'Oct 05, 2026', manager: 'Marcus Brody' },
-        { name: 'Chloe Dubois', role: 'Talent Specialist', dept: 'Human Resources', dueDate: 'Oct 12, 2026', manager: 'Sarah Jenkins' },
-        { name: 'Vikram Mehta', role: 'DevOps Lead', dept: 'Infrastructure', dueDate: 'Oct 18, 2026', manager: 'Marcus Brody' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -527,8 +529,8 @@ export const HrDashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyProbation.map((item, i) => (
-                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+              {MOCK_PROBATION_REVIEWS.map((item) => (
+                <div key={item.id} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{item.name}</span>
                     <span className="text-[11px] text-slate-500">{item.role} • Mgr: {item.manager}</span>
@@ -548,11 +550,6 @@ export const HrDashboardPage: React.FC = () => {
     }
 
     if (dashlet.id === 'hr_documents_pending') {
-      const dummyMissingDocs = [
-        { name: 'Sarah Chen', missing: 'Form I-9 & Passport Copy', dept: 'Product', daysWaiting: '3 Days' },
-        { name: 'Marcus Brody', missing: 'Direct Deposit Form', dept: 'Engineering', daysWaiting: '1 Day' },
-        { name: 'Priya Sharma', missing: 'Signed NDA Agreement', dept: 'Marketing', daysWaiting: '4 Days' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -570,8 +567,8 @@ export const HrDashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyMissingDocs.map((item, i) => (
-                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+              {MOCK_PENDING_DOCS.map((item) => (
+                <div key={item.id} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{item.name}</span>
                     <span className="text-[11px] text-rose-600 dark:text-rose-400">{item.missing}</span>
@@ -588,11 +585,6 @@ export const HrDashboardPage: React.FC = () => {
     }
 
     if (dashlet.id === 'hr_upcoming_birthdays') {
-      const dummyBirthdays = [
-        { name: 'Liam O’Connor', date: 'Tomorrow (Sept 29)', dept: 'Engineering' },
-        { name: 'Aaliyah Khan', date: 'Oct 03, 2026', dept: 'Design' },
-        { name: 'Zack Morris', date: 'Oct 09, 2026', dept: 'Sales' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -603,8 +595,8 @@ export const HrDashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyBirthdays.map((b, i) => (
-                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+              {MOCK_UPCOMING_BIRTHDAYS.map((b) => (
+                <div key={b.id} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{b.name}</span>
                     <span className="text-[11px] text-slate-500">{b.dept}</span>
@@ -619,11 +611,6 @@ export const HrDashboardPage: React.FC = () => {
     }
 
     if (dashlet.id === 'hr_upcoming_work_anniversaries') {
-      const dummyAnniversaries = [
-        { name: 'Rachel Green', milestone: '3-Year Milestone', date: 'Oct 01, 2026', dept: 'People Ops' },
-        { name: 'Carlos Santos', milestone: '5-Year Veteran', date: 'Oct 14, 2026', dept: 'Infrastructure' },
-        { name: 'Maya Lin', milestone: '1-Year Anniversary', date: 'Oct 20, 2026', dept: 'Product' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -634,8 +621,8 @@ export const HrDashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyAnniversaries.map((a, i) => (
-                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+              {MOCK_WORK_ANNIVERSARIES.map((a) => (
+                <div key={a.id} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{a.name}</span>
                     <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">{a.milestone} • {a.dept}</span>
@@ -650,11 +637,6 @@ export const HrDashboardPage: React.FC = () => {
     }
 
     if (dashlet.id === 'hr_hr_action_items') {
-      const dummyHrActions = [
-        { task: 'Monthly Payroll Lock & Final Timesheet Verification', due: 'Oct 01', priority: 'Urgent' },
-        { task: 'Quarterly Statutory Compliance Filing (Form 941)', due: 'Oct 15', priority: 'High' },
-        { task: 'Benefits Open Enrollment Notice Dispatch', due: 'Oct 20', priority: 'Medium' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -665,8 +647,8 @@ export const HrDashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyHrActions.map((act, i) => (
-                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+              {MOCK_HR_ACTIONS.map((act) => (
+                <div key={act.id} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-semibold text-slate-900 dark:text-slate-100 block">{act.task}</span>
                     <span className="text-[10px] text-slate-400">Deadline: {act.due}</span>

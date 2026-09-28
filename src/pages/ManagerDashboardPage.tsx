@@ -22,6 +22,13 @@ import { DashletCardWrapper } from '../components/dashboard/DashletCardWrapper';
 import { DynamicDashletChart } from '../components/dashboard/DynamicDashletChart';
 import { getEffectiveAvatar } from '../utils/radianAvatars';
 import {
+  MOCK_PENDING_LEAVE_REQUESTS,
+  MOCK_PENDING_TIMESHEETS,
+  MOCK_PERFORMANCE_REVIEWS,
+  MOCK_TEAM_BIRTHDAYS,
+  MOCK_TEAM_ANNIVERSARIES
+} from '../services/mockData';
+import {
   UserCheck,
   Eye,
   Calendar,
@@ -334,10 +341,6 @@ export const ManagerDashboardPage: React.FC = () => {
 
     // 4. Pending Leave Requests
     if (dashlet.id === 'mgr_pending_leave_requests') {
-      const dummyLeaves = [
-        { name: 'Sarah Connor', type: 'Annual Paid Time Off (PTO)', dates: 'Oct 04 - Oct 08 (5 Days)', reason: 'Family vacation' },
-        { name: 'Alex Johnson', type: 'Casual Leave (CL)', dates: 'Oct 11 (1 Day)', reason: 'Personal errand' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -349,8 +352,8 @@ export const ManagerDashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyLeaves.map((l, i) => (
-                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              {MOCK_PENDING_LEAVE_REQUESTS.map((l) => (
+                <div key={l.id} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{l.name}</span>
                     <span className="text-[11px] text-teal-600 dark:text-teal-400 font-semibold">{l.type}</span>
@@ -374,10 +377,6 @@ export const ManagerDashboardPage: React.FC = () => {
 
     // 5. Pending Timesheets
     if (dashlet.id === 'mgr_pending_timesheets') {
-      const dummyTimesheets = [
-        { name: 'Vikram Mehta', hours: '40.0 Hrs', period: 'Week ending Sept 25, 2026', project: 'Core Platform v2' },
-        { name: 'Chloe Dubois', hours: '38.5 Hrs', period: 'Week ending Sept 25, 2026', project: 'Design System & UI' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -389,8 +388,8 @@ export const ManagerDashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyTimesheets.map((ts, i) => (
-                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+              {MOCK_PENDING_TIMESHEETS.map((ts) => (
+                <div key={ts.id} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{ts.name}</span>
                     <span className="text-[11px] text-slate-500">{ts.project} • {ts.period}</span>
@@ -411,10 +410,6 @@ export const ManagerDashboardPage: React.FC = () => {
 
     // 6. Performance Reviews Due
     if (dashlet.id === 'mgr_performance_reviews_due') {
-      const dummyReviews = [
-        { name: 'Sarah Connor', cycle: 'Q3 OKR Appraisal', due: 'Oct 02, 2026', status: 'Self-Review Done' },
-        { name: 'Vikram Mehta', cycle: 'Mid-Year 360 Feedback', due: 'Oct 15, 2026', status: 'Pending Manager Feedback' }
-      ];
       return (
         <Card className="h-full border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
@@ -426,8 +421,8 @@ export const ManagerDashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dummyReviews.map((r, i) => (
-                <div key={i} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
+              {MOCK_PERFORMANCE_REVIEWS.map((r) => (
+                <div key={r.id} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{r.name}</span>
                     <span className="text-[11px] text-slate-500">{r.cycle} • {r.status}</span>
@@ -453,20 +448,15 @@ export const ManagerDashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              <div className="p-3 flex items-center justify-between text-xs">
-                <div>
-                  <span className="font-bold text-slate-900 dark:text-white block">Alex Johnson</span>
-                  <span className="text-[11px] text-slate-500">Frontend Engineer</span>
+              {MOCK_TEAM_BIRTHDAYS.map((b) => (
+                <div key={b.id} className="p-3 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{b.name}</span>
+                    <span className="text-[11px] text-slate-500">{b.dept}</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-teal-600">{b.date}</span>
                 </div>
-                <span className="text-[11px] font-bold text-teal-600">Oct 06</span>
-              </div>
-              <div className="p-3 flex items-center justify-between text-xs">
-                <div>
-                  <span className="font-bold text-slate-900 dark:text-white block">Chloe Dubois</span>
-                  <span className="text-[11px] text-slate-500">Product Designer</span>
-                </div>
-                <span className="text-[11px] font-bold text-teal-600">Oct 19</span>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -484,13 +474,15 @@ export const ManagerDashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              <div className="p-3 flex items-center justify-between text-xs">
-                <div>
-                  <span className="font-bold text-slate-900 dark:text-white block">Sarah Connor</span>
-                  <span className="text-[11px] text-emerald-600 font-semibold">2-Year Anniversary</span>
+              {MOCK_TEAM_ANNIVERSARIES.map((a) => (
+                <div key={a.id} className="p-3 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{a.name}</span>
+                    <span className="text-[11px] text-emerald-600 font-semibold">{a.milestone}</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500">{a.date}</span>
                 </div>
-                <span className="text-[11px] font-bold text-slate-500">Oct 10</span>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
