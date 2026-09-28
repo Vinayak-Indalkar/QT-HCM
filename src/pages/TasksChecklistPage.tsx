@@ -37,7 +37,7 @@ export const TasksChecklistPage: React.FC = () => {
     <div className="space-y-6 text-left w-full animate-fade-in pb-12">
       <PageHeader
         title="Onboarding Tasks & Checklist"
-        description="Track and complete operational onboarding requirements across HR, IT Provisioning, Facilities, and Department Teams."
+        description="Operational checklist"
       />
 
       {/* KPI Stats */}

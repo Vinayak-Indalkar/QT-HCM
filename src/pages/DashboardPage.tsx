@@ -4,6 +4,7 @@ import {
   PageHeader,
   StatCard,
   Button,
+  IconButton,
   Card,
   CardHeader,
   CardContent,
@@ -131,7 +132,7 @@ export const DashboardPage: React.FC = () => {
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                 Recent Joiners &amp; Pipeline Status
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">New arrivals across corporate units</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Recent arrivals</p>
             </div>
             <Button
               variant="tertiary"
@@ -195,7 +196,7 @@ export const DashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Recent Exits &amp; Offboarding</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Formal handover &amp; asset reclamation</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Offboarding pipeline</p>
             </div>
             <span className="text-[11px] font-bold text-slate-500">Last 30 Days</span>
           </CardHeader>
@@ -227,7 +228,7 @@ export const DashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Pending HR Actions</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Items requiring administrative sign-off</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Action items</p>
             </div>
             <Button variant="tertiary" size="sm" onClick={() => navigateTo('tasks')}>
               All Tasks
@@ -267,7 +268,7 @@ export const DashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">System &amp; Integration Alerts</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Cloud infra &amp; identity feed</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Infra status</p>
             </div>
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Live Health" />
           </CardHeader>
@@ -338,22 +339,20 @@ export const DashboardPage: React.FC = () => {
     <div className="space-y-6 text-left animate-fade-in pb-12 w-full flex-1">
       <PageHeader
         title="Super Admin Dashboard"
-        description="Monitor end-to-end employee onboarding progression, verify compliance documents, and customize your live operational dashlets."
+        description="Live operational pipeline"
         actions={
           <div className="flex items-center gap-2">
             {isCustomizing && (
-              <Button
+              <IconButton
                 variant="secondary"
                 size="sm"
                 onClick={() => {
                   resetPersonaLayout('SUPER_ADMIN');
                   refreshDashlets();
                 }}
-                leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-                className="text-xs font-bold"
-              >
-                Reset Order
-              </Button>
+                icon={<RefreshCw className="w-4 h-4" />}
+                aria-label="Reset Layout"
+              />
             )}
             <Button
               variant={isCustomizing ? 'primary' : 'secondary'}

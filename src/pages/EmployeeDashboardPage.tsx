@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardContent,
   Button,
+  IconButton,
   Avatar,
   StatCard
 } from '../components';
@@ -565,24 +566,22 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
       {!employee ? (
         <PageHeader
           title="My Dashboard"
-          description="Track your onboarding progress, complete Day-1 tasks, access company tools, and customize your workspace."
+          description="Onboarding progress"
           onBack={onBack}
           backLabel="Back to User List"
           actions={
             <div className="flex items-center gap-2">
               {isCustomizing && (
-                <Button
+                <IconButton
                   variant="secondary"
                   size="sm"
                   onClick={() => {
                     resetPersonaLayout('EMPLOYEE');
                     refreshDashlets();
                   }}
-                  leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-                  className="text-xs font-bold"
-                >
-                  Reset Order
-                </Button>
+                  icon={<RefreshCw className="w-4 h-4" />}
+                  aria-label="Reset Layout"
+                />
               )}
               <Button
                 variant={isCustomizing ? 'primary' : 'secondary'}
@@ -617,25 +616,23 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Customizable 12-column responsive layout with amCharts 5 visualizations and milestone analytics.
+                Customizable layout
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             {isCustomizing && (
-              <Button
+              <IconButton
                 variant="secondary"
                 size="sm"
                 onClick={() => {
                   resetPersonaLayout(currentPersona);
                   refreshDashlets();
                 }}
-                leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-                className="text-xs font-bold"
-              >
-                Reset Order
-              </Button>
+                icon={<RefreshCw className="w-4 h-4" />}
+                aria-label="Reset Layout"
+              />
             )}
             <Button
               variant={isCustomizing ? 'primary' : 'secondary'}

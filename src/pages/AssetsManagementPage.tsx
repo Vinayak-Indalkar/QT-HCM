@@ -31,7 +31,8 @@ import {
   RefreshCw,
   X,
   Upload,
-  ImageIcon
+  ImageIcon,
+  Download
 } from 'lucide-react';
 import { ITAsset, AssetCategory, AssetStatus, AssetCondition } from '../types/asset';
 import { ColumnDef } from '../types/common';
@@ -46,6 +47,7 @@ import { useToast } from '../context/ToastContext';
 import { useRole } from '../context/RoleContext';
 import {
   Button,
+  IconButton,
   Card,
   CardHeader,
   CardContent,
@@ -1751,7 +1753,7 @@ export const AssetsManagementPage: React.FC = () => {
       {/* Header Bar */}
       <PageHeader
         title="Corporate IT Assets Directory"
-        description="Comprehensive enterprise hardware registry. Search, multi-column sort, filter, customize columns, and execute batch operations."
+        description="Hardware inventory"
         badge={
           <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300">
             {assets.length} Total Inventory Records
@@ -1778,13 +1780,13 @@ export const AssetsManagementPage: React.FC = () => {
         enableExpanding={false}
         onRowClick={(asset) => setViewingAssetModal(asset)}
         extraHeaderActions={
-          <Button
+          <IconButton
             variant="secondary"
             size="sm"
             onClick={() => handleExportCSV([])}
-          >
-            Export All CSV
-          </Button>
+            icon={<Download className="w-4 h-4" />}
+            aria-label="Export All CSV"
+          />
         }
       />
 

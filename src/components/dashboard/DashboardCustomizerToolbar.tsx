@@ -4,6 +4,7 @@ import {
   resetPersonaLayout
 } from '../../services/dashboardCustomizationService';
 import { Button } from '../atoms/Button';
+import { IconButton } from '../atoms/IconButton';
 import {
   Sliders,
   RefreshCw,
@@ -53,15 +54,13 @@ export const DashboardCustomizerToolbar: React.FC<DashboardCustomizerToolbarProp
 
         <div className="flex items-center gap-2">
           {isCustomizing && (
-            <Button
+            <IconButton
               variant="secondary"
               size="sm"
               onClick={handleReset}
-              leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-              className="text-xs"
-            >
-              Reset Order
-            </Button>
+              icon={<RefreshCw className="w-4 h-4" />}
+              aria-label="Reset Layout"
+            />
           )}
 
           <Button

@@ -8,6 +8,7 @@ import {
   StatusIndicator,
   Avatar,
   Button,
+  IconButton,
   ConfirmDialog,
   Modal,
   Select,
@@ -38,7 +39,8 @@ import {
   Edit,
   UserX,
   UserMinus,
-  KeyRound
+  KeyRound,
+  Download
 } from 'lucide-react';
 
 export const CandidatesDirectoryPage: React.FC = () => {
@@ -486,7 +488,7 @@ export const CandidatesDirectoryPage: React.FC = () => {
     <div className="space-y-6 text-left animate-fade-in">
       <PageHeader
         title="Employee Directory"
-        description="Comprehensive employee onboarding records. Search, multi-column sort, filter, customize columns, and execute batch operations."
+        description="Workforce records"
         descriptionClassName="whitespace-nowrap overflow-hidden text-ellipsis"
         actions={
           <Button
@@ -509,14 +511,13 @@ export const CandidatesDirectoryPage: React.FC = () => {
         enableExpanding={false}
         onRowClick={(c) => handleOpenDossier(c)}
         extraHeaderActions={
-          <Button
+          <IconButton
             variant="secondary"
             size="sm"
             onClick={() => handleExportCSV([])}
-            className="text-xs"
-          >
-            Export All CSV
-          </Button>
+            icon={<Download className="w-4 h-4" />}
+            aria-label="Export All CSV"
+          />
         }
       />
 

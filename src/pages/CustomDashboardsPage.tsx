@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardContent,
   Button,
+  IconButton,
   StatCard,
   ConfirmDialog
 } from '../components';
@@ -1117,22 +1118,21 @@ export const CustomDashboardsPage: React.FC = () => {
     <div className="space-y-6 text-left animate-fade-in pb-16">
       <PageHeader
         title="Custom Dashboards"
-        description="Manage all enterprise dashlets, toggle dashlet visibility ON/OFF, and assign specific dashlets to Super Admin, HR, Manager, and Employee personas."
+        description="Operational dashlets"
         actions={
           <div className="flex flex-wrap items-center gap-2.5">
-            <Button
+            <IconButton
               variant="secondary"
               size="sm"
               onClick={handleResetToDefaults}
-              leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-              className="text-xs"
-            >
-              Reset to Defaults
-            </Button>
+              icon={<RefreshCw className="w-4 h-4" />}
+              aria-label="Reset to Defaults"
+            />
             <Button
               variant="primary"
               size="sm"
               onClick={handleOpenCreateDashlet}
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
               className="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs cursor-pointer"
             >
               Create Custom Dashlet

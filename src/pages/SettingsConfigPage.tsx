@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardContent,
   Button,
+  IconButton,
   Switch,
   ConfirmDialog
 } from '../components';
@@ -79,7 +80,7 @@ export const SettingsConfigPage: React.FC = () => {
     <div className="space-y-6 text-left w-full animate-fade-in pb-12">
       <PageHeader
         title="Settings & System Preferences"
-        description="Configure organization notifications, email dispatch preferences, workflow automations, and appearance."
+        description="System preferences"
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
@@ -287,14 +288,13 @@ export const SettingsConfigPage: React.FC = () => {
                     Currently using {mode === 'dark' ? 'High-contrast Dark' : 'Clean Light'} theme.
                   </span>
                 </div>
-                <Button
+                <IconButton
                   variant="secondary"
                   size="sm"
-                  leftIcon={mode === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" />}
+                  icon={mode === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600 dark:text-slate-300" />}
+                  aria-label={`Switch to ${mode === 'dark' ? 'Light' : 'Dark'} Mode`}
                   onClick={toggleTheme}
-                >
-                  Switch to {mode === 'dark' ? 'Light' : 'Dark'} Mode
-                </Button>
+                />
               </div>
             </CardContent>
           </Card>
@@ -313,15 +313,13 @@ export const SettingsConfigPage: React.FC = () => {
               <p className="text-xs text-slate-600 dark:text-slate-300 dark:text-slate-400">
                 Reset all local candidates, task checklists, and 10-step progress back to original seeded demo records.
               </p>
-              <Button
-                variant="secondary"
+              <IconButton
+                variant="destructive"
                 size="sm"
-                leftIcon={<RotateCcw className="w-3.5 h-3.5 text-rose-500" />}
+                icon={<RotateCcw className="w-4 h-4" />}
+                aria-label="Reset All Demo Data"
                 onClick={() => setShowResetConfirm(true)}
-                className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold"
-              >
-                Reset All Demo Data
-              </Button>
+              />
             </CardContent>
           </Card>
         </div>

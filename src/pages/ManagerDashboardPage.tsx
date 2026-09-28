@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardContent,
   Button,
+  IconButton,
   Avatar,
   StatCard
 } from '../components';
@@ -526,22 +527,20 @@ export const ManagerDashboardPage: React.FC = () => {
     <div className="space-y-6 text-left w-full animate-fade-in pb-12 flex-1">
       <PageHeader
         title="Manager Dashboard"
-        description="Oversee incoming team members, review Day 1 readiness, track shift attendance, and customize your live operational dashlets."
+        description="Team operations"
         actions={
           <div className="flex items-center gap-2">
             {isCustomizing && (
-              <Button
+              <IconButton
                 variant="secondary"
                 size="sm"
                 onClick={() => {
                   resetPersonaLayout('MANAGER');
                   refreshDashlets();
                 }}
-                leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-                className="text-xs font-bold"
-              >
-                Reset Order
-              </Button>
+                icon={<RefreshCw className="w-4 h-4" />}
+                aria-label="Reset Layout"
+              />
             )}
             <Button
               variant={isCustomizing ? 'primary' : 'secondary'}

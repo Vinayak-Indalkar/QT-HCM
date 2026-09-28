@@ -40,12 +40,12 @@ export const OrganizationSetupPage: React.FC<OrganizationSetupPageProps> = ({
   const [activeTab, setActiveTab] = useState<SetupSubTab>(initialTab);
 
   const tabs = [
-    { id: 'organization', label: 'Organization', icon: Building2, desc: 'Corporate legal entity & branding' },
-    { id: 'branches', label: 'Branches', icon: Building, desc: 'Multi-site branch network' },
-    { id: 'structure', label: 'Organization Structure', icon: Network, desc: 'Departments, designations & locations' },
-    { id: 'users', label: 'Users', icon: Users, desc: 'ERP system user accounts' },
-    { id: 'roles', label: 'Roles & Permissions', icon: ShieldCheck, desc: 'Granular RBAC access policies' },
-    { id: 'workflow', label: 'Workflow', icon: GitBranch, desc: 'Automated pipelines & approval gates' }
+    { id: 'organization', label: 'Organization', icon: Building2, desc: 'Entity & branding' },
+    { id: 'branches', label: 'Branches', icon: Building, desc: 'Branch network' },
+    { id: 'structure', label: 'Organization Structure', icon: Network, desc: 'Hierarchy & units' },
+    { id: 'users', label: 'Users', icon: Users, desc: 'User accounts' },
+    { id: 'roles', label: 'Roles & Permissions', icon: ShieldCheck, desc: 'Access policies' },
+    { id: 'workflow', label: 'Workflow', icon: GitBranch, desc: 'Approval gates' }
   ];
 
   return (
@@ -63,7 +63,7 @@ export const OrganizationSetupPage: React.FC<OrganizationSetupPageProps> = ({
               Enterprise Setup &amp; Organization Master
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Configure corporate identity, multi-site branches, RBAC privileges, organization structure, and automated workflows.
+              Enterprise configuration
             </p>
           </div>
         </div>

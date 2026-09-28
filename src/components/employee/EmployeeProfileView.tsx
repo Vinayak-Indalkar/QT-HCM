@@ -5,7 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import { useRole } from '../../context/RoleContext';
 import { Card, CardHeader, CardContent } from '../molecules';
 import { getCustomFields, CustomProfileField } from '../../services/customFieldsService';
-import { Button } from '../atoms';
+import { Button, IconButton } from '../atoms';
 import { Avatar } from '../atoms';
 import { formatDate, formatDateTime } from '../../utils/formatters';
 import {
@@ -2354,16 +2354,14 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
       {/* Top Back Navigation (Placed above tabs container) */}
       {onBack && (
         <div className="flex items-center justify-start">
-          <Button
+          <IconButton
             type="button"
             variant="secondary"
             size="sm"
             onClick={onBack}
-            leftIcon={<ArrowLeft className="w-4 h-4" />}
-            className="text-xs font-bold"
-          >
-            {readOnly ? 'Back to My Team' : 'Back to Employee Directory'}
-          </Button>
+            icon={<ArrowLeft className="w-4 h-4" />}
+            aria-label={readOnly ? 'Back to My Team' : 'Back to Employee Directory'}
+          />
         </div>
       )}
 

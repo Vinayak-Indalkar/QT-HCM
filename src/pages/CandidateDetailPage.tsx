@@ -5,6 +5,7 @@ import {
   StatusIndicator,
   Avatar,
   Button,
+  IconButton,
   Card,
   CardHeader,
   CardContent,
@@ -131,24 +132,22 @@ export const CandidateDetailPage: React.FC = () => {
         badge={<StatusIndicator status={selectedCandidate.status} />}
         actions={
           <div className="flex items-center gap-2">
-            <Button
+            <IconButton
               variant="secondary"
-              leftIcon={<History className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+              icon={<History className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+              aria-label={`Profile History (${selectedCandidate.auditLogs?.length || 0})`}
               onClick={() => setActiveTab('audit')}
-            >
-              Profile History ({selectedCandidate.auditLogs?.length || 0})
-            </Button>
+            />
             {selectedCandidate.status !== 'completed' && selectedCandidate.status !== 'rejected' && (
               <>
-                <Button
+                <IconButton
                   variant="secondary"
-                  leftIcon={<Mail className="w-4 h-4" aria-hidden="true" />}
+                  icon={<Mail className="w-4 h-4 text-slate-600 dark:text-slate-300" />}
+                  aria-label="Send Reminder Email"
                   onClick={() => {
                     addAuditLog(selectedCandidate.id, 'Reminder Sent', 'Sent email reminder regarding pending onboarding items.', 'info');
                   }}
-                >
-                  Send Reminder
-                </Button>
+                />
 
                 <Button
                   variant="primary"
@@ -158,13 +157,12 @@ export const CandidateDetailPage: React.FC = () => {
                   Complete Onboarding
                 </Button>
 
-                <Button
-                  variant="tertiary"
-                  className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                <IconButton
+                  variant="destructive"
+                  icon={<XCircle className="w-4 h-4" />}
+                  aria-label="Rescind Offer"
                   onClick={() => setShowRejectDialog(true)}
-                >
-                  Rescind Offer
-                </Button>
+                />
               </>
             )}
           </div>

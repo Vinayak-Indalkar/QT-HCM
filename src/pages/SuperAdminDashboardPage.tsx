@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useToast } from '../context/ToastContext';
-import { PageHeader, Button, Modal, ConfirmDialog } from '../components';
+import { PageHeader, Button, IconButton, Modal, ConfirmDialog } from '../components';
 import {
   getCustomFields,
   saveCustomFields,
@@ -1663,7 +1663,7 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
       {/* Top Header */}
       <PageHeader
         title="Enterprise System Configurations & Module Customizer"
-        description="Configure form specifications, operational requirements, mandatory policies, and dynamic attributes across all enterprise modules."
+        description="Module customizer"
       />
 
       {/* Top Executive KPI Metrics Summary Cards */}
@@ -1834,15 +1834,13 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <Button
+              <IconButton
                 variant="secondary"
                 size="sm"
                 onClick={() => handleOpenAddSectionModal('employee')}
-                leftIcon={<FolderPlus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />}
-                className="font-semibold text-xs border-slate-300 dark:border-slate-700"
-              >
-                Add Section
-              </Button>
+                icon={<FolderPlus className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+                aria-label="Add Section"
+              />
               <Button
                 variant="primary"
                 size="sm"
@@ -2264,15 +2262,13 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <Button
+              <IconButton
                 variant="secondary"
                 size="sm"
                 onClick={() => handleOpenAddSectionModal('assets')}
-                leftIcon={<FolderPlus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />}
-                className="font-semibold text-xs border-slate-300 dark:border-slate-700"
-              >
-                Add Section
-              </Button>
+                icon={<FolderPlus className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+                aria-label="Add Section"
+              />
               <Button
                 variant="primary"
                 size="sm"
@@ -2668,15 +2664,13 @@ export const SuperAdminDashboardPage: React.FC<SuperAdminDashboardPageProps> = (
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <Button
+              <IconButton
                 variant="secondary"
                 size="sm"
                 onClick={() => handleOpenAddSectionModal('steps')}
-                leftIcon={<FolderPlus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />}
-                className="font-semibold text-xs border-slate-300 dark:border-slate-700"
-              >
-                Add Category
-              </Button>
+                icon={<FolderPlus className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+                aria-label="Add Category"
+              />
               <Button
                 variant="primary"
                 size="sm"

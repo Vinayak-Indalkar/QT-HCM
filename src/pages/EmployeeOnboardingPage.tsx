@@ -6,7 +6,7 @@ import { StepGroupPersonalDocuments } from '../components/onboarding/steps/StepG
 import { StepGroupPoliciesAccount } from '../components/onboarding/steps/StepGroupPoliciesAccount';
 import { StepGroupWorkSetup } from '../components/onboarding/steps/StepGroupWorkSetup';
 import { StepReview } from '../components/onboarding/steps/StepReview';
-import { Button } from '../components';
+import { Button, IconButton } from '../components';
 import { CheckCircle2, RotateCcw, UserCheck } from 'lucide-react';
 
 export interface EmployeeOnboardingPageProps {
@@ -95,15 +95,14 @@ export const EmployeeOnboardingPage: React.FC<EmployeeOnboardingPageProps> = ({
           <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
             <CheckCircle2 className="w-3.5 h-3.5" /> Progress Autosaved
           </span>
-          <Button
+          <IconButton
             size="sm"
             variant="tertiary"
-            leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+            icon={<RotateCcw className="w-4 h-4" />}
             onClick={resetOnboarding}
-            className="text-xs text-slate-400 hover:text-slate-600"
-          >
-            Reset Demo
-          </Button>
+            aria-label="Reset Demo"
+            className="text-slate-400 hover:text-slate-600"
+          />
         </div>
       </div>
 

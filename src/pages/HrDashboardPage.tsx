@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardContent,
   Button,
+  IconButton,
   Avatar,
   StatCard
 } from '../components';
@@ -527,7 +528,7 @@ export const HrDashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Probation Review Due</h3>
-              <p className="text-xs text-slate-500">Upcoming 90-day confirmation appraisals</p>
+              <p className="text-xs text-slate-500">Appraisals queue</p>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">3 Due</span>
           </CardHeader>
@@ -559,7 +560,7 @@ export const HrDashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Documents Pending</h3>
-              <p className="text-xs text-slate-500">Missing statutory verification proofs</p>
+              <p className="text-xs text-slate-500">Missing proofs</p>
             </div>
             <button
               type="button"
@@ -704,22 +705,20 @@ export const HrDashboardPage: React.FC = () => {
     <div className="space-y-6 text-left w-full animate-fade-in pb-12 flex-1">
       <PageHeader
         title="HR Admin Dashboard"
-        description="Monitor candidates across the 10-step onboarding pipeline, inspect submitted paperwork, verify compliance, and customize your live operational dashlets."
+        description="Workforce pipeline"
         actions={
           <div className="flex items-center gap-2">
             {isCustomizing && (
-              <Button
+              <IconButton
                 variant="secondary"
                 size="sm"
                 onClick={() => {
                   resetPersonaLayout('HR');
                   refreshDashlets();
                 }}
-                leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-                className="text-xs font-bold"
-              >
-                Reset Order
-              </Button>
+                icon={<RefreshCw className="w-4 h-4" />}
+                aria-label="Reset Layout"
+              />
             )}
             <Button
               variant={isCustomizing ? 'primary' : 'secondary'}

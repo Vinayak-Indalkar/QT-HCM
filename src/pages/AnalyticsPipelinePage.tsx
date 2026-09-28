@@ -35,7 +35,7 @@ export const AnalyticsPipelinePage: React.FC = () => {
     <div className="space-y-6 text-left w-full animate-fade-in pb-12">
       <PageHeader
         title="Onboarding Pipeline Analytics"
-        description="Real-time operational metrics on time-to-productivity, department velocity, and candidate satisfaction."
+        description="Pipeline performance"
       />
 
       {/* High-level metrics */}
