@@ -3,10 +3,15 @@ import { useOnboarding } from '../context/OnboardingContext';
 import { useOnboardingFlow } from '../context/OnboardingFlowContext';
 import { useRole } from '../context/RoleContext';
 import { useToast } from '../context/ToastContext';
-import { PageHeader } from '../components/shell/PageHeader';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Avatar } from '../components/ui/Avatar';
+import {
+  PageHeader,
+  Card,
+  CardHeader,
+  CardContent,
+  Button,
+  Avatar,
+  StatCard
+} from '../components';
 import { AddEmployeeView } from '../components/employee/AddEmployeeView';
 import { ShareLinkModal } from '../components/modals/ShareLinkModal';
 import { EmployeeDossierModal, EmployeeDossierData } from '../components/modals/EmployeeDossierModal';
@@ -35,7 +40,6 @@ import {
 import { cn } from '../utils/cn';
 import { DashletCardWrapper } from '../components/dashboard/DashletCardWrapper';
 import { DynamicDashletChart } from '../components/dashboard/DynamicDashletChart';
-import { StatCard } from '../components/common/StatCard';
 import {
   Users,
   Eye,

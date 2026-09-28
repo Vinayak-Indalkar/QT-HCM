@@ -2,15 +2,17 @@ import React, { useState, useMemo } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 import { Candidate, OnboardingStatus } from '../types/candidate';
 import { ColumnDef } from '../types/common';
-import { PageHeader } from '../components/shell/PageHeader';
-import { DataTable } from '../components/table/DataTable';
-import { StatusIndicator } from '../components/ui/StatusIndicator';
-import { Avatar } from '../components/ui/Avatar';
-import { Button } from '../components/ui/Button';
-import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-import { Modal } from '../components/ui/Modal';
-import { Select } from '../components/ui/Select';
-import { ProgressBar } from '../components/common/ProgressBar';
+import {
+  PageHeader,
+  DataTable,
+  StatusIndicator,
+  Avatar,
+  Button,
+  ConfirmDialog,
+  Modal,
+  Select,
+  ProgressBar
+} from '../components';
 import { formatDate, formatCurrency } from '../utils/formatters';
 import { DEPARTMENTS } from '../services/mockData';
 import { AddEmployeeView } from '../components/employee/AddEmployeeView';

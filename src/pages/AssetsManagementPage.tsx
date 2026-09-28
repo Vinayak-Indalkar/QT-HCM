@@ -44,14 +44,18 @@ import {
 import { useOnboarding } from '../context/OnboardingContext';
 import { useToast } from '../context/ToastContext';
 import { useRole } from '../context/RoleContext';
-import { Button } from '../components/ui/Button';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Avatar } from '../components/ui/Avatar';
-import { Modal } from '../components/ui/Modal';
-import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-import { PageHeader } from '../components/shell/PageHeader';
-import { DataTable } from '../components/table/DataTable';
-import { FilterGroupConfig } from '../components/table/TableFilterBar';
+import {
+  Button,
+  Card,
+  CardHeader,
+  CardContent,
+  Avatar,
+  Modal,
+  ConfirmDialog,
+  PageHeader,
+  DataTable,
+  FilterGroupConfig
+} from '../components';
 import { formatDate, formatCurrency } from '../utils/formatters';
 
 export const AssetsManagementPage: React.FC = () => {

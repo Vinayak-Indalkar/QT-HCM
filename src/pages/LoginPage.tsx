@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import { useRole } from '../context/RoleContext';
 import { UserRole } from '../types/auth';
-import { Button } from '../components/ui/Button';
-import { TextInput } from '../components/ui/TextInput';
-import { Checkbox } from '../components/ui/Checkbox';
-import { Card } from '../components/ui/Card';
-import { QuantiraLogo } from '../components/atoms/Logo';
+import { Button, TextInput, Checkbox, Card, QuantiraLogo } from '../components';
 import {
   Shield,
   Users,

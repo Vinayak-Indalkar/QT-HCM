@@ -2,11 +2,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useOnboardingFlow } from '../context/OnboardingFlowContext';
 import { useRole } from '../context/RoleContext';
-import { PageHeader } from '../components/shell/PageHeader';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Avatar } from '../components/ui/Avatar';
-import { StatCard } from '../components/common/StatCard';
+import {
+  PageHeader,
+  Card,
+  CardHeader,
+  CardContent,
+  Button,
+  Avatar,
+  StatCard
+} from '../components';
 import {
   getDashletsForPersona,
   resetPersonaLayout,

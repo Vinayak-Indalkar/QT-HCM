@@ -6,7 +6,7 @@ import { StepGroupPersonalDocuments } from '../components/onboarding/steps/StepG
 import { StepGroupPoliciesAccount } from '../components/onboarding/steps/StepGroupPoliciesAccount';
 import { StepGroupWorkSetup } from '../components/onboarding/steps/StepGroupWorkSetup';
 import { StepReview } from '../components/onboarding/steps/StepReview';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components';
 import { CheckCircle2, RotateCcw, UserCheck } from 'lucide-react';
 
 export interface EmployeeOnboardingPageProps {

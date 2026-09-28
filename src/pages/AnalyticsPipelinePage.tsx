@@ -1,7 +1,6 @@
 import React from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
-import { PageHeader } from '../components/shell/PageHeader';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
+import { PageHeader, Card, CardHeader, CardContent } from '../components';
 import {
   BarChart3,
   TrendingUp,

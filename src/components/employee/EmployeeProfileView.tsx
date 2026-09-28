@@ -3,10 +3,10 @@ import { useOnboarding, ProfileTabId } from '../../context/OnboardingContext';
 import { useOnboardingFlow } from '../../context/OnboardingFlowContext';
 import { useToast } from '../../context/ToastContext';
 import { useRole } from '../../context/RoleContext';
-import { Card, CardHeader, CardContent } from '../ui/Card';
+import { Card, CardHeader, CardContent } from '../molecules';
 import { getCustomFields, CustomProfileField } from '../../services/customFieldsService';
-import { Button } from '../ui/Button';
-import { Avatar } from '../ui/Avatar';
+import { Button } from '../atoms';
+import { Avatar } from '../atoms';
 import { formatDate, formatDateTime } from '../../utils/formatters';
 import {
   RADIAN_PERSONA_AVATARS,
@@ -17,8 +17,8 @@ import {
 import { DocumentViewerModal, DocumentItem, downloadDocumentFile } from '../modals/DocumentViewerModal';
 import { AddDocumentModal } from '../modals/AddDocumentModal';
 import { EditDocumentModal } from '../modals/EditDocumentModal';
-import { Modal } from '../ui/Modal';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { Modal } from '../organisms';
+import { ConfirmDialog } from '../organisms';
 import { EmployeeIdBadge } from '../organisms/EmployeeIdBadge';
 import { ExecutiveBusinessCard } from '../organisms/ExecutiveBusinessCard';
 import { Candidate } from '../../types/candidate';

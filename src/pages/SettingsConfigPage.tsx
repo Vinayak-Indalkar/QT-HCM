@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
-import { PageHeader } from '../components/shell/PageHeader';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Switch } from '../components/ui/Switch';
-import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import {
+  PageHeader,
+  Card,
+  CardHeader,
+  CardContent,
+  Button,
+  Switch,
+  ConfirmDialog
+} from '../components';
 import {
   Settings,
   Sun,

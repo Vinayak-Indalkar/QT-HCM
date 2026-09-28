@@ -4,12 +4,16 @@ import { useRole } from '../context/RoleContext';
 import { useToast } from '../context/ToastContext';
 import { UserRole } from '../types/auth';
 import { getAssets, ITAsset } from '../services/assetService';
-import { PageHeader } from '../components/shell/PageHeader';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Button } from '../components/atoms/Button';
-import { StatCard } from '../components/common/StatCard';
+import {
+  PageHeader,
+  Card,
+  CardHeader,
+  CardContent,
+  Button,
+  StatCard,
+  ConfirmDialog
+} from '../components';
 import { DynamicDashletChart } from '../components/dashboard/DynamicDashletChart';
-import { ConfirmDialog } from '../components/organisms/ConfirmDialog';
 import {
   getMasterDashlets,
   saveMasterDashlets,

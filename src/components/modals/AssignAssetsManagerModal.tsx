@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Modal } from '../ui/Modal';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
-import { Button } from '../ui/Button';
-import { TextInput } from '../ui/TextInput';
-import { Select } from '../ui/Select';
+import { Modal } from '../organisms';
+import { ConfirmDialog } from '../organisms';
+import { Button } from '../atoms';
+import { TextInput } from '../atoms';
+import { Select } from '../atoms';
 import { Candidate } from '../../types/candidate';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { useToast } from '../../context/ToastContext';

@@ -7,9 +7,7 @@ import { OnboardingFlowProvider, useOnboardingFlow } from './context/OnboardingF
 import { OnboardingProvider, useOnboarding } from './context/OnboardingContext';
 import { TourProvider } from './context/TourContext';
 
-import { AppLayout } from './components/shell/AppLayout';
-import { ErrorBoundary } from './components/feedback/ErrorBoundary';
-import { PageSkeleton } from './components/feedback/PageSkeleton';
+import { AppLayout, ErrorBoundary, PageSkeleton } from './components';
 import { TourGuideModal } from './components/tour/TourGuideModal';
 
 // Code-split dynamic page imports for optimal bundle performance

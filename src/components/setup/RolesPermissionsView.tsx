@@ -7,8 +7,8 @@ import {
   DEFAULT_ROLES_MATRIX,
   DEFAULT_MODULE_PERMISSIONS
 } from '../../services/organizationSetupService';
-import { Button } from '../ui/Button';
-import { Modal } from '../ui/Modal';
+import { Button } from '../atoms';
+import { Modal } from '../organisms';
 import { useToast } from '../../context/ToastContext';
 import {
   ShieldCheck,

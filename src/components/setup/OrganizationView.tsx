@@ -5,7 +5,7 @@ import {
   saveOrganizationProfile,
   DEFAULT_ORG_PROFILE
 } from '../../services/organizationSetupService';
-import { Button } from '../ui/Button';
+import { Button } from '../atoms';
 import { useToast } from '../../context/ToastContext';
 import {
   Building2,

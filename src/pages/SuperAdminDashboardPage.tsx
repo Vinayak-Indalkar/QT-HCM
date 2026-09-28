@@ -1,9 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useToast } from '../context/ToastContext';
-import { PageHeader } from '../components/shell/PageHeader';
-import { Button } from '../components/ui/Button';
-import { Modal } from '../components/ui/Modal';
-import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { PageHeader, Button, Modal, ConfirmDialog } from '../components';
 import {
   getCustomFields,
   saveCustomFields,

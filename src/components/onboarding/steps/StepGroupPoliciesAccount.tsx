@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useOnboardingFlow } from '../../../context/OnboardingFlowContext';
-import { Button } from '../../ui/Button';
-import { Checkbox } from '../../ui/Checkbox';
-import { TextInput } from '../../ui/TextInput';
-import { Card } from '../../ui/Card';
-import { FileUpload } from '../../ui/FileUpload';
-import { Modal } from '../../ui/Modal';
+import { Button } from '../../atoms';
+import { Checkbox } from '../../atoms';
+import { TextInput } from '../../atoms';
+import { Card } from '../../molecules';
+import { FileUpload } from '../../organisms';
+import { Modal } from '../../organisms';
 import { formatDateTime } from '../../../utils/formatters';
 import {
   ArrowRight,

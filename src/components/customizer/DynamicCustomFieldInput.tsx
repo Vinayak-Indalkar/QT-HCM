@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { CustomProfileField, AssetFieldConfig } from '../../services/customFieldsService';
-import { TextInput } from '../ui/TextInput';
-import { TextArea } from '../ui/TextArea';
-import { Select } from '../ui/Select';
-import { DatePicker } from '../ui/DatePicker';
-import { Switch } from '../ui/Switch';
-import { Checkbox } from '../ui/Checkbox';
+import { TextInput } from '../atoms';
+import { TextArea } from '../atoms';
+import { Select } from '../atoms';
+import { DatePicker } from '../atoms';
+import { Switch } from '../atoms';
+import { Checkbox } from '../atoms';
 import {
   UploadCloud,
   FileText,

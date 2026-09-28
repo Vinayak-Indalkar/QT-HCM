@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Modal } from '../components/ui/Modal';
-import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { Card, CardHeader, CardContent, Button, Modal, ConfirmDialog } from '../components';
 import { useToast } from '../context/ToastContext';
 import { useRole } from '../context/RoleContext';
 import { formatDate } from '../utils/formatters';

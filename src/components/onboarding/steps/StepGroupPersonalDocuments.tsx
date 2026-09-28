@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOnboardingFlow } from '../../../context/OnboardingFlowContext';
-import { TextInput } from '../../ui/TextInput';
-import { Select } from '../../ui/Select';
-import { FormSection } from '../../ui/FormSection';
-import { Button } from '../../ui/Button';
-import { FileUpload } from '../../ui/FileUpload';
+import { TextInput } from '../../atoms';
+import { Select } from '../../atoms';
+import { FormSection } from '../../molecules';
+import { Button } from '../../atoms';
+import { FileUpload } from '../../organisms';
 import {
   User,
   ArrowRight,
@@ -34,7 +34,7 @@ import {
   Award,
   Hash
 } from 'lucide-react';
-import { Modal } from '../../ui/Modal';
+import { Modal } from '../../organisms';
 import { getCustomFields, CustomProfileField } from '../../../services/customFieldsService';
 import { getRadianAvatarByName, getAvatarByGender } from '../../../utils/radianAvatars';
 

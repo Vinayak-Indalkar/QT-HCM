@@ -1,7 +1,7 @@
 import React from 'react';
-import { Modal } from '../ui/Modal';
+import { Modal } from '../organisms';
 import { RADIAN_PERSONA_AVATARS } from '../../utils/radianAvatars';
-import { Button } from '../ui/Button';
+import { Button } from '../atoms';
 import { formatDate } from '../../utils/formatters';
 import {
   FileText,

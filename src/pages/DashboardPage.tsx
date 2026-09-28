@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
-import { PageHeader } from '../components/shell/PageHeader';
-import { StatCard } from '../components/common/StatCard';
-import { Button } from '../components/ui/Button';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { StatusIndicator } from '../components/ui/StatusIndicator';
-import { Avatar } from '../components/ui/Avatar';
+import {
+  PageHeader,
+  StatCard,
+  Button,
+  Card,
+  CardHeader,
+  CardContent,
+  StatusIndicator,
+  Avatar
+} from '../components';
 import { formatDate } from '../utils/formatters';
 import { getAssets } from '../services/assetService';
 import {

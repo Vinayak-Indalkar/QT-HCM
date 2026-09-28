@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
-import { TextInput } from '../ui/TextInput';
+import { Modal } from '../organisms';
+import { Button } from '../atoms';
+import { TextInput } from '../atoms';
 import { Candidate } from '../../types/candidate';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { useToast } from '../../context/ToastContext';

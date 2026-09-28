@@ -16,8 +16,8 @@ import {
 import { useOnboarding } from '../../context/OnboardingContext';
 import { getAssets } from '../../services/assetService';
 import { DynamicCustomFieldInput } from './DynamicCustomFieldInput';
-import { Button } from '../ui/Button';
-import { Switch } from '../ui/Switch';
+import { Button } from '../atoms';
+import { Switch } from '../atoms';
 import {
   ArrowLeft,
   Check,

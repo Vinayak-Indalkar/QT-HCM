@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useOnboardingFlow } from '../../../context/OnboardingFlowContext';
-import { Button } from '../../ui/Button';
-import { Card } from '../../ui/Card';
-import { Avatar } from '../../ui/Avatar';
-import { ConfirmDialog } from '../../ui/ConfirmDialog';
+import { Button } from '../../atoms';
+import { Card } from '../../molecules';
+import { Avatar } from '../../atoms';
+import { ConfirmDialog } from '../../organisms';
 import { formatDate, formatDateTime } from '../../../utils/formatters';
 import confetti from 'canvas-confetti';
 import {

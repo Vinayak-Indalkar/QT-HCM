@@ -1,11 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 import { Candidate } from '../types/candidate';
-import { PageHeader } from '../components/shell/PageHeader';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Avatar } from '../components/ui/Avatar';
-import { StatCard } from '../components/common/StatCard';
+import {
+  PageHeader,
+  Card,
+  CardHeader,
+  CardContent,
+  Button,
+  Avatar,
+  StatCard
+} from '../components';
 import { EmployeeDossierModal, EmployeeDossierData } from '../components/modals/EmployeeDossierModal';
 import { formatDate } from '../utils/formatters';
 import { getAssets } from '../services/assetService';

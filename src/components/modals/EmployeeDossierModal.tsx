@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
-import { Avatar } from '../ui/Avatar';
-import { StatusIndicator } from '../ui/StatusIndicator';
-import { ProgressBar } from '../common/ProgressBar';
+import { Modal } from '../organisms';
+import { Button } from '../atoms';
+import { Avatar } from '../atoms';
+import { StatusIndicator } from '../atoms';
+import { ProgressBar } from '../molecules';
 import { formatDate } from '../../utils/formatters';
 import { useToast } from '../../context/ToastContext';
 import { DocumentViewerModal, DocumentItem } from './DocumentViewerModal';

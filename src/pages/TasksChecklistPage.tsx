@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
-import { PageHeader } from '../components/shell/PageHeader';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Checkbox } from '../components/ui/Checkbox';
+import { PageHeader, Card, CardHeader, CardContent, Button, Checkbox } from '../components';
 import { formatDate } from '../utils/formatters';
 import {
   CheckSquare,

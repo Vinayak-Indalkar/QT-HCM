@@ -23,13 +23,13 @@ import {
   HardDrive,
   Tag
 } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { Card, CardHeader, CardContent } from '../ui/Card';
-import { TextInput } from '../ui/TextInput';
-import { Select } from '../ui/Select';
-import { DatePicker } from '../ui/DatePicker';
-import { Modal } from '../ui/Modal';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { Button } from '../atoms';
+import { Card, CardHeader, CardContent } from '../molecules';
+import { TextInput } from '../atoms';
+import { Select } from '../atoms';
+import { DatePicker } from '../atoms';
+import { Modal } from '../organisms';
+import { ConfirmDialog } from '../organisms';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { useOnboardingFlow, INITIAL_ONBOARDING_DATA } from '../../context/OnboardingFlowContext';
 import { useRole } from '../../context/RoleContext';

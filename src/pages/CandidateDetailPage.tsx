@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
-import { PageHeader } from '../components/shell/PageHeader';
-import { StatusIndicator } from '../components/ui/StatusIndicator';
-import { Avatar } from '../components/ui/Avatar';
-import { Button } from '../components/ui/Button';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Tabs } from '../components/ui/Tabs';
-import { ProgressBar } from '../components/common/ProgressBar';
-import { AuditTimeline } from '../components/common/AuditTimeline';
-import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-import { Modal } from '../components/ui/Modal';
-import { TextArea } from '../components/ui/TextArea';
+import {
+  PageHeader,
+  StatusIndicator,
+  Avatar,
+  Button,
+  Card,
+  CardHeader,
+  CardContent,
+  Tabs,
+  ProgressBar,
+  AuditTimeline,
+  ConfirmDialog,
+  Modal,
+  TextArea
+} from '../components';
 import { formatDate, formatCurrency } from '../utils/formatters';
 import confetti from 'canvas-confetti';
 import { EmployeeDashboardPage } from './EmployeeDashboardPage';

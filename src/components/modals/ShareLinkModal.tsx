@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
+import { Modal } from '../organisms';
+import { Button } from '../atoms';
 import { useToast } from '../../context/ToastContext';
 import { Copy, Check, ExternalLink, Mail, Link as LinkIcon, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
