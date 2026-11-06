@@ -86,7 +86,7 @@ export const DashboardCustomizerToolbar: React.FC<DashboardCustomizerToolbarProp
           <div className="flex items-center gap-2.5 text-blue-900 dark:text-blue-200">
             <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
             <span>
-              <strong>Full Layout Movement Active:</strong> Use the <strong>Top, Bottom, Left, Right, Up,</strong> and <strong>Down</strong> controls on any dashlet to move it everywhere, or click <strong>Hide</strong> to remove it.
+              <strong>Layout Customization Active:</strong> Use the directional arrow icons to reposition any card, adjust width and height with the steppers, or click the eye icon to hide.
             </span>
           </div>
           <button

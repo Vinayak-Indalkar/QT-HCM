@@ -1,3 +1,5 @@
+import { storageService } from './storageService';
+
 export interface CorporateDocument {
   id: string;
   title: string;
@@ -284,12 +286,10 @@ export const getCorporateDocuments = (): CorporateDocument[] => {
 };
 
 export const saveCorporateDocuments = (documents: CorporateDocument[]): void => {
+  storageService.setItem(STORAGE_KEY, documents);
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(documents));
     window.dispatchEvent(new CustomEvent('quantira_documents_updated'));
-  } catch (err) {
-    console.error('Failed to save corporate documents to storage', err);
-  }
+  } catch {}
 };
 
 export const addCorporateDocument = (

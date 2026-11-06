@@ -80,7 +80,6 @@ import {
   Activity,
   Gauge,
   CircleDot,
-  ArrowLeft,
   Database,
   Table,
   PlusCircle,
@@ -483,20 +482,11 @@ export const CustomDashboardsPage: React.FC = () => {
               ? 'Modify dashlet configuration, chart visualization type, metric thresholds, and persona assignments.'
               : 'Configure your custom dashlet, select from 8 amCharts 5 visualization types, and assign it to Super Admin, HR, Manager, or Employee personas.'
           }
-          actions={
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                setIsAddDashletOpen(false);
-                setEditingDashlet(null);
-              }}
-              leftIcon={<ArrowLeft className="w-4 h-4" />}
-              className="text-xs font-semibold cursor-pointer"
-            >
-              Back to Custom Dashboards
-            </Button>
-          }
+          onBack={() => {
+            setIsAddDashletOpen(false);
+            setEditingDashlet(null);
+          }}
+          backLabel="Back to Custom Dashboards"
         />
 
         <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
@@ -509,9 +499,6 @@ export const CustomDashboardsPage: React.FC = () => {
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
                   {editingDashlet ? `Edit Dashlet Configuration (${editingDashlet.id})` : 'Custom Dashlet Configuration & Visualization'}
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Update the dashlet properties below. Your chart or KPI preview will update interactively in real-time.
-                </p>
               </div>
             </div>
           </CardHeader>
@@ -1288,9 +1275,6 @@ export const CustomDashboardsPage: React.FC = () => {
                   <SlidersHorizontal className="w-4 h-4 text-blue-600" />
                   Dashlet Registry &amp; Persona Assignment Table ({filteredDashlets.length} Dashlets)
                 </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Toggle the <span className="font-semibold text-emerald-600 dark:text-emerald-400">ON / OFF</span> switch to enable/disable any dashlet. Click any persona badge to assign or unassign the dashlet.
-                </p>
               </div>
             </CardHeader>
 

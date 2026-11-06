@@ -132,7 +132,6 @@ export const DashboardPage: React.FC = () => {
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                 Recent Joiners &amp; Pipeline Status
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Recent arrivals</p>
             </div>
             <Button
               variant="tertiary"
@@ -196,7 +195,6 @@ export const DashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Recent Exits &amp; Offboarding</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Offboarding pipeline</p>
             </div>
             <span className="text-[11px] font-bold text-slate-500">Last 30 Days</span>
           </CardHeader>
@@ -228,7 +226,6 @@ export const DashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Pending HR Actions</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Action items</p>
             </div>
             <Button variant="tertiary" size="sm" onClick={() => navigateTo('tasks')}>
               All Tasks
@@ -268,7 +265,6 @@ export const DashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">System &amp; Integration Alerts</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Infra status</p>
             </div>
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Live Health" />
           </CardHeader>

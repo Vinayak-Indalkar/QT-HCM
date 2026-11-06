@@ -6,6 +6,7 @@ import { UserProfile } from '../types/common';
 import { INITIAL_CANDIDATES, ALL_ONBOARDING_TASKS, CURRENT_USER } from '../services/mockData';
 import { useToast } from './ToastContext';
 import { getEffectiveAvatar } from '../utils/radianAvatars';
+import { storageService } from '../services/storageService';
 
 export type NavigationPage =
   | 'dashboard'
@@ -73,17 +74,15 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const [candidates, setCandidates] = useState<Candidate[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_CANDIDATES);
-      if (saved) {
-        const parsed: Candidate[] = JSON.parse(saved);
+      const parsed = storageService.getItem<Candidate[] | null>(STORAGE_KEY_CANDIDATES, null);
+      if (parsed && Array.isArray(parsed)) {
         if (!parsed.some(c => c.id === 'EMP-2024-0847')) {
           parsed.unshift(INITIAL_CANDIDATES[0]);
-          try {
-            localStorage.setItem(STORAGE_KEY_CANDIDATES, JSON.stringify(parsed));
-          } catch {}
+          storageService.setItem(STORAGE_KEY_CANDIDATES, parsed);
         }
         return parsed.map((c) => ({
           ...c,
+          onboardingType: c.onboardingType || (c.employmentType === 'Contractor' ? 'contract' : 'general'),
           avatarUrl: getEffectiveAvatar(c, c.gender, `${c.firstName} ${c.lastName}`)
         }));
       }
@@ -92,15 +91,16 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
     return INITIAL_CANDIDATES.map((c) => ({
       ...c,
+      onboardingType: c.onboardingType || (c.employmentType === 'Contractor' ? 'contract' : 'general'),
       avatarUrl: getEffectiveAvatar(c, c.gender, `${c.firstName} ${c.lastName}`)
     }));
   });
 
   const [tasks, setTasks] = useState<OnboardingTask[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_TASKS);
-      if (saved) {
-        return JSON.parse(saved);
+      const savedTasks = storageService.getItem<OnboardingTask[] | null>(STORAGE_KEY_TASKS, null);
+      if (savedTasks && Array.isArray(savedTasks)) {
+        return savedTasks;
       }
     } catch {
       // fallback
@@ -116,13 +116,13 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [activeProfileTab, setActiveProfileTab] = useState<ProfileTabId>('overview');
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
 
-  // Sync to LocalStorage
+  // Sync to LocalStorage safely
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_CANDIDATES, JSON.stringify(candidates));
+    storageService.setItem(STORAGE_KEY_CANDIDATES, candidates);
   }, [candidates]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks));
+    storageService.setItem(STORAGE_KEY_TASKS, tasks);
   }, [tasks]);
 
   // Sync profile photo updates across all candidates & current user in real time

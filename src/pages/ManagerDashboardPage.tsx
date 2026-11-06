@@ -118,6 +118,15 @@ export const ManagerDashboardPage: React.FC = () => {
       workLocation: candidate.officeLocation || 'San Francisco HQ',
       workModel: candidate.workModel || 'Hybrid',
       employmentType: candidate.employmentType || 'Full-time',
+      onboardingType: candidate.onboardingType || (candidate.employmentType === 'Contractor' ? 'contract' : 'general'),
+      contractDuration: candidate.contractDuration,
+      contractAgency: candidate.contractAgency,
+      contractEndDate: candidate.contractEndDate,
+      contractRate: candidate.contractRate,
+      contractTaxType: candidate.contractTaxType,
+      preOnboardingStage: candidate.preOnboardingStage,
+      targetOnboardDate: candidate.targetOnboardDate,
+      conversionEligibilityDate: candidate.conversionEligibilityDate,
       status: candidate.status,
       progress: candidate.progress,
       manager: candidate.manager || 'Marcus Brody',
@@ -206,7 +215,6 @@ export const ManagerDashboardPage: React.FC = () => {
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                   Manager Action &amp; Kickoff Checklist
                 </h3>
-                <p className="text-xs text-slate-500">Day-1 gates &amp; team readiness items</p>
               </div>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300">
@@ -251,7 +259,6 @@ export const ManagerDashboardPage: React.FC = () => {
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white">
                   Direct Reports &amp; Team Roster ({teamMembers.length} Members)
                 </h2>
-                <p className="text-xs text-slate-500">Live progress rings &amp; dossier inspections</p>
               </div>
             </div>
 
@@ -300,6 +307,23 @@ export const ManagerDashboardPage: React.FC = () => {
                         <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 shrink-0">
                           {member.workModel}
                         </span>
+                        {member.onboardingType === 'contract' ? (
+                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300 shrink-0">
+                            Contract ({member.contractDuration || '6M'})
+                          </span>
+                        ) : member.onboardingType === 'contract_to_hire' ? (
+                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 shrink-0">
+                            C2H ({member.contractDuration || '6M'})
+                          </span>
+                        ) : member.onboardingType === 'pre_onboarding' ? (
+                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 shrink-0">
+                            Pre-onboard
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 shrink-0">
+                            Full-time
+                          </span>
+                        )}
                       </div>
                       <span className="text-[11px] text-slate-500 truncate">
                         {member.jobTitle} • {member.department}
@@ -351,7 +375,6 @@ export const ManagerDashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Pending Leave Requests</h3>
-              <p className="text-xs text-slate-500">Requires manager clearance</p>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300">2 Requests</span>
           </CardHeader>
@@ -387,7 +410,6 @@ export const ManagerDashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Pending Timesheets</h3>
-              <p className="text-xs text-slate-500">Weekly project hours verification</p>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700">2 Submitted</span>
           </CardHeader>
@@ -420,7 +442,6 @@ export const ManagerDashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Performance Reviews Due</h3>
-              <p className="text-xs text-slate-500">1-on-1 appraisals &amp; scoring</p>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800">2 Due</span>
           </CardHeader>

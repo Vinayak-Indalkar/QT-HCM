@@ -102,12 +102,6 @@ export const DashletCardWrapper: React.FC<DashletCardWrapperProps> = ({
     handleWidthChange(nextSpan);
   };
 
-  const handleHeightPresetChange = (preset: DashletHeightPreset) => {
-    const presetPx = preset === 'compact' ? 140 : preset === 'tall' ? 440 : 260;
-    setLiveHeight(presetPx);
-    setDashletSizeForPersona(role, id, liveColSpan, preset, presetPx);
-    onLayoutUpdated?.();
-  };
 
   const handleStepHeight = (deltaPx: number) => {
     const newPx = Math.max(120, Math.min(900, liveHeight + deltaPx));
@@ -211,36 +205,34 @@ export const DashletCardWrapper: React.FC<DashletCardWrapperProps> = ({
     >
       {/* Customizer Directional & Sizing Control Bar */}
       <div className="space-y-1.5 mb-2 relative z-10">
-        {/* Row 1: Item Info & 6-Way Directional Move Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/95 dark:bg-slate-900/95 border border-blue-200 dark:border-blue-900/70 shadow-xs backdrop-blur-xs text-xs">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <GripVertical className="w-3.5 h-3.5 text-blue-500 shrink-0 cursor-grab" />
-            <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold text-[10px] shrink-0">
+        {/* Row 1: Item Identity & Icon-Only Navigation + Hide Actions */}
+        <div className="flex items-center justify-between gap-1.5 px-2 py-1 rounded-lg bg-white/95 dark:bg-slate-900/95 border border-blue-200/80 dark:border-blue-900/70 shadow-xs backdrop-blur-xs text-xs">
+          <div className="flex items-center gap-1 min-w-0">
+            <GripVertical className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0 cursor-grab" />
+            <span className="px-1.5 py-0.2 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold text-[10px] shrink-0">
               #{index + 1}
             </span>
             {title && (
-              <span className="font-semibold text-slate-800 dark:text-slate-200 truncate text-[11px] max-w-[130px] sm:max-w-[180px]">
+              <span className="font-bold text-slate-800 dark:text-slate-200 truncate text-xs">
                 {title}
               </span>
             )}
           </div>
 
-          {/* 6-Way Directional Move Controls */}
-          <div className="flex items-center gap-1 shrink-0 flex-wrap">
+          {/* Icon-Only Movement & Visibility Controls */}
+          <div className="flex items-center gap-0.5 shrink-0 bg-slate-50 dark:bg-slate-800/80 p-0.5 rounded-md border border-slate-200/70 dark:border-slate-700">
             <button
               type="button"
               disabled={isFirst}
               onClick={() => handleMove('top')}
               className={cn(
-                'p-1 sm:px-1.5 sm:py-0.5 rounded text-[10px] font-bold flex items-center gap-0.5 transition-all cursor-pointer',
-                isFirst
-                  ? 'opacity-30 cursor-not-allowed text-slate-400 bg-slate-100 dark:bg-slate-800'
-                  : 'text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/80 hover:bg-indigo-100 dark:hover:bg-indigo-900'
+                'p-1 rounded text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer',
+                isFirst && 'opacity-25 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent'
               )}
-              title="Move to Very Top"
+              title="Move to very top"
+              aria-label="Move to very top"
             >
-              <ChevronsUp className="w-3 h-3" />
-              <span className="hidden md:inline">Top</span>
+              <ChevronsUp className="w-3.5 h-3.5" />
             </button>
 
             <button
@@ -248,15 +240,13 @@ export const DashletCardWrapper: React.FC<DashletCardWrapperProps> = ({
               disabled={isFirst}
               onClick={() => handleMove('up')}
               className={cn(
-                'p-1 sm:px-1.5 sm:py-0.5 rounded text-[10px] font-bold flex items-center gap-0.5 transition-all cursor-pointer',
-                isFirst
-                  ? 'opacity-30 cursor-not-allowed text-slate-400 bg-slate-100 dark:bg-slate-800'
-                  : 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 dark:hover:bg-blue-900'
+                'p-1 rounded text-blue-600 dark:text-blue-400 hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer',
+                isFirst && 'opacity-25 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent'
               )}
-              title="Move Up"
+              title="Move up"
+              aria-label="Move up"
             >
-              <ArrowUp className="w-3 h-3" />
-              <span className="hidden sm:inline">Up</span>
+              <ArrowUp className="w-3.5 h-3.5" />
             </button>
 
             <button
@@ -264,15 +254,13 @@ export const DashletCardWrapper: React.FC<DashletCardWrapperProps> = ({
               disabled={isFirst}
               onClick={() => handleMove('left')}
               className={cn(
-                'p-1 sm:px-1.5 sm:py-0.5 rounded text-[10px] font-bold flex items-center gap-0.5 transition-all cursor-pointer',
-                isFirst
-                  ? 'opacity-30 cursor-not-allowed text-slate-400 bg-slate-100 dark:bg-slate-800'
-                  : 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 dark:hover:bg-blue-900'
+                'p-1 rounded text-blue-600 dark:text-blue-400 hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer',
+                isFirst && 'opacity-25 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent'
               )}
-              title="Move Left"
+              title="Move left"
+              aria-label="Move left"
             >
-              <ArrowLeft className="w-3 h-3" />
-              <span className="hidden sm:inline">Left</span>
+              <ArrowLeft className="w-3.5 h-3.5" />
             </button>
 
             <button
@@ -280,15 +268,13 @@ export const DashletCardWrapper: React.FC<DashletCardWrapperProps> = ({
               disabled={isLast}
               onClick={() => handleMove('right')}
               className={cn(
-                'p-1 sm:px-1.5 sm:py-0.5 rounded text-[10px] font-bold flex items-center gap-0.5 transition-all cursor-pointer',
-                isLast
-                  ? 'opacity-30 cursor-not-allowed text-slate-400 bg-slate-100 dark:bg-slate-800'
-                  : 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 dark:hover:bg-blue-900'
+                'p-1 rounded text-blue-600 dark:text-blue-400 hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer',
+                isLast && 'opacity-25 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent'
               )}
-              title="Move Right"
+              title="Move right"
+              aria-label="Move right"
             >
-              <span className="hidden sm:inline">Right</span>
-              <ArrowRight className="w-3 h-3" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
 
             <button
@@ -296,15 +282,13 @@ export const DashletCardWrapper: React.FC<DashletCardWrapperProps> = ({
               disabled={isLast}
               onClick={() => handleMove('down')}
               className={cn(
-                'p-1 sm:px-1.5 sm:py-0.5 rounded text-[10px] font-bold flex items-center gap-0.5 transition-all cursor-pointer',
-                isLast
-                  ? 'opacity-30 cursor-not-allowed text-slate-400 bg-slate-100 dark:bg-slate-800'
-                  : 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 dark:hover:bg-blue-900'
+                'p-1 rounded text-blue-600 dark:text-blue-400 hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer',
+                isLast && 'opacity-25 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent'
               )}
-              title="Move Down"
+              title="Move down"
+              aria-label="Move down"
             >
-              <span className="hidden sm:inline">Down</span>
-              <ArrowDown className="w-3 h-3" />
+              <ArrowDown className="w-3.5 h-3.5" />
             </button>
 
             <button
@@ -312,155 +296,109 @@ export const DashletCardWrapper: React.FC<DashletCardWrapperProps> = ({
               disabled={isLast}
               onClick={() => handleMove('bottom')}
               className={cn(
-                'p-1 sm:px-1.5 sm:py-0.5 rounded text-[10px] font-bold flex items-center gap-0.5 transition-all cursor-pointer',
-                isLast
-                  ? 'opacity-30 cursor-not-allowed text-slate-400 bg-slate-100 dark:bg-slate-800'
-                  : 'text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/80 hover:bg-indigo-100 dark:hover:bg-indigo-900'
+                'p-1 rounded text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer',
+                isLast && 'opacity-25 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent'
               )}
-              title="Move to Very Bottom"
+              title="Move to very bottom"
+              aria-label="Move to very bottom"
             >
-              <ChevronsDown className="w-3 h-3" />
-              <span className="hidden md:inline">Bottom</span>
+              <ChevronsDown className="w-3.5 h-3.5" />
             </button>
+
+            <div className="w-px h-3.5 bg-slate-200 dark:bg-slate-700 mx-0.5" />
 
             <button
               type="button"
               onClick={handleRemove}
-              className="p-1 rounded-md text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer ml-0.5"
-              title="Hide from this dashboard"
+              className="p-1 rounded text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer"
+              title="Hide from dashboard"
+              aria-label="Hide from dashboard"
             >
               <EyeOff className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Row 2: Manual Granular Width & Height Adjustment Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100/95 dark:bg-slate-800/95 border border-slate-200 dark:border-slate-700 text-[10px]">
-          {/* Manual Width Stepper + Presets */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
-              <Columns className="w-3 h-3 text-blue-600 dark:text-blue-400" /> Width:
+        {/* Row 2: Icon-Only Width & Height Steppers + Reset */}
+        <div className="flex items-center justify-between gap-1.5 px-2 py-1 rounded-lg bg-white/95 dark:bg-slate-900/95 border border-slate-200/80 dark:border-slate-800 shadow-2xs backdrop-blur-xs text-xs">
+          {/* Width Stepper */}
+          <div className="flex items-center gap-1">
+            <span title="Card width (columns out of 12)" className="text-blue-600 dark:text-blue-400 flex items-center">
+              <Columns className="w-3.5 h-3.5" />
             </span>
-
-            <div className="inline-flex items-center rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-0.5 shadow-2xs">
+            <div className="inline-flex items-center rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 p-0.5">
               <button
                 type="button"
                 disabled={liveColSpan <= 1}
                 onClick={() => handleStepWidth(-1)}
-                className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 text-slate-600 dark:text-slate-300 cursor-pointer disabled:cursor-not-allowed"
+                className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 disabled:opacity-25 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer disabled:cursor-not-allowed"
                 title="Decrease width by 1 column"
+                aria-label="Decrease width"
               >
                 <Minus className="w-2.5 h-2.5" />
               </button>
-              <span className="px-1.5 py-0.5 font-extrabold text-[10px] text-blue-700 dark:text-blue-300 min-w-[58px] text-center">
-                {liveColSpan}/12 ({widthPercentage}%)
+              <span className="px-1.5 font-bold text-[10px] text-blue-700 dark:text-blue-300 min-w-[36px] text-center select-none" title={`Width: ${liveColSpan} of 12 columns (${widthPercentage}%)`}>
+                {liveColSpan}/12
               </span>
               <button
                 type="button"
                 disabled={liveColSpan >= 12}
                 onClick={() => handleStepWidth(1)}
-                className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 text-slate-600 dark:text-slate-300 cursor-pointer disabled:cursor-not-allowed"
+                className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 disabled:opacity-25 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer disabled:cursor-not-allowed"
                 title="Increase width by 1 column"
+                aria-label="Increase width"
               >
                 <Plus className="w-2.5 h-2.5" />
               </button>
             </div>
-
-            <div className="hidden sm:inline-flex rounded-md shadow-2xs bg-white dark:bg-slate-900 p-0.5 border border-slate-200 dark:border-slate-700">
-              {([
-                { span: 3 as DashletColSpan, label: '1/4' },
-                { span: 4 as DashletColSpan, label: '1/3' },
-                { span: 6 as DashletColSpan, label: '1/2' },
-                { span: 8 as DashletColSpan, label: '2/3' },
-                { span: 12 as DashletColSpan, label: 'Full' }
-              ]).map(({ span, label }) => {
-                const isSelected = liveColSpan === span;
-                return (
-                  <button
-                    key={span}
-                    type="button"
-                    onClick={() => handleWidthChange(span)}
-                    className={cn(
-                      'px-1.5 py-0.5 rounded text-[9px] font-bold transition-all cursor-pointer',
-                      isSelected
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400'
-                    )}
-                    title={`Set width to ${span} columns (${label})`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
-          {/* Manual Height Stepper + Presets */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
-              <Rows className="w-3 h-3 text-indigo-600 dark:text-indigo-400" /> Height:
-            </span>
+          <div className="w-px h-3.5 bg-slate-200 dark:bg-slate-800" />
 
-            <div className="inline-flex items-center rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-0.5 shadow-2xs">
+          {/* Height Stepper */}
+          <div className="flex items-center gap-1">
+            <span title="Card height in pixels" className="text-indigo-600 dark:text-indigo-400 flex items-center">
+              <Rows className="w-3.5 h-3.5" />
+            </span>
+            <div className="inline-flex items-center rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 p-0.5">
               <button
                 type="button"
                 disabled={liveHeight <= 120}
                 onClick={() => handleStepHeight(-30)}
-                className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 text-slate-600 dark:text-slate-300 cursor-pointer"
+                className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 disabled:opacity-25 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer disabled:cursor-not-allowed"
                 title="Decrease height by 30px"
+                aria-label="Decrease height"
               >
                 <Minus className="w-2.5 h-2.5" />
               </button>
-              <span className="px-1.5 py-0.5 font-extrabold text-[10px] text-indigo-700 dark:text-indigo-300 min-w-[50px] text-center">
+              <span className="px-1.5 font-bold text-[10px] text-indigo-700 dark:text-indigo-300 min-w-[42px] text-center select-none" title={`Height: ${liveHeight}px`}>
                 {liveHeight}px
               </span>
               <button
                 type="button"
                 disabled={liveHeight >= 900}
                 onClick={() => handleStepHeight(30)}
-                className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 text-slate-600 dark:text-slate-300 cursor-pointer"
+                className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 disabled:opacity-25 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer disabled:cursor-not-allowed"
                 title="Increase height by 30px"
+                aria-label="Increase height"
               >
                 <Plus className="w-2.5 h-2.5" />
               </button>
             </div>
-
-            <div className="hidden sm:inline-flex rounded-md shadow-2xs bg-white dark:bg-slate-900 p-0.5 border border-slate-200 dark:border-slate-700">
-              {([
-                { preset: 'compact' as DashletHeightPreset, label: 'Compact' },
-                { preset: 'normal' as DashletHeightPreset, label: 'Normal' },
-                { preset: 'tall' as DashletHeightPreset, label: 'Tall' }
-              ]).map(({ preset, label }) => {
-                const targetPx = preset === 'compact' ? 140 : preset === 'tall' ? 440 : 260;
-                const isSelected = liveHeight === targetPx;
-                return (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => handleHeightPresetChange(preset)}
-                    className={cn(
-                      'px-1.5 py-0.5 rounded text-[9px] font-bold transition-all cursor-pointer',
-                      isSelected
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400'
-                    )}
-                    title={`Set card height preset to ${preset} (${targetPx}px)`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              type="button"
-              onClick={handleResetSize}
-              className="p-1 rounded text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer ml-0.5"
-              title="Reset width & height to default"
-            >
-              <RotateCcw className="w-3 h-3" />
-            </button>
           </div>
+
+          <div className="w-px h-3.5 bg-slate-200 dark:bg-slate-800" />
+
+          {/* Reset Icon Button */}
+          <button
+            type="button"
+            onClick={handleResetSize}
+            className="p-1.5 rounded-md text-slate-400 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            title="Reset to default width & height"
+            aria-label="Reset size"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 

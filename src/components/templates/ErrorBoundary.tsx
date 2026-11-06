@@ -48,6 +48,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
   };
 
+  public handleClearStorageAndReload = (): void => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.clear();
+      }
+    } catch {}
+    window.location.reload();
+  };
+
   public handleReload = (): void => {
     window.location.reload();
   };
@@ -58,6 +67,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         return this.props.fallback;
       }
 
+      const isStorageError =
+        this.state.error?.message?.toLowerCase().includes('quota') ||
+        this.state.error?.message?.toLowerCase().includes('storage') ||
+        this.state.error?.name === 'QuotaExceededError';
+
       return (
         <div className="min-h-[400px] flex items-center justify-center p-6 w-full">
           <div className="max-w-lg w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-8 text-center space-y-6">
@@ -67,14 +81,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
             <div className="space-y-2">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                Something went wrong
+                {isStorageError ? 'Storage Quota Limit Reached' : 'Something went wrong'}
               </h2>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                An unexpected error occurred in{' '}
-                <span className="font-semibold text-slate-700 dark:text-slate-300">
-                  {this.props.componentName || 'this section'}
-                </span>
-                . The error has been logged for our engineering team.
+                {isStorageError
+                  ? 'Your browser local storage exceeded its capacity. You can clear temporary cache and reset to continue smoothly.'
+                  : `An unexpected error occurred in ${this.props.componentName || 'this section'}. The error has been logged for our engineering team.`}
               </p>
             </div>
 
@@ -85,15 +97,27 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             )}
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={this.handleReset}
-                leftIcon={<RefreshCw className="w-4 h-4" />}
-                className="w-full sm:w-auto"
-              >
-                Try Again
-              </Button>
+              {isStorageError ? (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={this.handleClearStorageAndReload}
+                  leftIcon={<RefreshCw className="w-4 h-4" />}
+                  className="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white"
+                >
+                  Clear Storage & Reset
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={this.handleReset}
+                  leftIcon={<RefreshCw className="w-4 h-4" />}
+                  className="w-full sm:w-auto"
+                >
+                  Try Again
+                </Button>
+              )}
               <Button
                 variant="secondary"
                 size="sm"

@@ -172,6 +172,21 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-blue-100 text-xs font-semibold">
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                 {employee ? `Employee Workspace (ID: ${employee.id})` : 'Employee Onboarding Workspace'}
+                {(employee?.onboardingType || flowData.personalInfo.onboardingType) === 'contract' && (
+                  <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-400/30 text-cyan-200 border border-cyan-300/40">
+                    Direct Contract
+                  </span>
+                )}
+                {(employee?.onboardingType || flowData.personalInfo.onboardingType) === 'contract_to_hire' && (
+                  <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-400/30 text-purple-200 border border-purple-300/40">
+                    Contract to Hire
+                  </span>
+                )}
+                {(employee?.onboardingType || flowData.personalInfo.onboardingType) === 'pre_onboarding' && (
+                  <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/30 text-amber-200 border border-amber-300/40">
+                    Pre-onboarding
+                  </span>
+                )}
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
                 Welcome to Quantira, {empName}! 👋
@@ -226,7 +241,6 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Today's Attendance &amp; Shift</h3>
-              <p className="text-xs text-slate-500">Live time-card &amp; shift duration</p>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Checked In</span>
           </CardHeader>
@@ -260,7 +274,6 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">My Leave Balance</h3>
-              <p className="text-xs text-slate-500">Annual statutory entitlements</p>
             </div>
             <button type="button" className="px-2.5 py-1 text-xs font-bold rounded bg-blue-600 text-white hover:bg-blue-700 cursor-pointer">
               Apply Leave
@@ -615,9 +628,6 @@ export const EmployeeDashboardPage: React.FC<EmployeeDashboardPageProps> = ({
                   {dashlets.length} Active Dashlets
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Customizable layout
-              </p>
             </div>
           </div>
 

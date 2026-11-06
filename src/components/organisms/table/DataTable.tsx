@@ -148,7 +148,10 @@ export function DataTable<T extends { id: string }>({
 
       // Filter matching
       for (const filter of activeFilters) {
-        const itemVal = (item as Record<string, unknown>)[filter.field];
+        const col = columns.find((c) => c.id === filter.field);
+        const itemVal = col?.accessorFn
+          ? col.accessorFn(item)
+          : (item as Record<string, unknown>)[filter.field];
         if (itemVal !== undefined && itemVal !== null) {
           if (String(itemVal).toLowerCase() !== String(filter.value).toLowerCase()) {
             return false;
@@ -158,7 +161,7 @@ export function DataTable<T extends { id: string }>({
 
       return true;
     });
-  }, [data, searchQuery, activeFilters]);
+  }, [data, searchQuery, activeFilters, columns]);
 
   // Sort pipeline
   const sortedData = useMemo(() => {
@@ -167,8 +170,8 @@ export function DataTable<T extends { id: string }>({
     return [...filteredData].sort((a, b) => {
       const col = columns.find((c) => c.id === sortField);
       const key = col?.accessorKey || (sortField as keyof T);
-      const aVal = (a as Record<string, unknown>)[key as string];
-      const bVal = (b as Record<string, unknown>)[key as string];
+      const aVal = col?.accessorFn ? col.accessorFn(a) : (a as Record<string, unknown>)[key as string];
+      const bVal = col?.accessorFn ? col.accessorFn(b) : (b as Record<string, unknown>)[key as string];
 
       if (aVal === bVal) return 0;
       if (aVal === undefined || aVal === null) return 1;

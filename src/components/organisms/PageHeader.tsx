@@ -1,6 +1,5 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '../atoms/Button';
+import { Breadcrumbs, BreadcrumbItem } from '../molecules/Breadcrumbs';
 import { cn } from '../../utils/cn';
 
 export interface PageHeaderProps {
@@ -11,6 +10,7 @@ export interface PageHeaderProps {
   actions?: React.ReactNode;
   onBack?: () => void;
   backLabel?: string;
+  breadcrumbs?: BreadcrumbItem[];
   className?: string;
 }
 
@@ -22,8 +22,21 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   actions,
   onBack,
   backLabel = 'Back',
+  breadcrumbs,
   className
 }) => {
+  // If custom breadcrumbs are provided, use them. Otherwise, if onBack is provided, generate standard breadcrumbs.
+  const effectiveBreadcrumbs: BreadcrumbItem[] | null = breadcrumbs || (onBack ? [
+    {
+      label: backLabel.replace(/^Back to\s+/i, '').replace(/^Back/i, 'Directory'),
+      onClick: onBack
+    },
+    {
+      label: title,
+      current: true
+    }
+  ] : null);
+
   return (
     <div
       className={cn(
@@ -32,17 +45,9 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       )}
     >
       <div className="flex flex-col gap-1 min-w-0 overflow-hidden">
-        {onBack && (
-          <div>
-            <Button
-              variant="tertiary"
-              size="sm"
-              leftIcon={<ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />}
-              onClick={onBack}
-              className="-ml-2 text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            >
-              {backLabel}
-            </Button>
+        {effectiveBreadcrumbs && (
+          <div className="mb-0.5">
+            <Breadcrumbs items={effectiveBreadcrumbs} onHome={onBack} />
           </div>
         )}
 

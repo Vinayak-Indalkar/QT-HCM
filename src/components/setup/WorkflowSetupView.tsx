@@ -287,9 +287,6 @@ export const WorkflowSetupView: React.FC = () => {
             <GitBranch className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             Enterprise Workflow Automation &amp; Approval Engine
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Configure automated pipelines, multi-level approver gates, escalation SLAs, and event-driven triggers.
-          </p>
         </div>
 
         <div className="flex items-center gap-2.5">
@@ -700,7 +697,6 @@ export const WorkflowSetupView: React.FC = () => {
                   <Layers className="w-3.5 h-3.5 text-blue-600" />
                   Workflow Steps &amp; Approver Sequence ({formData.steps.length})
                 </h4>
-                <p className="text-[11px] text-slate-400">Add, reorder, or customize each approval milestone.</p>
               </div>
               <Button
                 type="button"

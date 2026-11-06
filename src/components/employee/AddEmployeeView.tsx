@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  ArrowLeft,
   Mail,
   CheckCircle2,
   Copy,
@@ -21,10 +20,13 @@ import {
   Cpu,
   Layers,
   HardDrive,
-  Tag
+  Clock,
+  ChevronDown,
+  Tag,
+  FileText
 } from 'lucide-react';
 import { Button } from '../atoms';
-import { Card, CardHeader, CardContent } from '../molecules';
+import { Card, CardHeader, CardContent, Breadcrumbs } from '../molecules';
 import { TextInput } from '../atoms';
 import { Select } from '../atoms';
 import { DatePicker } from '../atoms';
@@ -85,6 +87,16 @@ export const AddEmployeeView: React.FC<AddEmployeeViewProps> = ({
   const { loadEmployee } = useOnboardingFlow();
   const { setRole } = useRole();
   const { success: showToastSuccess, error: showToastError } = useToast();
+
+  // Onboarding Type State
+  const [onboardingType, setOnboardingType] = useState<'general' | 'pre_onboarding' | 'contract' | 'contract_to_hire'>('general');
+  const [targetOnboardDate, setTargetOnboardDate] = useState('');
+  const [preOnboardingStage, setPreOnboardingStage] = useState('Offer Accepted');
+  const [contractDuration, setContractDuration] = useState('6 Months');
+  const [contractAgency, setContractAgency] = useState('');
+  const [contractEndDate, setContractEndDate] = useState('');
+  const [contractRate, setContractRate] = useState('$85 / hr');
+  const [contractTaxType, setContractTaxType] = useState('W-2 Contract');
 
   // Basic Information States
   const [employeeName, setEmployeeName] = useState('');
@@ -594,7 +606,15 @@ export const AddEmployeeView: React.FC<AddEmployeeViewProps> = ({
       employmentType: (employmentType || 'Full-time') as EmploymentType,
       workModel: (workModel as WorkModel) || (workLocation.includes('Remote') ? 'Remote' : 'Hybrid'),
       startDate,
-      officeLocation: workLocation,
+      onboardingType,
+      targetOnboardDate: (onboardingType === 'pre_onboarding' || onboardingType === 'contract_to_hire' || onboardingType === 'contract') ? targetOnboardDate : undefined,
+      preOnboardingStage: onboardingType === 'pre_onboarding' ? preOnboardingStage : undefined,
+      contractDuration: (onboardingType === 'contract_to_hire' || onboardingType === 'contract') ? contractDuration : undefined,
+      contractAgency: (onboardingType === 'contract_to_hire' || onboardingType === 'contract') ? contractAgency.trim() : undefined,
+      contractEndDate: onboardingType === 'contract' ? contractEndDate : undefined,
+      contractRate: onboardingType === 'contract' ? contractRate : undefined,
+      contractTaxType: onboardingType === 'contract' ? contractTaxType : undefined,
+      conversionEligibilityDate: onboardingType === 'contract_to_hire' ? targetOnboardDate : undefined,
       isActive: true,
       isTerminated: false,
       customFields: customFieldValues,
@@ -1490,14 +1510,15 @@ export const AddEmployeeView: React.FC<AddEmployeeViewProps> = ({
       {/* Top Header & Breadcrumb */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <button
-            type="button"
-            onClick={onBack}
-            className="-ml-1 mb-2 flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Back to Employee Directory
-          </button>
+          <div className="mb-2">
+            <Breadcrumbs
+              items={[
+                { label: 'Employee Directory', onClick: onBack },
+                { label: 'Add New Employee', current: true }
+              ]}
+              onHome={onBack}
+            />
+          </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             Add New Employee &amp; Assign Assets
           </h1>
@@ -1518,6 +1539,276 @@ export const AddEmployeeView: React.FC<AddEmployeeViewProps> = ({
       {/* Main Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-6">
+          {/* Card 0: Onboarding Type Section */}
+          <Card className="rounded-xl text-left overflow-hidden transition-all bg-white dark:bg-slate-900 shadow-xs border border-slate-200 dark:border-slate-800">
+            <CardHeader className="p-5 pb-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center font-bold shrink-0 text-blue-600 dark:text-blue-400">
+                    <Layers className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+                      Onboarding Type
+                    </h3>
+                  </div>
+                </div>
+                {onboardingType === 'contract' ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-cyan-50 dark:bg-cyan-950/70 text-cyan-700 dark:text-cyan-300 border border-cyan-300/60 shadow-2xs">
+                    <FileText className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" /> Direct / Fixed-Term Contract
+                  </span>
+                ) : onboardingType === 'contract_to_hire' ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-300/60 shadow-2xs">
+                    <Briefcase className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> Contract to Hire
+                  </span>
+                ) : onboardingType === 'pre_onboarding' ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-300/60 shadow-2xs">
+                    <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> Pre-onboarding Workflow
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-300/60 shadow-2xs">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> General Onboarding
+                  </span>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {/* Onboarding Type Select */}
+                <div className="w-full flex flex-col gap-1.5 text-left">
+                  <label htmlFor="onboarding_type_select" className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                    <span>Onboarding Type <span className="text-rose-500 ml-0.5">*</span></span>
+                  </label>
+                  <div className="relative flex items-center">
+                    <select
+                      id="onboarding_type_select"
+                      value={onboardingType}
+                      onChange={(e) => {
+                        const val = e.target.value as 'general' | 'pre_onboarding' | 'contract' | 'contract_to_hire';
+                        setOnboardingType(val);
+                        if (val === 'contract' || val === 'contract_to_hire') {
+                          setEmploymentType('Contractor');
+                        } else {
+                          setEmploymentType('Full-time');
+                        }
+                        if (val === 'contract' && !contractEndDate) {
+                          const d = new Date();
+                          d.setMonth(d.getMonth() + 6);
+                          setContractEndDate(d.toISOString().split('T')[0]);
+                        }
+                        if ((val === 'pre_onboarding' || val === 'contract_to_hire' || val === 'contract') && !targetOnboardDate) {
+                          const d = new Date();
+                          d.setDate(d.getDate() + 14);
+                          const str = d.toISOString().split('T')[0];
+                          setTargetOnboardDate(str);
+                          if (!startDate) setStartDate(str);
+                        }
+                      }}
+                      className="w-full text-sm rounded-lg border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-2.5 pl-3.5 pr-10 appearance-none transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 border-slate-300 dark:border-slate-700 cursor-pointer"
+                    >
+                      <option value="general">General Onboarding</option>
+                      <option value="contract">Direct Contract / Fixed-Term</option>
+                      <option value="contract_to_hire">Contract to Hire</option>
+                      <option value="pre_onboarding">Pre-onboarding</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* If Direct Contract: Show Duration, End Date, Pay Rate, Tax Classification, Vendor/Agency */}
+                {onboardingType === 'contract' && (
+                  <>
+                    <div className="w-full flex flex-col gap-1.5 text-left animate-fade-in">
+                      <label htmlFor="contract_duration" className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                        <span>Contract Duration <span className="text-rose-500 ml-0.5">*</span></span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <select
+                          id="contract_duration"
+                          value={contractDuration}
+                          onChange={(e) => setContractDuration(e.target.value)}
+                          className="w-full text-sm rounded-lg border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-2.5 pl-3.5 pr-10 appearance-none transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 border-slate-300 dark:border-slate-700 cursor-pointer"
+                        >
+                          <option value="3 Months">3 Months</option>
+                          <option value="6 Months">6 Months</option>
+                          <option value="9 Months">9 Months</option>
+                          <option value="12 Months">12 Months</option>
+                          <option value="Indefinite / SOW-based">Indefinite / SOW-based</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 w-4 h-4 text-slate-400 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    <div className="w-full flex flex-col gap-1.5 text-left animate-fade-in">
+                      <label htmlFor="contract_end_date" className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                        <span>Contract End Date <span className="text-rose-500 ml-0.5">*</span></span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <input
+                          id="contract_end_date"
+                          type="date"
+                          value={contractEndDate}
+                          onChange={(e) => setContractEndDate(e.target.value)}
+                          className="w-full text-sm rounded-lg border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-2 px-3 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 border-slate-300 dark:border-slate-700 cursor-pointer dark:[color-scheme:dark]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="w-full flex flex-col gap-1.5 text-left animate-fade-in">
+                      <label htmlFor="contract_rate" className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                        <span>Bill / Hourly Pay Rate</span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <input
+                          id="contract_rate"
+                          type="text"
+                          placeholder="e.g. $85 / hr or $12,000 / mo"
+                          value={contractRate}
+                          onChange={(e) => setContractRate(e.target.value)}
+                          className="w-full text-sm rounded-lg border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-2 px-3 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 border-slate-300 dark:border-slate-700"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="w-full flex flex-col gap-1.5 text-left animate-fade-in">
+                      <label htmlFor="contract_tax_type" className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                        <span>Tax Classification</span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <select
+                          id="contract_tax_type"
+                          value={contractTaxType}
+                          onChange={(e) => setContractTaxType(e.target.value)}
+                          className="w-full text-sm rounded-lg border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-2.5 pl-3.5 pr-10 appearance-none transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 border-slate-300 dark:border-slate-700 cursor-pointer"
+                        >
+                          <option value="W-2 Contract">W-2 Contract</option>
+                          <option value="1099 Independent Contractor">1099 Independent Contractor</option>
+                          <option value="Corp-to-Corp (C2C)">Corp-to-Corp (C2C)</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 w-4 h-4 text-slate-400 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    <div className="w-full flex flex-col gap-1.5 text-left animate-fade-in sm:col-span-2">
+                      <label htmlFor="contract_agency_direct" className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                        <span>Contracting Agency / Direct Entity Name</span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <input
+                          id="contract_agency_direct"
+                          type="text"
+                          placeholder="e.g. Apex Staffing, Insight Global, or Direct LLC"
+                          value={contractAgency}
+                          onChange={(e) => setContractAgency(e.target.value)}
+                          className="w-full text-sm rounded-lg border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-2 px-3 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 border-slate-300 dark:border-slate-700"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* If Pre-onboarding: Show Date to Onboard & Stage */}
+                {onboardingType === 'pre_onboarding' && (
+                  <>
+                    <div className="w-full flex flex-col gap-1.5 text-left animate-fade-in">
+                      <label htmlFor="target_onboard_date" className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                        <span>Date to Onboard (Target Date) <span className="text-rose-500 ml-0.5">*</span></span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <input
+                          id="target_onboard_date"
+                          type="date"
+                          value={targetOnboardDate}
+                          onChange={(e) => {
+                            setTargetOnboardDate(e.target.value);
+                            setStartDate(e.target.value);
+                          }}
+                          className="w-full text-sm rounded-lg border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-2 px-3 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 border-slate-300 dark:border-slate-700 cursor-pointer dark:[color-scheme:dark]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="w-full flex flex-col gap-1.5 text-left animate-fade-in">
+                      <label htmlFor="pre_onboarding_stage" className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                        <span>Pre-boarding Stage</span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <select
+                          id="pre_onboarding_stage"
+                          value={preOnboardingStage}
+                          onChange={(e) => setPreOnboardingStage(e.target.value)}
+                          className="w-full text-sm rounded-lg border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-2.5 pl-3.5 pr-10 appearance-none transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 border-slate-300 dark:border-slate-700 cursor-pointer"
+                        >
+                          <option value="Offer Accepted">Offer Accepted</option>
+                          <option value="BGV & Document Verification">BGV &amp; Document Verification</option>
+                          <option value="Hardware & Access Provisioning">Hardware &amp; Access Provisioning</option>
+                          <option value="Day 1 Orientation Ready">Day 1 Orientation Ready</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 w-4 h-4 text-slate-400 pointer-events-none" />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* If Contract to Hire: Show Contract Duration, Staffing Agency, Target Conversion Date */}
+                {onboardingType === 'contract_to_hire' && (
+                  <>
+                    <div className="w-full flex flex-col gap-1.5 text-left animate-fade-in">
+                      <label htmlFor="contract_duration" className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                        <span>Contract Duration <span className="text-rose-500 ml-0.5">*</span></span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <select
+                          id="contract_duration"
+                          value={contractDuration}
+                          onChange={(e) => setContractDuration(e.target.value)}
+                          className="w-full text-sm rounded-lg border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-2.5 pl-3.5 pr-10 appearance-none transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 border-slate-300 dark:border-slate-700 cursor-pointer"
+                        >
+                          <option value="3 Months">3 Months</option>
+                          <option value="6 Months">6 Months</option>
+                          <option value="9 Months">9 Months</option>
+                          <option value="12 Months">12 Months</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 w-4 h-4 text-slate-400 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    <div className="w-full flex flex-col gap-1.5 text-left animate-fade-in">
+                      <label htmlFor="contract_agency" className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                        <span>Staffing Agency / Vendor Partner</span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <input
+                          id="contract_agency"
+                          type="text"
+                          placeholder="e.g. Apex Systems, Insight Global"
+                          value={contractAgency}
+                          onChange={(e) => setContractAgency(e.target.value)}
+                          className="w-full text-sm rounded-lg border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-2 px-3 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 border-slate-300 dark:border-slate-700"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="w-full flex flex-col gap-1.5 text-left animate-fade-in">
+                      <label htmlFor="target_conversion_date" className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                        <span>Target Conversion Date</span>
+                      </label>
+                      <div className="relative flex items-center">
+                        <input
+                          id="target_conversion_date"
+                          type="date"
+                          value={targetOnboardDate}
+                          onChange={(e) => setTargetOnboardDate(e.target.value)}
+                          className="w-full text-sm rounded-lg border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-2 px-3 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 border-slate-300 dark:border-slate-700 cursor-pointer dark:[color-scheme:dark]"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Dynamic Form Sections configured from Super Admin Customizer */}
           {configuredFormSections.map((sec) => {
             const meta = getSectionMeta(sec.name);

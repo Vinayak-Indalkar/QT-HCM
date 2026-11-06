@@ -646,6 +646,83 @@ export const StepGroupPersonalDocuments: React.FC = () => {
               value={info.workModel || 'Hybrid'}
               disabled
             />
+            <TextInput
+              label="Onboarding Model"
+              value={
+                info.onboardingType === 'contract' ? 'Fixed-Term Contract' :
+                info.onboardingType === 'contract_to_hire' ? 'Contract to Hire' :
+                info.onboardingType === 'pre_onboarding' ? 'Pre-onboarding' : 'General Full-Time'
+              }
+              disabled
+            />
+            {info.onboardingType === 'contract' && (
+              <>
+                <TextInput
+                  label="Contract Duration"
+                  value={info.contractDuration || '6 Months'}
+                  disabled
+                />
+                <TextInput
+                  label="Contract Expiration"
+                  value={info.contractEndDate ? formatDate(info.contractEndDate) : 'End of Term'}
+                  disabled
+                />
+                <TextInput
+                  label="Contract Pay / Bill Rate"
+                  value={info.contractRate || '$85 / hr'}
+                  disabled
+                />
+                <TextInput
+                  label="Tax Classification"
+                  value={info.contractTaxType || 'W-2 Contract'}
+                  disabled
+                />
+                {info.contractAgency && (
+                  <TextInput
+                    label="Contracting Entity"
+                    value={info.contractAgency}
+                    disabled
+                  />
+                )}
+              </>
+            )}
+            {info.onboardingType === 'contract_to_hire' && (
+              <>
+                <TextInput
+                  label="Contract Duration"
+                  value={info.contractDuration || '6 Months'}
+                  disabled
+                />
+                <TextInput
+                  label="Staffing Agency"
+                  value={info.contractAgency || 'Agency Partner'}
+                  disabled
+                />
+                {info.conversionEligibilityDate && (
+                  <TextInput
+                    label="Target Conversion Date"
+                    value={formatDate(info.conversionEligibilityDate)}
+                    disabled
+                  />
+                )}
+              </>
+            )}
+            {info.onboardingType === 'pre_onboarding' && (
+              <>
+                <TextInput
+                  label="Pre-boarding Stage"
+                  value={info.preOnboardingStage || 'Offer Accepted'}
+                  disabled
+                />
+                {info.targetOnboardDate && (
+                  <TextInput
+                    label="Target Day 1 Date"
+                    value={formatDate(info.targetOnboardDate)}
+                    disabled
+                  />
+                )}
+              </>
+            )}
           </div>
         </FormSection>
 
@@ -667,9 +744,6 @@ export const StepGroupPersonalDocuments: React.FC = () => {
                       {emergencyContactsList.length} {emergencyContactsList.length === 1 ? 'Contact' : 'Contacts'}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Add primary and backup contacts reached in case of urgent workplace or medical emergencies.
-                  </p>
                 </div>
               </div>
               <Button
@@ -790,9 +864,6 @@ export const StepGroupPersonalDocuments: React.FC = () => {
                       {dependentsList.length} {dependentsList.length === 1 ? 'Dependent' : 'Dependents'}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Add family members eligible for group health insurance and statutory benefits coverage.
-                  </p>
                 </div>
               </div>
               <Button
@@ -956,9 +1027,6 @@ export const StepGroupPersonalDocuments: React.FC = () => {
             <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
               Statutory Employment Documents
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Upload statutory verification and previous organization employment records as applicable. Freshers and experienced candidates can provide documents according to availability.
-            </p>
           </div>
           <Button
             type="button"

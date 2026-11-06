@@ -1,6 +1,7 @@
 import { ITAsset } from '../types/asset';
 export type { ITAsset } from '../types/asset';
 import { RADIAN_PERSONA_AVATARS, getRadianAvatarByName } from '../utils/radianAvatars';
+import { storageService } from './storageService';
 
 export const INITIAL_ENTERPRISE_ASSETS: ITAsset[] = [
   {
@@ -284,12 +285,10 @@ export const getAssets = (): ITAsset[] => {
 };
 
 export const saveAssets = (assets: ITAsset[]): void => {
+  storageService.setItem(ASSETS_STORAGE_KEY, assets);
   try {
-    localStorage.setItem(ASSETS_STORAGE_KEY, JSON.stringify(assets));
     window.dispatchEvent(new CustomEvent('quantira_assets_updated'));
-  } catch (e) {
-    console.error('Error saving assets to storage', e);
-  }
+  } catch {}
 };
 
 export const createAsset = (asset: Omit<ITAsset, 'id'>): ITAsset => {

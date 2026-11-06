@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   Eye,
   Clock,
+  Briefcase,
   LogIn,
   LogOut
 } from 'lucide-react';
@@ -45,6 +46,15 @@ export interface EmployeeDossierData {
   workModel?: string;
   workLocation?: string;
   employmentType?: string;
+  onboardingType?: 'general' | 'pre_onboarding' | 'contract' | 'contract_to_hire';
+  contractDuration?: string;
+  contractAgency?: string;
+  contractEndDate?: string;
+  contractRate?: string;
+  contractTaxType?: string;
+  preOnboardingStage?: string;
+  targetOnboardDate?: string;
+  conversionEligibilityDate?: string;
   status: string;
   progress: number;
   manager?: string;
@@ -267,6 +277,23 @@ export const EmployeeDossierModal: React.FC<EmployeeDossierModalProps> = ({
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/80 text-blue-700 dark:text-blue-300">
                   {employee.id}
                 </span>
+                {employee.onboardingType === 'contract' ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-100 dark:bg-cyan-950/70 text-cyan-800 dark:text-cyan-300 border border-cyan-300/60">
+                    <FileText className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" /> Direct Contract
+                  </span>
+                ) : employee.onboardingType === 'contract_to_hire' ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-300/60">
+                    <Briefcase className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> Contract to Hire
+                  </span>
+                ) : employee.onboardingType === 'pre_onboarding' ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300/60">
+                    <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> Pre-onboarding
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-300/60">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> General Onboarding
+                  </span>
+                )}
               </div>
               <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mt-0.5">
                 {employee.jobTitle} • {employee.department}
@@ -298,11 +325,71 @@ export const EmployeeDossierModal: React.FC<EmployeeDossierModalProps> = ({
           </div>
         </div>
 
+        {/* Engagement & Contract Parameters Banner (if applicable) */}
+        {(employee.onboardingType === 'contract' || employee.onboardingType === 'contract_to_hire' || employee.onboardingType === 'pre_onboarding') && (
+          <div className="p-4 rounded-xl border border-blue-200/80 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/30 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-blue-900 dark:text-blue-200">
+              <Briefcase className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span>Engagement &amp; Contract Parameters</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              {employee.contractDuration && (
+                <div>
+                  <span className="text-slate-400 dark:text-slate-400 block text-[11px]">Contract Duration</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 block">{employee.contractDuration}</span>
+                </div>
+              )}
+              {employee.contractEndDate && (
+                <div>
+                  <span className="text-slate-400 dark:text-slate-400 block text-[11px]">Contract Expiration</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 block">{formatDate(employee.contractEndDate)}</span>
+                </div>
+              )}
+              {employee.contractRate && (
+                <div>
+                  <span className="text-slate-400 dark:text-slate-400 block text-[11px]">Pay / Billing Rate</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 block">{employee.contractRate}</span>
+                </div>
+              )}
+              {employee.contractTaxType && (
+                <div>
+                  <span className="text-slate-400 dark:text-slate-400 block text-[11px]">Tax Classification</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 block">{employee.contractTaxType}</span>
+                </div>
+              )}
+              {employee.contractAgency && (
+                <div>
+                  <span className="text-slate-400 dark:text-slate-400 block text-[11px]">Agency / Contracting Entity</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 block">{employee.contractAgency}</span>
+                </div>
+              )}
+              {employee.conversionEligibilityDate && (
+                <div>
+                  <span className="text-slate-400 dark:text-slate-400 block text-[11px]">Conversion Evaluation Date</span>
+                  <span className="font-bold text-purple-600 dark:text-purple-400 block">{formatDate(employee.conversionEligibilityDate)}</span>
+                </div>
+              )}
+              {employee.preOnboardingStage && (
+                <div>
+                  <span className="text-slate-400 dark:text-slate-400 block text-[11px]">Pre-boarding Stage</span>
+                  <span className="font-bold text-amber-600 dark:text-amber-400 block">{employee.preOnboardingStage}</span>
+                </div>
+              )}
+              {employee.targetOnboardDate && (
+                <div>
+                  <span className="text-slate-400 dark:text-slate-400 block text-[11px]">Target Joining Date</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 block">{formatDate(employee.targetOnboardDate)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Personal & Contact Profile */}
         <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-3">
           <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
             <User className="w-4 h-4 text-blue-600" />
-            <span>Personal & Employment Information</span>
+            <span>Personal &amp; Employment Information</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs sm:text-sm">
             <div>
@@ -325,6 +412,14 @@ export const EmployeeDossierModal: React.FC<EmployeeDossierModalProps> = ({
             <div>
               <span className="text-slate-400 block text-xs">Employment Type</span>
               <span className="font-bold text-slate-800 dark:text-slate-100 dark:text-slate-200 truncate block">{employee.employmentType || 'Full-time'}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-xs">Onboarding Model</span>
+              <span className="font-bold text-blue-600 dark:text-blue-400 truncate block">
+                {employee.onboardingType === 'contract' ? 'Fixed-Term Contract' :
+                 employee.onboardingType === 'contract_to_hire' ? 'Contract to Hire' :
+                 employee.onboardingType === 'pre_onboarding' ? 'Pre-onboarding' : 'General Onboarding'}
+              </span>
             </div>
             <div>
               <span className="text-slate-400 block text-xs">Reporting Manager</span>

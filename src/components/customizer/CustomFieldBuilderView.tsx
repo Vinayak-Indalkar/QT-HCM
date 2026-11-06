@@ -18,8 +18,8 @@ import { getAssets } from '../../services/assetService';
 import { DynamicCustomFieldInput } from './DynamicCustomFieldInput';
 import { Button } from '../atoms';
 import { Switch } from '../atoms';
+import { Breadcrumbs } from '../molecules';
 import {
-  ArrowLeft,
   Check,
   RotateCcw,
   Sparkles,
@@ -446,14 +446,18 @@ export const CustomFieldBuilderView: React.FC<CustomFieldBuilderViewProps> = ({
       {/* Top Breadcrumb & Action Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="-ml-1 mb-2 flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Module Customizer
-          </button>
+          <div className="mb-2">
+            <Breadcrumbs
+              items={[
+                { label: 'Module Customizer', onClick: onCancel },
+                {
+                  label: isEditing ? `Edit: ${initialField?.label}` : 'Custom Field Builder',
+                  current: true
+                }
+              ]}
+              onHome={onCancel}
+            />
+          </div>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20">
               <Sparkles className="w-5 h-5" />
@@ -462,9 +466,6 @@ export const CustomFieldBuilderView: React.FC<CustomFieldBuilderViewProps> = ({
               <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                 {isEditing ? `Edit Custom Field: ${initialField?.label}` : 'Enterprise Custom Field Builder'}
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Configure rich dynamic data types, real-time validation gates, query formula engine, and interactive live preview.
-              </p>
             </div>
           </div>
         </div>
@@ -776,9 +777,6 @@ export const CustomFieldBuilderView: React.FC<CustomFieldBuilderViewProps> = ({
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white">
                       Need Dynamic Formulas or SQL Data Extraction?
                     </h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Switch to the Query Editor to calculate values from employee metrics, attendance, or SQL queries.
-                    </p>
                   </div>
                 </div>
                 <button

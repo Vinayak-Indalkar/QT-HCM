@@ -197,6 +197,23 @@ export const CandidateDetailPage: React.FC = () => {
                 • {selectedCandidate.phone}
               </span>
               <div className="flex flex-wrap items-center gap-2 mt-2">
+                {selectedCandidate.onboardingType === 'contract' ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 border border-cyan-300/60">
+                    Direct Contract ({selectedCandidate.contractDuration || 'Fixed-term'})
+                  </span>
+                ) : selectedCandidate.onboardingType === 'contract_to_hire' ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 border border-purple-300/60">
+                    Contract to Hire ({selectedCandidate.contractDuration || '6M'})
+                  </span>
+                ) : selectedCandidate.onboardingType === 'pre_onboarding' ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300/60">
+                    Pre-onboarding ({selectedCandidate.preOnboardingStage || 'Pending'})
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-300/60">
+                    General Onboarding
+                  </span>
+                )}
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
                   {selectedCandidate.employmentType}
                 </span>

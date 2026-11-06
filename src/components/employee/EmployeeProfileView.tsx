@@ -3,7 +3,7 @@ import { useOnboarding, ProfileTabId } from '../../context/OnboardingContext';
 import { useOnboardingFlow } from '../../context/OnboardingFlowContext';
 import { useToast } from '../../context/ToastContext';
 import { useRole } from '../../context/RoleContext';
-import { Card, CardHeader, CardContent } from '../molecules';
+import { Card, CardHeader, CardContent, Breadcrumbs } from '../molecules';
 import { getCustomFields, CustomProfileField } from '../../services/customFieldsService';
 import { Button, IconButton } from '../atoms';
 import { Avatar } from '../atoms';
@@ -457,6 +457,15 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
           workLocation: employee.officeLocation || 'San Francisco HQ',
           workModel: employee.workModel || flowData.personalInfo.workModel || 'Hybrid',
           employmentType: employee.employmentType || 'Full-time Regular',
+          onboardingType: employee.onboardingType || (employee.employmentType === 'Contractor' ? 'contract' : 'general'),
+          contractDuration: employee.contractDuration,
+          contractAgency: employee.contractAgency,
+          contractEndDate: employee.contractEndDate,
+          contractRate: employee.contractRate,
+          contractTaxType: employee.contractTaxType,
+          preOnboardingStage: employee.preOnboardingStage,
+          targetOnboardDate: employee.targetOnboardDate,
+          conversionEligibilityDate: employee.conversionEligibilityDate,
           line1Manager: employee.line1Manager || employee.manager || 'Marcus Brody',
           line2Manager: employee.line2Manager || 'Alexandra Wright',
           education: (employee as any).education || 'Bachelor of Science (Computer Science & Engineering)'
@@ -537,6 +546,15 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
         startDate: employee.startDate,
         workLocation: employee.officeLocation || 'San Francisco HQ',
         employmentType: employee.employmentType || 'Full-time Regular',
+        onboardingType: employee.onboardingType || (employee.employmentType === 'Contractor' ? 'contract' : 'general'),
+        contractDuration: employee.contractDuration || (employee as any).customFields?.contractDuration,
+        contractAgency: employee.contractAgency || (employee as any).customFields?.contractAgency,
+        contractEndDate: employee.contractEndDate || (employee as any).customFields?.contractEndDate,
+        contractRate: employee.contractRate || (employee as any).customFields?.contractRate,
+        contractTaxType: employee.contractTaxType || (employee as any).customFields?.contractTaxType,
+        preOnboardingStage: employee.preOnboardingStage,
+        targetOnboardDate: employee.targetOnboardDate,
+        conversionEligibilityDate: employee.conversionEligibilityDate,
         manager: employee.line1Manager || employee.manager || 'Marcus Brody',
         managerTitle: 'VP of Engineering',
         managerEmail: employee.managerEmail || 'manager@quantira.com',
@@ -573,6 +591,15 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
         startDate: '2022-03-15',
         workLocation: 'San Francisco HQ',
         employmentType: 'Executive Full-time Regular',
+        onboardingType: 'general' as const,
+        contractDuration: undefined,
+        contractAgency: undefined,
+        contractEndDate: undefined,
+        contractRate: undefined,
+        contractTaxType: undefined,
+        preOnboardingStage: undefined,
+        targetOnboardDate: undefined,
+        conversionEligibilityDate: undefined,
         manager: 'Alexandra Wright',
         managerTitle: 'Principal Enterprise Administrator',
         managerEmail: 'admin@quantira.com',
@@ -613,6 +640,15 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
       startDate: effectiveFlowData.personalInfo.startDate || '2026-09-15',
       workLocation: effectiveFlowData.personalInfo.workLocation || 'San Francisco HQ',
       employmentType: effectiveFlowData.personalInfo.employmentType || 'Full-time Regular',
+      onboardingType: effectiveFlowData.personalInfo.onboardingType || (effectiveFlowData.personalInfo.employmentType === 'Contractor' ? 'contract' : 'general'),
+      contractDuration: effectiveFlowData.personalInfo.contractDuration,
+      contractAgency: effectiveFlowData.personalInfo.contractAgency,
+      contractEndDate: effectiveFlowData.personalInfo.contractEndDate,
+      contractRate: effectiveFlowData.personalInfo.contractRate,
+      contractTaxType: effectiveFlowData.personalInfo.contractTaxType,
+      preOnboardingStage: effectiveFlowData.personalInfo.preOnboardingStage,
+      targetOnboardDate: effectiveFlowData.personalInfo.targetOnboardDate,
+      conversionEligibilityDate: effectiveFlowData.personalInfo.conversionEligibilityDate,
       manager: effectiveFlowData.personalInfo.line1Manager || 'Marcus Brody',
       managerTitle: 'VP of Engineering',
       managerEmail: 'manager@quantira.com',
@@ -2351,16 +2387,21 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
 
   return (
     <div className="space-y-6 text-left w-full animate-fade-in pb-16">
-      {/* Top Back Navigation (Placed above tabs container) */}
+      {/* Top Breadcrumb Navigation */}
       {onBack && (
         <div className="flex items-center justify-start">
-          <IconButton
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={onBack}
-            icon={<ArrowLeft className="w-4 h-4" />}
-            aria-label={readOnly ? 'Back to My Team' : 'Back to Employee Directory'}
+          <Breadcrumbs
+            items={[
+              {
+                label: readOnly ? 'My Team' : 'Employee Directory',
+                onClick: onBack
+              },
+              {
+                label: employee?.name || `${employee?.firstName || ''} ${employee?.lastName || ''}`.trim() || 'Employee Profile',
+                current: true
+              }
+            ]}
+            onHome={onBack}
           />
         </div>
       )}
@@ -2513,6 +2554,27 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   Verified &amp; Active
                 </span>
+                {effectiveProfile.onboardingType === 'contract' ? (
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-cyan-500/25 text-cyan-200 border border-cyan-400/40">
+                    <FileText className="w-4 h-4 text-cyan-300" />
+                    Direct Contract {effectiveProfile.contractDuration ? `(${effectiveProfile.contractDuration})` : ''}
+                  </span>
+                ) : effectiveProfile.onboardingType === 'contract_to_hire' ? (
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-purple-500/25 text-purple-200 border border-purple-400/40">
+                    <Briefcase className="w-4 h-4 text-purple-300" />
+                    Contract to Hire {effectiveProfile.contractDuration ? `(${effectiveProfile.contractDuration})` : ''}
+                  </span>
+                ) : effectiveProfile.onboardingType === 'pre_onboarding' ? (
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-amber-500/25 text-amber-200 border border-amber-400/40">
+                    <Clock className="w-4 h-4 text-amber-300" />
+                    Pre-onboarding
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-blue-500/25 text-blue-200 border border-blue-400/40">
+                    <CheckCircle2 className="w-4 h-4 text-blue-300" />
+                    General Full-Time
+                  </span>
+                )}
               </div>
 
               <p className="text-lg font-bold text-slate-200">
@@ -2660,12 +2722,24 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                   {/* Tile 1: Employment */}
                   <div className="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-900/60">
-                    <span className="text-xs font-semibold text-slate-400 block mb-1">Employment Status</span>
+                    <span className="text-xs font-semibold text-slate-400 block mb-1">
+                      {effectiveProfile.onboardingType === 'contract' ? 'Contract Engagement' :
+                       effectiveProfile.onboardingType === 'contract_to_hire' ? 'Contract to Hire' :
+                       effectiveProfile.onboardingType === 'pre_onboarding' ? 'Pre-onboarding Pipeline' : 'Employment Status'}
+                    </span>
                     <span className="text-base font-extrabold text-blue-600 dark:text-blue-400 block truncate">
-                      {effectiveProfile.employmentType || 'Full-time Regular'}
+                      {effectiveProfile.onboardingType === 'contract'
+                        ? `Contract (${effectiveProfile.contractDuration || 'Fixed-term'})`
+                        : effectiveProfile.onboardingType === 'contract_to_hire'
+                        ? `C2H (${effectiveProfile.contractDuration || '6 Months'})`
+                        : effectiveProfile.onboardingType === 'pre_onboarding'
+                        ? `Pre-onboarding (${effectiveProfile.preOnboardingStage || 'Accepted'})`
+                        : (effectiveProfile.employmentType || 'Full-time Regular')}
                     </span>
                     <span className="text-xs text-slate-500 mt-1 block truncate">
-                      {effectiveProfile.jobTitle} • {effectiveProfile.department}
+                      {effectiveProfile.onboardingType === 'contract' && effectiveProfile.contractRate
+                        ? `${effectiveProfile.contractRate} • ${effectiveProfile.contractTaxType || 'W-2'}`
+                        : `${effectiveProfile.jobTitle} • ${effectiveProfile.department}`}
                     </span>
                   </div>
 
@@ -2713,6 +2787,121 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
 
                 {/* Summary Details Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  {/* Dedicated Card: Contract / Engagement Terms */}
+                  {(effectiveProfile.onboardingType === 'contract' ||
+                    effectiveProfile.onboardingType === 'contract_to_hire' ||
+                    effectiveProfile.onboardingType === 'pre_onboarding') && (
+                    <div className="p-5 rounded-2xl border border-cyan-200 dark:border-cyan-900/60 bg-cyan-50/40 dark:bg-cyan-950/20 space-y-3 md:col-span-2">
+                      <div className="flex items-center justify-between border-b border-cyan-200/80 dark:border-cyan-800/60 pb-2">
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                            {effectiveProfile.onboardingType === 'contract'
+                              ? 'Fixed-Term Contract & Engagement Terms'
+                              : effectiveProfile.onboardingType === 'contract_to_hire'
+                              ? 'Contract-to-Hire Conversion Parameters'
+                              : 'Pre-onboarding Verification Gates'}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-100 dark:bg-cyan-900 text-cyan-800 dark:text-cyan-300">
+                            {effectiveProfile.onboardingType === 'contract'
+                              ? 'Active Contractor'
+                              : effectiveProfile.onboardingType === 'contract_to_hire'
+                              ? 'C2H Pathway'
+                              : 'Pre-Boarding'}
+                          </span>
+                        </div>
+                        <Button size="sm" variant="tertiary" onClick={() => setActiveTab('employment')} className="text-xs font-bold text-cyan-600 dark:text-cyan-400">
+                          View Employment Details &gt;
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                        <div>
+                          <span className="text-slate-400 block text-[11px]">Onboarding Model</span>
+                          <span className="font-bold text-slate-900 dark:text-white block mt-0.5">
+                            {effectiveProfile.onboardingType === 'contract'
+                              ? 'Direct Contract'
+                              : effectiveProfile.onboardingType === 'contract_to_hire'
+                              ? 'Contract to Hire'
+                              : 'Pre-onboarding'}
+                          </span>
+                        </div>
+
+                        {effectiveProfile.contractDuration && (
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Term Duration</span>
+                            <span className="font-bold text-slate-900 dark:text-white block mt-0.5">
+                              {effectiveProfile.contractDuration}
+                            </span>
+                          </div>
+                        )}
+
+                        {effectiveProfile.contractEndDate && (
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Contract Expiration Date</span>
+                            <span className="font-bold text-slate-900 dark:text-white block mt-0.5">
+                              {formatDate(effectiveProfile.contractEndDate)}
+                            </span>
+                          </div>
+                        )}
+
+                        {effectiveProfile.contractRate && (
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Pay / Billing Rate</span>
+                            <span className="font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5">
+                              {effectiveProfile.contractRate}
+                            </span>
+                          </div>
+                        )}
+
+                        {effectiveProfile.contractTaxType && (
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Tax Classification</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200 block mt-0.5">
+                              {effectiveProfile.contractTaxType}
+                            </span>
+                          </div>
+                        )}
+
+                        {effectiveProfile.contractAgency && (
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Contracting Agency / Entity</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200 block mt-0.5">
+                              {effectiveProfile.contractAgency}
+                            </span>
+                          </div>
+                        )}
+
+                        {effectiveProfile.conversionEligibilityDate && (
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Conversion Review Date</span>
+                            <span className="font-bold text-purple-600 dark:text-purple-400 block mt-0.5">
+                              {formatDate(effectiveProfile.conversionEligibilityDate)}
+                            </span>
+                          </div>
+                        )}
+
+                        {effectiveProfile.preOnboardingStage && (
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Current Stage</span>
+                            <span className="font-bold text-amber-600 dark:text-amber-400 block mt-0.5">
+                              {effectiveProfile.preOnboardingStage}
+                            </span>
+                          </div>
+                        )}
+
+                        {effectiveProfile.targetOnboardDate && (
+                          <div>
+                            <span className="text-slate-400 block text-[11px]">Target Joining Date</span>
+                            <span className="font-bold text-slate-900 dark:text-white block mt-0.5">
+                              {formatDate(effectiveProfile.targetOnboardDate)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Card 1: Personal & Legal Identity */}
                   <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3">
                     <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700/60 pb-2">
@@ -3118,9 +3307,6 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                       Basic &amp; Demographic Information
                     </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Personal identity, statutory demographics, and online professional profiles.
-                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -3942,9 +4128,6 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                       Contact Information &amp; Residential Address
                     </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Direct voice lines, personal communication inbox, and official residential residence.
-                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -4250,9 +4433,6 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                       <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                         Designated Emergency Contacts ({emergencyContacts.length})
                       </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Primary and secondary individuals notified during health or facility emergencies.
-                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -4379,9 +4559,6 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                       <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                         Family Dependents ({dependentsList.length})
                       </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Spouse, children, and eligible family dependents covered under corporate health and benefits policies.
-                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -4504,8 +4681,19 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">
-                    {profileForm.employmentType || 'Full-Time Regular'}
+                  <span className={`px-3 py-1 rounded-full text-xs font-black ${
+                    effectiveProfile.onboardingType === 'contract'
+                      ? 'bg-cyan-100 dark:bg-cyan-950/70 text-cyan-800 dark:text-cyan-300 border border-cyan-300/60'
+                      : effectiveProfile.onboardingType === 'contract_to_hire'
+                      ? 'bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-300/60'
+                      : effectiveProfile.onboardingType === 'pre_onboarding'
+                      ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300/60'
+                      : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300'
+                  }`}>
+                    {effectiveProfile.onboardingType === 'contract' ? 'Fixed-Term Contract' :
+                     effectiveProfile.onboardingType === 'contract_to_hire' ? 'Contract to Hire' :
+                     effectiveProfile.onboardingType === 'pre_onboarding' ? 'Pre-onboarding' :
+                     (profileForm.employmentType || 'Full-Time Regular')}
                   </span>
                   {canEditEmploymentAndReporting && (
                     <Button
@@ -4524,6 +4712,112 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                 </div>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
+                {/* Onboarding & Contract Engagement Governance */}
+                <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-linear-to-r from-slate-50 to-blue-50/40 dark:from-slate-800/40 dark:to-blue-950/30 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-700/60 pb-2">
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <span className="text-sm font-bold text-slate-900 dark:text-white">
+                        Onboarding Model &amp; Contract Parameters
+                      </span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300">
+                      {effectiveProfile.onboardingType === 'contract' ? 'Direct / Independent Contract' :
+                       effectiveProfile.onboardingType === 'contract_to_hire' ? 'Contract to Hire' :
+                       effectiveProfile.onboardingType === 'pre_onboarding' ? 'Pre-onboarding' : 'Full-Time Regular'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-400 block text-[11px]">Employment Classification</span>
+                      <span className="font-bold text-slate-900 dark:text-white block mt-0.5">
+                        {effectiveProfile.employmentType || 'Contractor'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-400 block text-[11px]">Onboarding Workflow Type</span>
+                      <span className="font-bold text-slate-900 dark:text-white block mt-0.5">
+                        {effectiveProfile.onboardingType === 'contract' ? 'Fixed-Term Contract' :
+                         effectiveProfile.onboardingType === 'contract_to_hire' ? 'Contract to Hire' :
+                         effectiveProfile.onboardingType === 'pre_onboarding' ? 'Pre-onboarding Workflow' : 'Standard General'}
+                      </span>
+                    </div>
+
+                    {effectiveProfile.contractDuration && (
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Contract Duration</span>
+                        <span className="font-bold text-slate-900 dark:text-white block mt-0.5">
+                          {effectiveProfile.contractDuration}
+                        </span>
+                      </div>
+                    )}
+
+                    {effectiveProfile.contractEndDate && (
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Contract Expiration Date</span>
+                        <span className="font-bold text-slate-900 dark:text-white block mt-0.5">
+                          {formatDate(effectiveProfile.contractEndDate)}
+                        </span>
+                      </div>
+                    )}
+
+                    {effectiveProfile.contractRate && (
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Contract Pay / Billing Rate</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5">
+                          {effectiveProfile.contractRate}
+                        </span>
+                      </div>
+                    )}
+
+                    {effectiveProfile.contractTaxType && (
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Tax Classification</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200 block mt-0.5">
+                          {effectiveProfile.contractTaxType}
+                        </span>
+                      </div>
+                    )}
+
+                    {effectiveProfile.contractAgency && (
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Contracting Agency / Partner</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200 block mt-0.5">
+                          {effectiveProfile.contractAgency}
+                        </span>
+                      </div>
+                    )}
+
+                    {effectiveProfile.conversionEligibilityDate && (
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Target Conversion Review</span>
+                        <span className="font-bold text-purple-600 dark:text-purple-400 block mt-0.5">
+                          {formatDate(effectiveProfile.conversionEligibilityDate)}
+                        </span>
+                      </div>
+                    )}
+
+                    {effectiveProfile.preOnboardingStage && (
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Pre-boarding Milestone</span>
+                        <span className="font-bold text-amber-600 dark:text-amber-400 block mt-0.5">
+                          {effectiveProfile.preOnboardingStage}
+                        </span>
+                      </div>
+                    )}
+
+                    {effectiveProfile.targetOnboardDate && (
+                      <div>
+                        <span className="text-slate-400 block text-[11px]">Target Joining Date</span>
+                        <span className="font-bold text-slate-900 dark:text-white block mt-0.5">
+                          {formatDate(effectiveProfile.targetOnboardDate)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                     <span className="text-xs font-semibold text-slate-400 block mb-1">Corporate Division</span>
@@ -4738,9 +5032,6 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                           <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
                             HR Documents &amp; Policies
                           </h3>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                            NDA, Offer Letter, and Corporate Policy Agreements
-                          </p>
                         </div>
                         <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                           {hrDocumentsList.length} Documents
@@ -4852,9 +5143,6 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                           <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
                             Uploaded by Employee
                           </h3>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                            Statutory, Identification, Banking, and Prior Employment Documents
-                          </p>
                         </div>
                         <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                           {uploadedByEmployeeList.length} Documents
@@ -5001,9 +5289,6 @@ export const EmployeeProfileView: React.FC<EmployeeProfileViewProps> = ({
                       <CreditCard className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       Employee ID Card &amp; Corporate Business Card
                     </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      Building access security badge and official executive business credentials.
-                    </p>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200/80">

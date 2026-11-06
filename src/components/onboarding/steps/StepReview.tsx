@@ -181,6 +181,15 @@ export const StepReview: React.FC<StepReviewProps> = ({ onReturnToDashboard }) =
               </span>
             </div>
             <div>
+              <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 block mb-1">Onboarding Model</span>
+              <span className="font-semibold text-blue-600 dark:text-blue-400 text-xs sm:text-sm">
+                {data.personalInfo.onboardingType === 'contract' ? `Fixed-Term Contract (${data.personalInfo.contractDuration || '6M'}${data.personalInfo.contractRate ? ` • ${data.personalInfo.contractRate}` : ''})` :
+                 data.personalInfo.onboardingType === 'contract_to_hire' ? `Contract to Hire (${data.personalInfo.contractDuration || '6M'} • ${data.personalInfo.contractAgency || 'Agency'})` :
+                 data.personalInfo.onboardingType === 'pre_onboarding' ? `Pre-onboarding (${data.personalInfo.preOnboardingStage || 'Pending'})` :
+                 'General Full-Time Onboarding'}
+              </span>
+            </div>
+            <div>
               <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 block mb-1">Official Start Date</span>
               <span className="font-semibold text-slate-800 dark:text-slate-100 dark:text-slate-200 text-xs sm:text-sm">
                 {formatDate(data.personalInfo.startDate)}

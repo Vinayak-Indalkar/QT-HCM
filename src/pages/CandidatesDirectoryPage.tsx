@@ -40,7 +40,10 @@ import {
   UserX,
   UserMinus,
   KeyRound,
-  Download
+  Download,
+  Briefcase,
+  Clock,
+  FileText
 } from 'lucide-react';
 
 export const CandidatesDirectoryPage: React.FC = () => {
@@ -131,6 +134,48 @@ export const CandidatesDirectoryPage: React.FC = () => {
             <span className="text-[11px] text-slate-400">{candidate.department}</span>
           </div>
         )
+      },
+      {
+        id: 'onboardingType',
+        header: 'Onboarding Type',
+        accessorKey: 'onboardingType',
+        accessorFn: (c: Candidate) => c.onboardingType || 'general',
+        sortable: true,
+        defaultVisible: true,
+        minWidth: '165px',
+        cell: (candidate) => {
+          const type = candidate.onboardingType || 'general';
+          if (type === 'contract') {
+            return (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-cyan-50 dark:bg-cyan-950/70 text-cyan-700 dark:text-cyan-300 border border-cyan-200/80 dark:border-cyan-800 shadow-2xs whitespace-nowrap">
+                <FileText className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                Contract
+              </span>
+            );
+          }
+          if (type === 'contract_to_hire') {
+            return (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800 shadow-2xs whitespace-nowrap">
+                <Briefcase className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                Contract to Hire
+              </span>
+            );
+          }
+          if (type === 'pre_onboarding') {
+            return (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800 shadow-2xs whitespace-nowrap">
+                <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                Pre-onboarding
+              </span>
+            );
+          }
+          return (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800 shadow-2xs whitespace-nowrap">
+              <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              General
+            </span>
+          );
+        }
       },
       {
         id: 'status',
@@ -310,6 +355,32 @@ export const CandidatesDirectoryPage: React.FC = () => {
         }))
       },
       {
+        id: 'onboardingType',
+        label: 'Onboarding Type',
+        options: [
+          {
+            label: 'General Onboarding',
+            value: 'general',
+            count: candidates.filter((c) => (c.onboardingType || 'general') === 'general').length
+          },
+          {
+            label: 'Direct Contract',
+            value: 'contract',
+            count: candidates.filter((c) => c.onboardingType === 'contract').length
+          },
+          {
+            label: 'Pre-onboarding',
+            value: 'pre_onboarding',
+            count: candidates.filter((c) => c.onboardingType === 'pre_onboarding').length
+          },
+          {
+            label: 'Contract to Hire',
+            value: 'contract_to_hire',
+            count: candidates.filter((c) => c.onboardingType === 'contract_to_hire').length
+          }
+        ]
+      },
+      {
         id: 'status',
         label: 'Stage',
         options: [
@@ -339,10 +410,10 @@ export const CandidatesDirectoryPage: React.FC = () => {
   // Export to CSV function
   const handleExportCSV = (selectedCandidates: Candidate[]) => {
     const items = selectedCandidates.length > 0 ? selectedCandidates : candidates;
-    const headers = ['ID,Full Name,Email,Gender,Role,Department,Manager,Start Date,Status,Progress'];
+    const headers = ['ID,Full Name,Email,Gender,Role,Department,Onboarding Type,Manager,Start Date,Status,Progress'];
     const rows = items.map(
       (c) =>
-        `"${c.id}","${c.name || `${c.firstName} ${c.lastName}`.trim()}","${c.email}","${c.gender || 'Not specified'}","${c.jobTitle}","${c.department}","${c.manager}","${c.startDate}","${c.status}","${c.progress}%"`
+        `"${c.id}","${c.name || `${c.firstName} ${c.lastName}`.trim()}","${c.email}","${c.gender || 'Not specified'}","${c.jobTitle}","${c.department}","${c.onboardingType || 'general'}","${c.manager}","${c.startDate}","${c.status}","${c.progress}%"`
     );
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers, ...rows].join('\n');
     const encodedUri = encodeURI(csvContent);

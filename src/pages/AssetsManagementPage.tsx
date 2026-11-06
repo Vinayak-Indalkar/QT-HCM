@@ -14,7 +14,6 @@ import {
   Eye,
   Pencil,
   Trash2,
-  ArrowLeft,
   Calendar,
   Building2,
   DollarSign,
@@ -56,6 +55,7 @@ import {
   ConfirmDialog,
   PageHeader,
   DataTable,
+  Breadcrumbs,
   FilterGroupConfig
 } from '../components';
 import { formatDate, formatCurrency } from '../utils/formatters';
@@ -1298,22 +1298,14 @@ export const AssetsManagementPage: React.FC = () => {
       <div className="space-y-6 text-left w-full animate-fade-in pb-16">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
-            <button
-              type="button"
-              onClick={() => setCurrentView('list')}
-              className="-ml-1 mb-2 flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Back to Assets Directory
-            </button>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-400">
-                IT Inventory Management
-              </span>
-              <span className="text-slate-300 dark:text-slate-700">•</span>
-              <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                New Equipment Registration
-              </span>
+            <div className="mb-2">
+              <Breadcrumbs
+                items={[
+                  { label: 'Assets Directory', onClick: () => setCurrentView('list') },
+                  { label: 'Register New Asset', current: true }
+                ]}
+                onHome={() => setCurrentView('list')}
+              />
             </div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">
               Register New Corporate IT Asset
@@ -1378,37 +1370,31 @@ export const AssetsManagementPage: React.FC = () => {
     return (
       <div className="space-y-6 text-left w-full animate-fade-in pb-16">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-          <div className="flex items-center gap-3">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                if (selectedAssetDetail) {
-                  setCurrentView('detail');
-                } else {
-                  setCurrentView('list');
-                }
-              }}
-              leftIcon={<ArrowLeft className="w-4 h-4" />}
-              className="text-xs font-bold"
-            >
-              {selectedAssetDetail ? 'Back to Asset Detail' : 'Back to Assets Directory'}
-            </Button>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded">
-                  {editingAsset.assetTag}
-                </span>
-                <span className="text-slate-300 dark:text-slate-700">•</span>
-                <span className="text-xs font-bold text-slate-400">
-                  Update Asset Record
-                </span>
-              </div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">
-                Edit Asset: {editingAsset.name}
-              </h1>
+          <div>
+            <div className="mb-2">
+              <Breadcrumbs
+                items={[
+                  { label: 'Assets Directory', onClick: () => setCurrentView('list') },
+                  ...(selectedAssetDetail
+                    ? [{ label: selectedAssetDetail.name, onClick: () => setCurrentView('detail') }]
+                    : []),
+                  { label: `Edit: ${editingAsset.name}`, current: true }
+                ]}
+                onHome={() => setCurrentView('list')}
+              />
             </div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded">
+                {editingAsset.assetTag}
+              </span>
+              <span className="text-slate-300 dark:text-slate-700">•</span>
+              <span className="text-xs font-bold text-slate-400">
+                Update Asset Record
+              </span>
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">
+              Edit Asset: {editingAsset.name}
+            </h1>
           </div>
         </div>
 
@@ -1477,29 +1463,29 @@ export const AssetsManagementPage: React.FC = () => {
       <div className="space-y-6 text-left w-full animate-fade-in pb-16">
         {/* Top Breadcrumb Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => { setSelectedAssetDetail(null); setCurrentView('list'); }}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-              title="Return to Assets Directory"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  IT Hardware Directory
-                </span>
-                <span className="text-slate-300 dark:text-slate-700">•</span>
-                <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded">
-                  {asset.assetTag}
-                </span>
-              </div>
+          <div>
+            <div className="mb-2">
+              <Breadcrumbs
+                items={[
+                  { label: 'Assets Directory', onClick: () => { setSelectedAssetDetail(null); setCurrentView('list'); } },
+                  { label: asset.name, current: true }
+                ]}
+                onHome={() => { setSelectedAssetDetail(null); setCurrentView('list'); }}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                IT Hardware Directory
+              </span>
+              <span className="text-slate-300 dark:text-slate-700">•</span>
+              <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded">
+                {asset.assetTag}
+              </span>
+            </div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">
                 {asset.name}
               </h1>
             </div>
-          </div>
 
           <div className="flex items-center gap-2">
             <Button

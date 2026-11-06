@@ -99,6 +99,15 @@ export interface OnboardingData {
     officeLocation?: string;
     workModel?: string;
     employmentType: string;
+    onboardingType?: 'general' | 'pre_onboarding' | 'contract' | 'contract_to_hire';
+    targetOnboardDate?: string;
+    preOnboardingStage?: string;
+    contractDuration?: string;
+    contractAgency?: string;
+    contractEndDate?: string;
+    contractRate?: string;
+    contractTaxType?: string;
+    conversionEligibilityDate?: string;
     education: string;
     line1Manager?: string;
     line2Manager?: string;

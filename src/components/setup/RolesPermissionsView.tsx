@@ -133,9 +133,6 @@ export const RolesPermissionsView: React.FC = () => {
               Role-Based Access Control (RBAC) Matrix
             </h2>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Configure granular permissions per module for viewing, modifying, deleting, exporting, and approving records.
-          </p>
         </div>
 
         <div className="flex items-center gap-2.5 self-start sm:self-auto">

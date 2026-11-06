@@ -1,4 +1,5 @@
 import { UserRole } from '../types/auth';
+import { storageService } from './storageService';
 
 export type DashboardPersona = UserRole | 'KPI_DASHBOARD';
 
@@ -1605,7 +1606,7 @@ export const setDashletSizeForPersona = (
       customHeight: customHeight !== undefined ? customHeight : sizeMap[dashletId]?.customHeight
     };
 
-    localStorage.setItem(key, JSON.stringify(sizeMap));
+    storageService.setItem(key, sizeMap);
     window.dispatchEvent(
       new CustomEvent('dashboard-config-updated', {
         detail: { role, dashletId, colSpan, heightPreset, customHeight }
@@ -1618,42 +1619,39 @@ export const setDashletSizeForPersona = (
 
 export const getMasterDashlets = (): DashletConfig[] => {
   try {
-    const saved = localStorage.getItem(MASTER_STORAGE_KEY);
-    if (saved) {
-      const parsed: DashletConfig[] = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const savedMap = new Map<string, DashletConfig>();
-        parsed.forEach((d) => savedMap.set(d.id, d));
+    const parsed = storageService.getItem<DashletConfig[] | null>(MASTER_STORAGE_KEY, null);
+    if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+      const savedMap = new Map<string, DashletConfig>();
+      parsed.forEach((d) => savedMap.set(d.id, d));
 
-        const mergedDefaults = DEFAULT_MASTER_DASHLETS.map((def) => {
-          if (savedMap.has(def.id)) {
-            const s = savedMap.get(def.id)!;
-            return {
-              ...def,
-              title: s.title || def.title,
-              description: s.description !== undefined ? s.description : def.description,
-              category: s.category || def.category,
-              type: s.type || def.type,
-              enabled: s.enabled !== undefined ? s.enabled : def.enabled,
-              assignedRoles: s.assignedRoles && s.assignedRoles.length > 0 ? s.assignedRoles : def.assignedRoles,
-              order: s.order !== undefined ? s.order : def.order,
-              colSpan: s.colSpan || def.colSpan,
-              heightPreset: s.heightPreset || def.heightPreset,
-              chartType: s.chartType || def.chartType,
-              chartData: s.chartData || def.chartData,
-              customData: s.customData || def.customData
-            };
-          }
-          return def;
-        });
+      const mergedDefaults = DEFAULT_MASTER_DASHLETS.map((def) => {
+        if (savedMap.has(def.id)) {
+          const s = savedMap.get(def.id)!;
+          return {
+            ...def,
+            title: s.title || def.title,
+            description: s.description !== undefined ? s.description : def.description,
+            category: s.category || def.category,
+            type: s.type || def.type,
+            enabled: s.enabled !== undefined ? s.enabled : def.enabled,
+            assignedRoles: s.assignedRoles && s.assignedRoles.length > 0 ? s.assignedRoles : def.assignedRoles,
+            order: s.order !== undefined ? s.order : def.order,
+            colSpan: s.colSpan || def.colSpan,
+            heightPreset: s.heightPreset || def.heightPreset,
+            chartType: s.chartType || def.chartType,
+            chartData: s.chartData || def.chartData,
+            customData: s.customData || def.customData
+          };
+        }
+        return def;
+      });
 
-        const customItems = parsed.filter(
-          (d) => d.id.startsWith('dashlet_custom_') || !DEFAULT_MASTER_DASHLETS.some((def) => def.id === d.id)
-        );
+      const customItems = parsed.filter(
+        (d) => d.id.startsWith('dashlet_custom_') || !DEFAULT_MASTER_DASHLETS.some((def) => def.id === d.id)
+      );
 
-        const combined = [...mergedDefaults, ...customItems];
-        return combined.sort((a, b) => a.order - b.order);
-      }
+      const combined = [...mergedDefaults, ...customItems];
+      return combined.sort((a, b) => a.order - b.order);
     }
   } catch (err) {
     console.error('Error loading master dashlets catalog:', err);
@@ -1662,11 +1660,11 @@ export const getMasterDashlets = (): DashletConfig[] => {
 };
 
 export const saveMasterDashlets = (dashlets: DashletConfig[]): void => {
+  storageService.setItem(MASTER_STORAGE_KEY, dashlets);
   try {
-    localStorage.setItem(MASTER_STORAGE_KEY, JSON.stringify(dashlets));
     window.dispatchEvent(new CustomEvent('dashboard-config-updated', { detail: { dashlets } }));
   } catch (err) {
-    console.error('Error saving master dashlets catalog:', err);
+    console.error('Error dispatching master dashlets event:', err);
   }
 };
 
@@ -1799,8 +1797,10 @@ export const moveDashletForPersona = (
   reordered.splice(targetIndex, 0, removed);
 
   const orderIds = reordered.map((d) => d.id);
-  localStorage.setItem(`${PERSONA_ORDER_PREFIX}${role}`, JSON.stringify(orderIds));
-  window.dispatchEvent(new CustomEvent('dashboard-config-updated', { detail: { role, orderIds } }));
+  storageService.setItem(`${PERSONA_ORDER_PREFIX}${role}`, orderIds);
+  try {
+    window.dispatchEvent(new CustomEvent('dashboard-config-updated', { detail: { role, orderIds } }));
+  } catch {}
 
   return reordered;
 };
@@ -1818,9 +1818,11 @@ export const addDashletToPersona = (role: DashboardPersona, dashletId: string): 
 };
 
 export const resetPersonaLayout = (role: DashboardPersona): DashletConfig[] => {
-  localStorage.removeItem(`${PERSONA_ORDER_PREFIX}${role}`);
-  localStorage.removeItem(`${PERSONA_SIZE_PREFIX}${role}`);
-  window.dispatchEvent(new CustomEvent('dashboard-config-updated', { detail: { role } }));
+  storageService.removeItem(`${PERSONA_ORDER_PREFIX}${role}`);
+  storageService.removeItem(`${PERSONA_SIZE_PREFIX}${role}`);
+  try {
+    window.dispatchEvent(new CustomEvent('dashboard-config-updated', { detail: { role } }));
+  } catch {}
   return getDashletsForPersona(role);
 };
 
@@ -1842,8 +1844,10 @@ export const getWidgetsForRole = (role: UserRole): CustomWidgetConfig[] => {
 
 export const saveWidgetsForRole = (role: UserRole, widgets: CustomWidgetConfig[]): void => {
   const orderIds = widgets.map((w) => w.id);
-  localStorage.setItem(`${PERSONA_ORDER_PREFIX}${role}`, JSON.stringify(orderIds));
-  window.dispatchEvent(new CustomEvent('dashboard-config-updated', { detail: { role, orderIds } }));
+  storageService.setItem(`${PERSONA_ORDER_PREFIX}${role}`, orderIds);
+  try {
+    window.dispatchEvent(new CustomEvent('dashboard-config-updated', { detail: { role, orderIds } }));
+  } catch {}
 };
 
 export const resetWidgetsForRole = (role: UserRole): CustomWidgetConfig[] => {

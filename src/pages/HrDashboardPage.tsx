@@ -142,6 +142,15 @@ export const HrDashboardPage: React.FC = () => {
         : `${Math.round((cand.progress / 100) * 10)} / 10`,
       avatar: (isLiveFlow && activeFlowData.photo?.photoUrl) || getEffectiveAvatar(cand, cand.gender, `${cand.firstName} ${cand.lastName}`),
       startDate: cand.startDate,
+      onboardingType: cand.onboardingType || (cand.employmentType === 'Contractor' ? 'contract' : 'general'),
+      contractDuration: cand.contractDuration,
+      contractAgency: cand.contractAgency,
+      contractEndDate: cand.contractEndDate,
+      contractRate: cand.contractRate,
+      contractTaxType: cand.contractTaxType,
+      preOnboardingStage: cand.preOnboardingStage,
+      targetOnboardDate: cand.targetOnboardDate,
+      conversionEligibilityDate: cand.conversionEligibilityDate,
       isLiveFlow,
       rawCandidate: cand
     };
@@ -177,6 +186,15 @@ export const HrDashboardPage: React.FC = () => {
       workLocation: cand.officeLocation || 'San Francisco HQ',
       workModel: cand.workModel || 'Hybrid',
       employmentType: cand.employmentType || 'Full-time',
+      onboardingType: cand.onboardingType || (cand.employmentType === 'Contractor' ? 'contract' : 'general'),
+      contractDuration: cand.contractDuration,
+      contractAgency: cand.contractAgency,
+      contractEndDate: cand.contractEndDate,
+      contractRate: cand.contractRate,
+      contractTaxType: cand.contractTaxType,
+      preOnboardingStage: cand.preOnboardingStage,
+      targetOnboardDate: cand.targetOnboardDate,
+      conversionEligibilityDate: cand.conversionEligibilityDate,
       status: emp.status,
       progress: emp.progress,
       manager: cand.manager || 'Marcus Brody',
@@ -359,7 +377,6 @@ export const HrDashboardPage: React.FC = () => {
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">
                   Live Attendance &amp; Shift Stream
                 </h2>
-                <p className="text-xs text-slate-500">Real-time punch activity feed</p>
               </div>
             </div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">
@@ -480,6 +497,23 @@ export const HrDashboardPage: React.FC = () => {
                           <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                             {emp.id}
                           </span>
+                          {emp.onboardingType === 'contract' ? (
+                            <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300">
+                              Contract
+                            </span>
+                          ) : emp.onboardingType === 'contract_to_hire' ? (
+                            <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
+                              C2H
+                            </span>
+                          ) : emp.onboardingType === 'pre_onboarding' ? (
+                            <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300">
+                              Pre-onboard
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                              Full-time
+                            </span>
+                          )}
                         </div>
                         <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                           {emp.role} • {emp.department}
@@ -528,7 +562,6 @@ export const HrDashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Probation Review Due</h3>
-              <p className="text-xs text-slate-500">Appraisals queue</p>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">3 Due</span>
           </CardHeader>
@@ -560,7 +593,6 @@ export const HrDashboardPage: React.FC = () => {
           <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Documents Pending</h3>
-              <p className="text-xs text-slate-500">Missing proofs</p>
             </div>
             <button
               type="button"
