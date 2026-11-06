@@ -68,6 +68,8 @@ export interface CustomFieldBuilderViewProps {
   targetModule: 'employee' | 'assets' | string;
   availableSections: string[];
   standardSections: string[];
+  schemaVariables?: SchemaVariable[];
+  queryPresets?: QueryPreset[];
   onSave: (fieldData: any, newSection?: string) => void;
   onCancel: () => void;
 }

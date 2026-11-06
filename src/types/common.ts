@@ -28,6 +28,7 @@ export interface ColumnDef<T> {
   id: string;
   header: string;
   accessorKey?: keyof T;
+  accessorFn?: (item: T) => any;
   sortable?: boolean;
   hideable?: boolean;
   defaultVisible?: boolean;

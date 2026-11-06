@@ -1,7 +1,7 @@
 export interface SchemaVariable {
   token: string;
   label: string;
-  category: 'Employee' | 'Metrics' | 'Assets' | 'Function';
+  category: 'Employee' | 'Metrics' | 'Assets' | 'Function' | string;
   description: string;
   example: string;
 }

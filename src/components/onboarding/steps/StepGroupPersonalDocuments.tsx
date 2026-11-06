@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOnboardingFlow } from '../../../context/OnboardingFlowContext';
+import { formatDate } from '../../../utils/formatters';
 import { TextInput } from '../../atoms';
 import { Select } from '../../atoms';
 import { FormSection } from '../../molecules';

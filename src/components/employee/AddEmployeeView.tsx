@@ -605,6 +605,7 @@ export const AddEmployeeView: React.FC<AddEmployeeViewProps> = ({
       line2Manager: line2Manager.trim(),
       employmentType: (employmentType || 'Full-time') as EmploymentType,
       workModel: (workModel as WorkModel) || (workLocation.includes('Remote') ? 'Remote' : 'Hybrid'),
+      officeLocation: workLocation || 'San Francisco, CA',
       startDate,
       onboardingType,
       targetOnboardDate: (onboardingType === 'pre_onboarding' || onboardingType === 'contract_to_hire' || onboardingType === 'contract') ? targetOnboardDate : undefined,
